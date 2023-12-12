@@ -1,0 +1,113 @@
+#!/bin/bash
+###
+ # @Author: miaoermua
+ # @Date: 2023-12-12 16:59:27
+ # @LastEditors: miaoermua
+ # @LastEditTime: 2023-12-12 17:33:11
+ # @FilePath: \undefinedd:\Git\cattools\cattools.sh
+### 
+
+default_ip="192.168.1.4"
+amd64_efi_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
+amd64_bios_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
+
+setip(){
+    read -p "请输入 IP(默认为 $default_ip): " input_ip
+    if [ -z $input_ip ]; then
+        input_ip=$default_ip 
+    fi
+
+    uci set network.lan.ipaddr=$input_ip 
+    uci commit network
+    /etc/init.d/network restart
+    
+    echo "默认IP已设置为 $input_ip"
+}
+
+catwrt_update(){
+    /usr/bin/catwrt_update  
+}
+
+catwrt_network_diagnostics(){
+    /usr/bin/catnd
+}
+
+catwrt_sysupgrade(){
+    
+    # 检测架构
+    if [[ $(uname -m) =~ "x86_64" ]]; then
+        echo "CatWrt ARCH: x86_64(AMD64)"
+        
+        # 检测磁盘空间
+        size=$(fdisk -l /dev | grep "Disk /dev" | awk '{print $5}') 
+        size=${size%\*}
+        if [[ $size > 820 ]]; then
+            echo "磁盘空间超过限制,升级中止"
+            exit
+        fi
+        
+        # 检测EFI分区 
+        if [[ -b /dev/sda128 || -b /dev/vda128 ]]; then
+            efi_part=true
+        else
+            efi_part=false
+        fi
+        
+        # 用户确认 
+        echo "将升级系统,存在风险,请先确认(y/n), 30秒后默认n"
+        read -t 30 confirm
+        confirm=${confirm:-n}
+        
+        # 执行升级
+        if [[ $confirm =~ [Yy] ]]; then
+            if [[ $efi_part == true ]]; then
+                sysupgrade -v $amd64_efi_boot_sysup
+            else
+                sysupgrade -v $amd64_bios_boot_sysup
+            fi
+        else
+            echo "用户已取消升级"
+        fi
+        
+    else
+        echo "非x86_64架构,跳过升级"
+    fi
+}
+
+while :; do
+    clear
+    echo "CatTools"
+    echo "---------------------------"  
+    echo "1. Set IPv4 设置默认IP"
+    echo "2. Check Update 检查系统更新"
+    echo "3. network diagnostics 网络诊断" 
+    ehco "4. sysupgrade 升级系统"
+    echo "0. Exit 退出脚本"
+    read -p "请选择: " choice
+
+    case $choice in
+        1)
+            setip
+        ;;
+        2) 
+            catwrt_update
+        ;;
+        3)
+            catwrt_network_diagnostics
+        ;; 
+        4)
+            catwrt_sysupgrade
+        ;;
+        0)
+            echo "退出脚本..."
+            break
+        ;;
+        *)
+            echo "无效的选择, 请重新输入"
+        ;;
+    esac
+
+    sleep 1   
+done
+
+echo "脚本执行完毕!"
