@@ -44,7 +44,7 @@ setip(){
 }
 
 catwrt_update(){
-    /usr/bin/catwrt_update  
+    /usr/bin/catwrt-update  
 }
 
 catwrt_network_diagnostics(){
