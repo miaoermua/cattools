@@ -8,8 +8,27 @@
 ### 
 
 default_ip="192.168.1.4"
+release="catwrt_release"
+amd64_repo_url="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo_lists/amd64/distfeeds.conf"
 amd64_efi_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
 amd64_bios_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
+
+# Check OpenWrt
+
+if [ $(id -u) != "0" ]; then
+    echo "Error: You must be root to run this script, please use root user"
+    exit 1
+fi
+
+release=$(cat /etc/openwrt_release)
+
+if [[ $release =~ "OpenWrt" ]]; then
+  echo "$(date) - Starting CatWrt Network Diagnostics"  
+else
+  echo "Abnormal system environment..."
+  echo " "
+  exit 1
+fi
 
 setip(){
     read -p "请输入 IP(默认为 $default_ip): " input_ip
@@ -30,6 +49,24 @@ catwrt_update(){
 
 catwrt_network_diagnostics(){
     /usr/bin/catnd
+}
+
+use_repo(){
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续(y/n)"
+    read -t 10 -p "您有 10 秒选择,输入 y 继续,其他退出:" confirm
+    [ "$confirm" != y ] && return
+    
+    arch=$(uname -m)
+    
+    if [ "$arch" = "x86_64" ]; then
+        curl -o /etc/opkg/distfeeds.conf $amd64_repo_url
+        rm -f /var/lock/opkg.lock
+        opkg update
+        echo "UPDATE!"
+    else
+        echo "非 x86_64 架构,跳过"
+    fi
+
 }
 
 catwrt_sysupgrade(){
@@ -81,7 +118,8 @@ while :; do
     echo "1. Set IPv4 设置默认IP"
     echo "2. Check Update 检查系统更新"
     echo "3. network diagnostics 网络诊断" 
-    ehco "4. sysupgrade 升级系统"
+    ehco "4. use repo 使用软件源"
+    ehco "5. sysupgrade 升级系统"
     echo "0. Exit 退出脚本"
     read -p "请选择: " choice
 
@@ -96,10 +134,13 @@ while :; do
             catwrt_network_diagnostics
         ;; 
         4)
+            use_repo
+        ;;
+        4)
             catwrt_sysupgrade
         ;;
         0)
-            echo "退出脚本..."
+            echo "Exit CatTools 退出脚本..."
             break
         ;;
         *)
@@ -110,4 +151,4 @@ while :; do
     sleep 1   
 done
 
-echo "脚本执行完毕!"
+echo "结束!"
