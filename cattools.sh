@@ -136,7 +136,7 @@ while :; do
         4)
             use_repo
         ;;
-        4)
+        5)
             catwrt_sysupgrade
         ;;
         0)
