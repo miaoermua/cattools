@@ -3,13 +3,14 @@
  # @Author: miaoermua
  # @Date: 2023-12-12 16:59:27
  # @LastEditors: miaoermua
- # @LastEditTime: 2023-12-12 17:33:11
+ # @LastEditTime: 2023-12-27 13:33:07
  # @FilePath: \undefinedd:\Git\cattools\cattools.sh
 ### 
 
 default_ip="192.168.1.4"
 release="catwrt_release"
-amd64_repo_url="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo_lists/amd64/distfeeds.conf"
+amd64_repo="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
+mt798x_repo="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
 amd64_efi_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
 amd64_bios_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
 
@@ -34,11 +35,14 @@ update(){
     if ! curl -fsSL https://service.miaoer.xyz/cattools/cattools.sh -o $(readlink -f "$0"); then
         echo "无法连接更新站点"
         
-        if ! curl -fsSL https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh -o $(readlink -f "$0"); then
+        if ! curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/cattools.sh -o $(readlink -f "$0"); then
             echo "无法连接更新仓库" 
-            echo "无法连接互联网,请联系作者."
-            return 
-        fi
+
+           if ! curl -fsSL https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh -o $(readlink -f "$0"); then
+               echo "无法连接更新仓库" 
+               echo "无法连接互联网,请联系作者."
+               return 
+           fi
         
     fi
     
@@ -74,7 +78,7 @@ use_repo(){
     arch=$(uname -m)
     
     if [ "$arch" = "x86_64" ]; then
-        curl -o /etc/opkg/distfeeds.conf $amd64_repo_url
+        curl -o /etc/opkg/distfeeds.conf $amd64_repo
         rm -f /var/lock/opkg.lock
         opkg update
         echo "UPDATE!"
