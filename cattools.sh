@@ -142,15 +142,17 @@ debug(){
         if [ -f /www/logs.txt ]; then
               rm /www/logs.txt
         fi
-	
+
+           cat /etc/banner > /www/logs.txt
            cat /etc/catwrt_release > /www/logs.txt
-           logread >> /www/logs.txt  
+           logread >> /www/logs.txt
            dmesg >> /www/logs.txt
 
         lan_ip=$(uci get network.lan.ipaddr)
 	
         echo "系统日志已收集到 /www/logs.txt" 
         echo "访问下载 http://$lan_ip/logs.txt"
+	exit
 }
 
 bypass_gateway(){
