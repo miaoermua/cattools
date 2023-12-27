@@ -23,7 +23,7 @@ fi
 
 release=$(cat /etc/openwrt_release)
 
-if [[ $release =~ "OpenWrt" ]]; then
+if [[ $release =~ "OpenWrt" ]]
 else
     echo "Abnormal system environment..."
     echo " "
