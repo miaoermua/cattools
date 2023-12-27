@@ -340,11 +340,10 @@ while :; do
     echo "7.  setup bypass gateway   旁路网关"
     echo "0.  Exit                   退出脚本"
     echo "----------------------------------------"  
-    echo "请选择数字按下回车: "
-    choice=""
-    while [ -z $choice ]; do
-      read choice
-    done
+    echo -en "请选择数字按下回车: "
+    if [ -z "$choice" ]; then
+         choice="0"
+    fi
 
     case $choice in
         1)
