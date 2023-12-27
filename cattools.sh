@@ -14,21 +14,19 @@ MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/
 AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
 AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
 
-# Check OpenWrt
+# Check ROOT & OpenWrt
 
 if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this script, please use root user"
     exit 1
 fi
 
-release=$(cat /etc/openwrt_release)
-
-if [[ $release =~ "OpenWrt" ]]
-else
-    echo "Abnormal system environment..."
-    echo " "
+openwrt_release=$(cat /etc/openwrt_release)
+if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
+    echo "Your system is not supported!"
     exit 1
 fi
+
 
 update(){
     if ! curl -fsSLo /root/cattools https://service.miaoer.xyz/cattools/cattools.sh; then
