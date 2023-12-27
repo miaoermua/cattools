@@ -130,15 +130,16 @@ update
 
 while :; do
     clear
-    echo "CatTools"
-    echo "---------------------------"  
+    echo "              CatTools"
+    echo "--------------------------------------"  
     echo "1.  Set IPv4 Addr        设置 IP"
     echo "2.  Check Update         检查系统更新"
     echo "3.  network diagnostics  网络诊断"
     echo "4.  use repo             使用软件源"
     echo "5.  sysupgrade           升级系统"
     echo "0.  Exit                 退出脚本"
-    echo "请选择:"
+    echo "--------------------------------------"  
+    echo "请选择数字按下回车:"
     choice=""
     while [ -z $choice ]; do
       read choice
