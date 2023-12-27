@@ -341,8 +341,9 @@ while :; do
     echo "0.  Exit                   退出脚本"
     echo "----------------------------------------"  
     echo -en "请选择数字按下回车: "
+    read choice
     if [ -z "$choice" ]; then
-         choice=""
+      choice="0"
     fi
 
     case $choice in
