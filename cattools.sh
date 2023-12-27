@@ -31,6 +31,24 @@ else
     exit 1
 fi
 
+update(){
+    if ! curl -fsSL https://service.miaoer.xyz/cattools/cattools.sh -o $(readlink -f "$0"); then
+        echo "无法连接更新站点"
+
+        if ! curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/cattools.sh -o $(readlink -f "$0"); then
+            echo "无法连接更新仓库" 
+
+           if ! curl -fsSL https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh -o $(readlink -f "$0"); then
+               echo "无法连接更新仓库" 
+               echo "无法连接互联网,请联系作者."
+               return 
+           fi
+        fi
+    fi
+
+    exec $(readlink -f "$0")
+}
+
 setip(){
     read -p "请输入 IP(默认为 $DEFAULT_IP): " input_ip
     if [ -z $input_ip ]; then
@@ -146,6 +164,7 @@ bypass_gateway(){
         exit
 }
 
+update
 
 while :; do
     clear
