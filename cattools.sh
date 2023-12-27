@@ -371,6 +371,7 @@ while :; do
         ;;
         *)
             echo "无效的选择, 请重新输入"
+	    exit
         ;;
     esac
 
