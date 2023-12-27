@@ -3,7 +3,7 @@
  # @Author: miaoermua
  # @Date: 2023-12-12 16:59:27
  # @LastEditors: miaoermua
- # @LastEditTime: 2023-12-27 13:33:07
+ # @LastEditTime: 2023-12-27 15:08:43
  # @FilePath: \undefinedd:\Git\cattools\cattools.sh
 ### 
 
@@ -24,11 +24,11 @@ fi
 release=$(cat /etc/openwrt_release)
 
 if [[ $release =~ "OpenWrt" ]]; then
-  echo "$(date) - Starting CatWrt Network Diagnostics"  
+    echo "$(date) - Starting CatWrt Network Diagnostics"  
 else
-  echo "Abnormal system environment..."
-  echo " "
-  exit 1
+    echo "Abnormal system environment..."
+    echo " "
+    exit 1
 fi
 
 setip(){
@@ -126,7 +126,7 @@ debug(){
         fi
 
            cat /etc/banner > /www/logs.txt
-           cat /etc/catwrt_release > /www/logs.txt
+           cat /etc/catwrt_release >> /www/logs.txt
            logread >> /www/logs.txt
            dmesg >> /www/logs.txt
 
@@ -142,11 +142,11 @@ bypass_gateway(){
         echo "没做完"
         exit
 }
-	
-update
+
 
 while :; do
     clear
+    echo " "
     echo "                CatTools"
     echo "----------------------------------------"  
     echo "1.  Set IPv4 Addr          设置 IP"
