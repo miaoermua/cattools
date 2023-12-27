@@ -3,16 +3,16 @@
  # @Author: miaoermua
  # @Date: 2023-12-12 16:59:27
  # @LastEditors: miaoermua
- # @LastEditTime: 2023-12-27 15:08:43
+ # @LastEditTime: 2023-12-27 15:42:39
  # @FilePath: \undefinedd:\Git\cattools\cattools.sh
 ### 
 
-default_ip="192.168.1.4"
-release="/etc/catwrt_release"
-amd64_repo="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
-mt798x_repo="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
-amd64_efi_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
-amd64_bios_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
+DEFAULT_IP="192.168.1.4"
+RELEASE="/etc/catwrt_release"
+AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
+MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
+AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
+AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
 
 # Check OpenWrt
 
@@ -32,9 +32,9 @@ else
 fi
 
 setip(){
-    read -p "请输入 IP(默认为 $default_ip): " input_ip
+    read -p "请输入 IP(默认为 $DEFAULT_IP): " input_ip
     if [ -z $input_ip ]; then
-        input_ip=$default_ip 
+        input_ip=$DEFAULT_IP 
     fi
 
     uci set network.lan.ipaddr=$input_ip 
@@ -64,11 +64,11 @@ use_repo(){
 
     if [[ $model =~ "mt798x" ]]; then
         # mt798x  
-		curl -o /etc/opkg/distfeeds.conf $mt798x_repo 
+		curl -o /etc/opkg/distfeeds.conf $MT798X_REPO
     
     elif [ "$arch" = "x86_64" ]; then
     	# amd64
-        curl -o /etc/opkg/distfeeds.conf $amd64_repo
+        curl -o /etc/opkg/distfeeds.conf $AMD64_REPO
         
     else
         echo "不支持的机型: $model"
@@ -106,9 +106,9 @@ catwrt_sysupgrade(){
         # 执行升级
         if [[ $confirm =~ [Yy] ]]; then
             if [[ $efi_part == true ]]; then
-                sysupgrade -v $amd64_efi_boot_sysup
+                sysupgrade -v $AMD64_EFI_SYSUP
             else
-                sysupgrade -v $amd64_bios_boot_sysup
+                sysupgrade -v $AMD64_BIOS_SYSUP
             fi
         else
             echo "用户已取消升级"
