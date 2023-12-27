@@ -30,8 +30,6 @@ else
   exit 1
 fi
 
-update
-
 update(){
     if ! curl -fsSL https://service.miaoer.xyz/cattools/cattools.sh -o $(readlink -f "$0"); then
         echo "无法连接更新站点"
@@ -127,6 +125,8 @@ catwrt_sysupgrade(){
         echo "非x86_64架构,跳过升级"
     fi
 }
+
+update
 
 while :; do
     clear
