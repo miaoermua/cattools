@@ -32,15 +32,15 @@ else
 fi
 
 update(){
-    if ! curl -fsSL https://service.miaoer.xyz/cattools/cattools.sh -o $(readlink -f "$0"); then
+    if ! curl -fsSL https://service.miaoer.xyz/cattools/cattools.sh -o; then
         echo "无法连接更新站点"
 
-        if ! curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/cattools.sh -o $(readlink -f "$0"); then
+        if ! curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/cattools.sh -o; then
             echo "无法连接更新仓库" 
 
-           if ! curl -fsSL https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh -o $(readlink -f "$0"); then
+           if ! curl -fsSL https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh -o; then
                echo "无法连接更新仓库" 
-               echo "无法连接互联网,请联系作者."
+               echo "无法连接互联网,请联系作者！"
                return 
            fi
         fi
@@ -59,7 +59,7 @@ setip(){
     uci commit network
     /etc/init.d/network restart
     
-    echo "默认IP已设置为 $input_ip"
+    echo "默认 IP 已设置为 $input_ip"
 }
 
 catwrt_update(){
@@ -71,6 +71,10 @@ catwrt_network_diagnostics(){
 }
 
 use_repo(){
+    echo "Warning:"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
+    echo "支持我们: https://www.miaoer.xyz/sponsor"
     echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (y/n)"
     read -t 10 -p "您有 10 秒选择,输入 y 继续,其他退出:" confirm
     [ "$confirm" != y ] && return
@@ -97,31 +101,31 @@ use_repo(){
 
 catwrt_sysupgrade(){
     
-    # 检测架构
+    # uname
     if [[ $(uname -m) =~ "x86_64" ]]; then
         echo "CatWrt ARCH: x86_64(AMD64)"
         
-        # 检测磁盘空间
+        # Check Disk space remaining
         size=$(fdisk -l /dev | grep "Disk /dev" | awk '{print $5}') 
         size=${size%\*}
         if [[ $size > 820 ]]; then
-            echo "磁盘空间超过限制,升级中止"
+            echo "磁盘空间出现了更改！脚本退出！"
             exit
         fi
         
-        # 检测EFI分区 
+        # Check EFI remaining
         if [[ -b /dev/sda128 || -b /dev/vda128 ]]; then
             efi_part=true
         else
             efi_part=false
         fi
         
-        # 用户确认 
-        echo "将升级系统,存在风险,请先确认(y/n), 30秒后默认n"
+        # confirmation
+        echo "即将升级系统，存在风险请你三思确认 (y/n) 30 秒后默认退出脚本！"
         read -t 30 confirm
         confirm=${confirm:-n}
         
-        # 执行升级
+        # upgrade
         if [[ $confirm =~ [Yy] ]]; then
             if [[ $efi_part == true ]]; then
                 sysupgrade -v $AMD64_EFI_SYSUP
@@ -129,11 +133,11 @@ catwrt_sysupgrade(){
                 sysupgrade -v $AMD64_BIOS_SYSUP
             fi
         else
-            echo "用户已取消升级"
+            echo "用户已取消升级!"
         fi
         
     else
-        echo "非 x86_64 架构,跳过升级"
+        echo "仅有 x86_64 可以使用脚本进行系统升级。"
     fi
 }
 
