@@ -32,13 +32,13 @@ else
 fi
 
 update(){
-    if ! curl -fsSL https://service.miaoer.xyz/cattools/cattools.sh -o; then
+    if ! curl -fsSLo /root/cattools https://service.miaoer.xyz/cattools/cattools.sh; then
         echo "无法连接更新站点"
 
-        if ! curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/cattools.sh -o; then
+        if ! curl -fsSLo /root/cattools https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/cattools.sh; then
             echo "无法连接更新仓库" 
 
-           if ! curl -fsSL https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh -o; then
+           if ! curl -fsSLo /root/cattools https://raw.githubusercontent.com/miaoermua/service/main/cattools/cattools.sh; then
                echo "无法连接更新仓库" 
                echo "无法连接互联网,请联系作者！"
                return 
