@@ -124,16 +124,19 @@ debug(){
         if [ -f /www/logs.txt ]; then
               rm /www/logs.txt
         fi
-
-           cat /etc/banner > /www/logs.txt
+	
+           cat /etc/banner >> /www/logs.txt
+           echo "## RELEASE" >> /www/logs.txt
            cat /etc/catwrt_release >> /www/logs.txt
+           echo "## SYSLOG" >> /www/logs.txt
            logread >> /www/logs.txt
+           echo "## DMESG" >> /www/logs.txt
            dmesg >> /www/logs.txt
 
         lan_ip=$(uci get network.lan.ipaddr)
 	
-        echo "系统日志已收集到 /www/logs.txt" 
-        echo "访问下载 http://$lan_ip/logs.txt"
+        echo "日志已收集到 /www/logs.txt" 
+        echo "使用浏览器访问下载 http://$lan_ip/logs.txt"
 	exit
 }
 
