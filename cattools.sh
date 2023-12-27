@@ -342,7 +342,7 @@ while :; do
     echo "----------------------------------------"  
     echo -en "请选择数字按下回车: "
     if [ -z "$choice" ]; then
-         choice="0"
+         choice=""
     fi
 
     case $choice in
