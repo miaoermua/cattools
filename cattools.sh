@@ -137,6 +137,20 @@ catwrt_sysupgrade(){
     fi
 }
 
+debug(){
+        if [ -f /www/logs.txt ]; then
+              rm /www/logs.txt
+        fi
+           cat /etc/catwrt_release > /www/logs.txt
+           logread >> /www/logs.txt  
+           dmesg >> /www/logs.txt
+
+        lan_ip=$(uci get network.lan.ipaddr)
+	
+        echo "系统日志已收集到 /www/logs.txt" 
+        echo "访问下载 http://$lan_ip/logs.txt"
+}
+
 update
 
 while :; do
@@ -144,10 +158,11 @@ while :; do
     echo "              CatTools"
     echo "--------------------------------------"  
     echo "1.  Set IPv4 Addr        设置 IP"
-    echo "2.  Check Update         检查系统更新"
+    echo "2.  check update         检查系统更新"
     echo "3.  network diagnostics  网络诊断"
     echo "4.  use repo             使用软件源"
     echo "5.  sysupgrade           升级系统"
+    echo "6.  debug                日志收集"
     echo "0.  Exit                 退出脚本"
     echo "--------------------------------------"  
     echo "请选择数字按下回车: "
@@ -171,6 +186,9 @@ while :; do
         ;;
         5)
             catwrt_sysupgrade
+        ;;
+	6)
+            debug
         ;;
         0)
             echo "Exit CatTools 退出脚本..."
