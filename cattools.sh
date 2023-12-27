@@ -8,7 +8,7 @@
 ### 
 
 default_ip="192.168.1.4"
-release="catwrt_release"
+release="/etc/catwrt_release"
 amd64_repo="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
 mt798x_repo="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
 amd64_efi_boot_sysup="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
@@ -50,7 +50,7 @@ update(){
 }
 
 setip(){
-    read -p "请输入 IP(默认为 $default_ip): " input_ip
+    read -p "请输入 IP (默认为 $default_ip): " input_ip
     if [ -z $input_ip ]; then
         input_ip=$default_ip 
     fi
@@ -71,19 +71,26 @@ catwrt_network_diagnostics(){
 }
 
 use_repo(){
-    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续(y/n)"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (y/n)"
     read -t 10 -p "您有 10 秒选择,输入 y 继续,其他退出:" confirm
     [ "$confirm" != y ] && return
     
     arch=$(uname -m)
     
-    if [ "$arch" = "x86_64" ]; then
+    # Check ARCH release
+    model=$(grep "Model:" $release | cut -d ' ' -f2)
+
+    if [[ $model =~ "mt798x" ]]; then
+        # mt798x  
+		curl -o /etc/opkg/distfeeds.conf $mt798x_repo 
+    
+    elif [ "$arch" = "x86_64" ]; then
+    	# amd64
         curl -o /etc/opkg/distfeeds.conf $amd64_repo
-        rm -f /var/lock/opkg.lock
-        opkg update
-        echo "UPDATE!"
+        
     else
-        echo "非 x86_64 架构,跳过"
+        echo "不支持的机型: $model"
+        return
     fi
 
 }
@@ -126,7 +133,7 @@ catwrt_sysupgrade(){
         fi
         
     else
-        echo "非x86_64架构,跳过升级"
+        echo "非 x86_64 架构,跳过升级"
     fi
 }
 
@@ -143,7 +150,7 @@ while :; do
     echo "5.  sysupgrade           升级系统"
     echo "0.  Exit                 退出脚本"
     echo "--------------------------------------"  
-    echo "请选择数字按下回车:"
+    echo "请选择数字按下回车: "
     choice=""
     while [ -z $choice ]; do
       read choice
