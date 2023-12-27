@@ -50,7 +50,7 @@ update(){
 }
 
 setip(){
-    read -p "请输入 IP (默认为 $default_ip): " input_ip
+    read -p "请输入 IP(默认为 $default_ip): " input_ip
     if [ -z $input_ip ]; then
         input_ip=$default_ip 
     fi
