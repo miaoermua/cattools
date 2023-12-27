@@ -121,7 +121,11 @@ while :; do
     echo "- 4. - use repo            使用软件源"
     echo "- 5. - sysupgrade          升级系统"
     echo "- 0. - Exit                退出脚本"
-    read -p "请选择: " choice
+    echo "请选择:"
+    choice=""
+    while [ -z $choice ]; do
+      read choice
+    done
 
     case $choice in
         1)
