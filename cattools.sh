@@ -302,13 +302,18 @@ debug(){
         if [ -f /www/logs.txt ]; then
               rm /www/logs.txt
         fi
-	
            cat /etc/banner >> /www/logs.txt
            echo "## RELEASE" >> /www/logs.txt
+	   echo "==========" >> /www/logs.txt
            cat /etc/catwrt_release >> /www/logs.txt
+           echo "## Application" >> /www/logs.txt
+	   echo "==========" >> /www/logs.txt
+	   opkg list_installed >> /www/logs.txt
            echo "## SYSLOG" >> /www/logs.txt
+	   echo "==========" >> /www/logs.txt
            logread >> /www/logs.txt
            echo "## DMESG" >> /www/logs.txt
+	   echo "==========" >> /www/logs.txt
            dmesg >> /www/logs.txt
 
         lan_ip=$(uci get network.lan.ipaddr)
@@ -317,6 +322,76 @@ debug(){
         echo "使用浏览器访问下载 http://$lan_ip/logs.txt"
 	exit
 }
+
+setup(){
+
+read -p "Do you want toNetwork Setup? 是否使用网络向导? (Enter/1) " use_wizard
+    if [ "$use_wizard" != 1 ]; then
+      exit 0
+    fi
+
+echo "CatWrt default IP is 192.168.1.4. 默认 CatWrt IP 为 192.168.1.4"
+read -p "Do you want to change IP address? 是否修改IP地址? (Enter/1) " change_ip
+    if [ "$change_ip" = 1 ]; then
+      read -p "Please input new IP: " new_ip
+      uci set network.lan.ipaddr=$new_ip
+    fi
+
+echo "Recommended DNS: 223.6.6.6 119.29.29.99. 推荐使用的DNS: 223.6.6.6 119.29.29.99" 
+read -p "Use recommended DNS servers? 使用推荐的DNS服务器? (Enter/1) " use_recommended_dns
+    if [ "$use_recommended_dns" = 1 ]; then
+      read -p "Please input DNS servers separated by space 请输入以空格分隔的DNS服务器: " dns_servers
+      uci set network.lan.dns="$dns_servers"
+    else
+      uci set network.lan.dns="223.6.6.6 119.29.29.99"
+    fi
+
+echo "IPv6 is enabled by default. IPv6 默认是开启的"
+read -p "Disable IPv6? 是否禁用IPv6? (Enter/1) " disable_ipv6
+    if [ "$disable_ipv6" = 1 ]; then
+      uci delete dhcp.lan.dhcpv6 
+      uci delete dhcp.lan.ra
+      uci delete dhcp.lan.ra_management
+      uci delete network.lan.ip6assign
+    fi
+
+echo "Default connection mode is DHCP. 默认模式为 DHCP"
+read -p "Use PPPoE dial up instead? 使用PPPoE拨号上网? (Enter/1) " use_pppoe
+    if [ "$use_pppoe" = 1 ]; then
+      read -p "Please input PPPoE username: " pppoe_user
+      read -p "Please input PPPoE password: " pppoe_pass
+      uci set network.wan.proto=pppoe
+      uci set network.wan.username=$pppoe_user
+      uci set network.wan.password=$pppoe_pass
+    fi  
+
+echo "Default client IP range: 30 to 200. 默认客户端 IP 段为 30 到 200"
+read -p "Set custom client IP range instead? 设置自定义客户端IP段? (Enter/1)" custom_ip_range
+    if [ "$custom_ip_range" = 1 ]; then
+      read -p "Please input start IP: " dhcp_start
+      read -p "Please input end IP: " dhcp_limit
+      uci set dhcp.lan.start=$dhcp_start
+      uci set dhcp.lan.limit=$dhcp_limit 
+    fi
+echo "WiFi 部分将等待完善!"
+
+uci commit
+
+/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
+/etc/init.d/firewall restart
+
+ping -c 2 bilibili.com > /dev/null
+
+    if [ $? -eq 0 ]; then
+      echo "Network connectivity OK!"  
+    else
+      lan_ip=$(uci get network.lan.ipaddr)
+        echo "Network error, bilibili.com ping failed."
+        echo "Please login to LuCI interface: http://$lan_ip to check settings."
+    fi
+
+echo "Network Wizard completed!"
 
 bypass_gateway(){
 
@@ -331,13 +406,14 @@ while :; do
     echo " "
     echo "                CatTools"
     echo "----------------------------------------"  
-    echo "1.  Set IPv4 Addr          设置 IP"
-    echo "2.  check update           检查系统更新"
-    echo "3.  network diagnostics    网络诊断"
-    echo "4.  use repo               使用软件源"
-    echo "5.  sysupgrade             升级系统"
-    echo "6.  debug                  日志收集"
-    echo "7.  setup bypass gateway   旁路网关"
+    echo "1.  Setup Network          网络向导"
+    echo "2.  Set IPv4 Addr          设置 IP"
+    echo "3.  check update           检查系统更新"
+    echo "4.  network diagnostics    网络诊断"
+    echo "5.  use repo               使用软件源"
+    echo "6.  sysupgrade             升级系统"
+    echo "7.  debug                  日志收集"
+    echo "8.  setup bypass gateway   旁路网关"
     echo "0.  Exit                   退出脚本"
     echo "----------------------------------------"  
     echo -en "请选择数字按下回车: "
@@ -345,26 +421,29 @@ while :; do
 
     case $choice in
         1)
-            setip
+            setup
         ;;
         2) 
-            catwrt_update
+            setip
         ;;
         3)
-            catwrt_network_diagnostics
+            catwrt_update
         ;; 
         4)
-            use_repo
+            catwrt_network_diagnostics
         ;;
         5)
-            catwrt_sysupgrade
+            use_repo
         ;;
 	6)
-            debug
+            catwrt_sysupgrade
         ;;
 	7)
             bypass_gateway
         ;;
+	8)
+            debug
+	;;
         0)
             echo "Exit CatTools 退出脚本..."
             break
