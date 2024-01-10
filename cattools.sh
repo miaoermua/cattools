@@ -228,8 +228,8 @@ catwrt_network_diagnostics(){
 
 use_repo(){
     # fk is
-    if [ -f "/etc/opkg/istore_compat" ]; then
-        rm /etc/opkg/istore_compat
+    if [ -f "/var/opkg-lists/istore_compat" ]; then
+        rm /var/opkg-lists/istore_compat
     fi
 
     echo "Warning:"
