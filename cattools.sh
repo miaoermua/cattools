@@ -227,6 +227,11 @@ catwrt_network_diagnostics(){
 }
 
 use_repo(){
+    # fk is
+    if [ -f "/etc/opkg/istore_compat" ]; then
+        rm /etc/opkg/istore_compat
+    fi
+
     echo "Warning:"
     echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
     echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
