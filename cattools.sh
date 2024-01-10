@@ -258,6 +258,11 @@ use_repo(){
         return
     fi
 
+    if [ -f "/var/lock/opkg.lock" ]; then
+        rm /var/lock/opkg.lock
+    fi
+  
+    opkg update
 }
 
 catwrt_sysupgrade(){
