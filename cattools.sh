@@ -411,60 +411,58 @@ bypass_gateway(){
 
 update
 
-while :; do
-    clear
-    echo " "
-    echo "                CatTools"
-    echo "----------------------------------------"  
-    echo "1.  Setup Network          网络向导"
-    echo "2.  Set IPv4 Addr          设置 IP"
-    echo "3.  check update           检查系统更新"
-    echo "4.  network diagnostics    网络诊断"
-    echo "5.  use repo               使用软件源"
-    echo "6.  sysupgrade             升级系统"
-    echo "7.  debug                  日志收集"
-    echo "8.  setup bypass gateway   旁路网关"
-    echo "0.  Exit                   退出脚本"
-    echo "----------------------------------------"  
-    echo -en "请选择数字按下回车: "
-    read choice
+while true; do
+  clear
+  echo "                CatTools"
+  echo "----------------------------------------"
+  echo "1. Setup Network"
+  echo "2. Set IP Address"  
+  echo "3. Check Updates"
+  echo "4. Network Diagnostics"
+  echo "5. Use Custom Repo"
+  echo "6. System Upgrade"
+  echo "7. Collect Debug Logs" 
+  echo "8. Setup Bypass Gateway"
+  echo "0. Exit"
+  echo "----------------------------------------"
+  echo -n "Please enter your choice: "
+  read choice
 
-    case $choice in
-        1)
-            setup
-        ;;
-        2) 
-            setip
-        ;;
-        3)
-            catwrt_update
-        ;; 
-        4)
-            catwrt_network_diagnostics
-        ;;
-        5)
-            use_repo
-        ;;
-	    6)
-            catwrt_sysupgrade
-         ;;
-	    7)
-            bypass_gateway
-        ;;
-	    8)
-            debug
-	    ;;
-        0)
-            echo "Exit CatTools 退出脚本..."
-            break
-        ;;
-        *)
-            echo "无效的选择, 请重新输入"
-	    exit
-        ;;
-    esac
+  case $choice in
+    1)
+      setup
+      ;;
+    2)
+      setip
+      ;;
+    3)
+      catwrt_update
+      ;;
+    4)
+      catwrt_network_diagnostics
+      ;;
+    5)
+      use_repo
+      ;; 
+    6)
+      catwrt_sysupgrade
+      ;;
+    7)
+      debug
+      ;;
+    8)
+      bypass_gateway
+      ;;
+    0)
+      echo "Exiting..."
+      break
+      ;;
+    *)
+      echo "Invalid choice, please try again"
+      ;;
+  esac
 
-    sleep 1   
+  sleep 1
 done
 
-echo "结束!"
+echo "Done!"
