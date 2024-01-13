@@ -2,9 +2,9 @@
 ###
  # @Author: miaoermua
  # @Date: 2023-12-12 16:59:27
- # @LastEditors: miaoermua
- # @LastEditTime: 2023-12-27 15:42:39
- # @FilePath: \undefinedd:\Git\cattools\cattools.sh
+ # @LastEditors: 喵二
+ # @LastEditTime: 2024-01-13 17:45:49
+ # @FilePath: \undefinedn:\Git\cattools\cattools.sh
 ### 
 
 DEFAULT_IP="192.168.1.4"
@@ -445,15 +445,15 @@ while :; do
         5)
             use_repo
         ;;
-	6)
+	    6)
             catwrt_sysupgrade
-        ;;
-	7)
+         ;;
+	    7)
             bypass_gateway
         ;;
-	8)
+	    8)
             debug
-	;;
+	    ;;
         0)
             echo "Exit CatTools 退出脚本..."
             break
