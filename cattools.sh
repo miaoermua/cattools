@@ -280,7 +280,7 @@ catwrt_sysupgrade(){
         fi
         
         # Check EFI remaining
-        if [[ -b /dev/sda128 || -b /dev/vda128 ]]; then
+        if [[ -b /dev/sda128 || -b /dev/vda128 || -b /dev/nvme0n1p128]]; then
             efi_part=true
         else
             efi_part=false
