@@ -33,7 +33,7 @@ show_menu() {
     echo -n "Please enter your choice: "
 }
 
-# Log Collection Function
+# Debug
 debug() {
     if [ -f /www/logs.txt ]; then
         rm /www/logs.txt
@@ -101,6 +101,8 @@ debug() {
     echo "使用浏览器访问下载 http://$lan_ip/logs.txt"
     exit
 }
+
+# catwrt_update
 catwrt_update() {
 
 API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
@@ -167,6 +169,46 @@ main() {
 main
 }
 
+# Repo
+use_repo(){
+    # fk is
+    if [ -f "/var/opkg-lists/istore_compat" ]; then
+        rm /var/opkg-lists/istore_compat
+    fi
+
+    echo "Warning:"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
+    echo "支持我们: https://www.miaoer.xyz/sponsor"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (y/n)"
+    read -t 10 -p "您有 10 秒选择,输入 y 继续,其他退出:" confirm
+    [ "$confirm" != y ] && return
+    
+    arch=$(uname -m)
+    
+    # Check ARCH release
+    model=$(grep "Model:" $release | cut -d ' ' -f2)
+
+    if [[ $model =~ "mt798x" ]]; then
+        # mt798x  
+		curl -o /etc/opkg/distfeeds.conf $MT798X_REPO
+    
+    elif [ "$arch" = "x86_64" ]; then
+    	# amd64
+        curl -o /etc/opkg/distfeeds.conf $AMD64_REPO
+        
+    else
+        echo "不支持的机型: $model"
+        return
+    fi
+
+    if [ -f "/var/lock/opkg.lock" ]; then
+        rm /var/lock/opkg.lock
+    fi
+  
+    opkg update
+}
+
 while true; do
     show_menu
     read choice
@@ -176,6 +218,9 @@ while true; do
             ;;
         2)
             catwrt_update
+            ;;
+        3)
+            use_repo
             ;;
         0)
             echo "Exiting..."
