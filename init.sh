@@ -181,12 +181,8 @@ use_repo(){
     echo "软件源纯属免费分享的开源软件以方便开发者使用,我们没有第三方商业服务,风险需要自行承担。"
     echo "本人不对所有软件进行保证,赞助我们复制链接在浏览器打开,这对我们继续保持在线服务有很大影响。"
     echo "支持我们: https://www.miaoer.xyz/sponsor"
-    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (y/n)"
-    read -t 10 -p "您有 10 秒选择,输入 y 继续,其他退出:" confirm
-    if [ "$confirm" != "y" ]; then
-        echo "取消操作"
-        return
-    fi
+    echo "你需要同意 CatWrt 软件源用户协议请确认，如不同意请在倒计时之前 [CTRL]+[C] 终止。"
+    read -t 10 -p "您有 10 秒选择"
     
     arch=$(uname -m)
     
