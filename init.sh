@@ -26,12 +26,26 @@ show_menu() {
     echo "-------------------------"
     echo "        CatTools         "
     echo "-------------------------"
-    echo "1. Debug"
-    echo "2. catwrt_update"
-    echo "3. use_repo"
+    echo "1. SetIP"
+    echo "2. Debug"
+    echo "3. catwrt_update"
+    echo "4. use_repo"
     echo "0. Exit"
     echo "-------------------------"
     echo -n "Please enter your choice: "
+}
+
+setip(){
+    read -p "请输入 IP(默认为 $DEFAULT_IP): " input_ip
+    if [ -z $input_ip ]; then
+        input_ip=$DEFAULT_IP 
+    fi
+
+    uci set network.lan.ipaddr=$input_ip 
+    uci commit network
+    /etc/init.d/network restart
+    
+    echo "默认 IP 已设置为 $input_ip"
 }
 
 # Debug
@@ -227,12 +241,15 @@ while true; do
     read choice
     case $choice in
         1)
-            debug
+            setip
             ;;
         2)
-            catwrt_update
+            debug
             ;;
         3)
+            catwrt_update
+            ;;
+        4)
             use_repo
             ;;
         0)
