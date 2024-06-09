@@ -159,6 +159,7 @@ print_version() {
     echo "Local  Hash    : $hash_local"
     echo "Remote Hash    : $hash_remote"
     echo "================================"
+    echo ""
 }
 
 main() {
@@ -176,36 +177,48 @@ use_repo(){
     if [ -f "/var/opkg-lists/istore_compat" ]; then
         rm /var/opkg-lists/istore_compat
     fi
-
+    echo "=============================================================================="
     echo "Warning:"
-    echo "软件源纯属免费分享的开源软件以方便开发者使用,我们没有第三方商业服务,风险需要自行承担。"
-    echo "本人不对所有软件进行保证,赞助我们复制链接在浏览器打开,这对我们继续保持在线服务有很大影响。"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
     echo "支持我们: https://www.miaoer.xyz/sponsor"
-    echo "你需要同意 CatWrt 软件源用户协议请确认，如不同意请在倒计时之前 [CTRL]+[C] 终止。"
-    read -t 10 -p "您有 10 秒选择"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
+    echo "=============================================================================="
     
-    arch=$(uname -m)
-    
-    # Check ARCH release
-    model=$(grep "Model:" $release | cut -d ' ' -f2)
+    for i in $(seq 10 -1 1); do
+        echo -n "$i "
+        sleep 1
+    done
 
-    if [[ $model =~ "mt798x" ]]; then
-        # mt798x  
-		curl -o /etc/opkg/distfeeds.conf $MT798X_REPO
+    system_arch=$(uname -m)
+    release="/etc/catwrt_release"
     
-    elif [ "$arch" = "x86_64" ]; then
-    	# amd64
-        curl -o /etc/opkg/distfeeds.conf $AMD64_REPO
-        
+
+    if [ -f "$release" ]; then
+        source "$release"
     else
-        echo "不支持的机型: $model"
+        echo "Error: $release"
+        return
+    fi
+    
+    echo ""
+
+    if [[ "$system_arch" == "x86_64" && "$arch" == "amd64" ]]; then
+        echo "正在获取 x86_64 软件源..."
+        curl -o /etc/opkg/distfeeds.conf $AMD64_REPO
+    elif [[ "$system_arch" == "aarch64" && "$arch" == "mt798x" ]]; then
+        echo "正在获取 mt798x 软件源..."
+        curl -o /etc/opkg/distfeeds.conf $MT798X_REPO
+    else
+        echo "Unsupported System Arch: $system_arch or $arch ."
         return
     fi
 
     if [ -f "/var/lock/opkg.lock" ]; then
         rm /var/lock/opkg.lock
     fi
-  
+
+    echo "更新软件包列表..."
     opkg update
 }
 
