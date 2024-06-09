@@ -80,7 +80,6 @@ collect_logs() {
     exit
 }
 
-# Main Loop
 while true; do
     show_menu
     read choice
@@ -94,6 +93,7 @@ while true; do
             ;;
         *)
             echo "Invalid choice, please try again"
+            read -p "Press [Enter] key to continue..."
             ;;
     esac
 done
