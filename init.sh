@@ -28,6 +28,7 @@ show_menu() {
     echo "-------------------------"
     echo "1. Debug"
     echo "2. catwrt_update"
+    echo "3. use_repo"
     echo "0. Exit"
     echo "-------------------------"
     echo -n "Please enter your choice: "
