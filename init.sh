@@ -1,18 +1,40 @@
 #!/bin/bash
+# env
+DEFAULT_IP="192.168.1.4"
+RELEASE="/etc/catwrt_release"
+AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
+MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
+AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
+AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
+
+# Check ROOT & OpenWrt
+
+if [ $(id -u) != "0" ]; then
+    echo "Error: You must be root to run this script, please use root user"
+    exit 1
+fi
+
+openwrt_release=$(cat /etc/openwrt_release)
+if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
+    echo "Your system is not supported!"
+    exit 1
+fi
+
 
 # Menu Function
 show_menu() {
     echo "-------------------------"
     echo "        CatTools         "
     echo "-------------------------"
-    echo "1. Collect Debug Logs"
+    echo "1. Debug"
+    echo "2. catwrt_update"
     echo "0. Exit"
     echo "-------------------------"
     echo -n "Please enter your choice: "
 }
 
 # Log Collection Function
-collect_logs() {
+debug() {
     if [ -f /www/logs.txt ]; then
         rm /www/logs.txt
     fi
@@ -79,13 +101,81 @@ collect_logs() {
     echo "使用浏览器访问下载 http://$lan_ip/logs.txt"
     exit
 }
+catwrt_update() {
+
+API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
+VERSION_FILE="/etc/catwrt_release"
+
+remote_error() {
+    echo "Remote $1 get failed for arch: $arch_self, please check your network!"
+    exit 1
+}
+
+local_error() {
+    echo "Local $1 get failed, please check your /etc/catwrt-release!"
+    exit 1
+}
+
+get_remote_hash() {
+    arch_self=$1
+    version_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.version")
+    hash_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.hash")
+
+    if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
+        remote_error "version or hash"
+    fi
+}
+
+init() {
+    if [ ! -f "$VERSION_FILE" ]; then
+        local_error "version file"
+    fi
+
+    version_local=$(grep 'version' "$VERSION_FILE" | cut -d '=' -f 2)
+    hash_local=$(grep 'hash' "$VERSION_FILE" | cut -d '=' -f 2)
+    source_local=$(grep 'source' "$VERSION_FILE" | cut -d '=' -f 2)
+    arch_local=$(grep 'arch' "$VERSION_FILE" | cut -d '=' -f 2)
+}
+
+contrast_version() {
+    if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
+        echo "================================"
+        echo "Your CatWrt is up to date!"
+        echo "================================"
+    else
+        echo "================================"
+        echo "Your CatWrt is out of date, you should upgrade it!"
+        echo "You can visit 'https://www.miaoer.xyz/posts/network/catwrt' to get more information!"
+        echo "================================"
+    fi
+}
+
+print_version() {
+    echo "Local  Version : $version_local"
+    echo "Remote Version : $version_remote"
+    echo "Local  Hash    : $hash_local"
+    echo "Remote Hash    : $hash_remote"
+    echo "================================"
+}
+
+main() {
+    init
+    get_remote_hash "$arch_local"
+    contrast_version
+    print_version
+}
+main
+}
 
 while true; do
     show_menu
     read choice
     case $choice in
         1)
-            collect_logs
+            debug
+            ;;
+        2)
+            catwrt_update
             ;;
         0)
             echo "Exiting..."
