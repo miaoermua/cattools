@@ -26,11 +26,12 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bas
 - [x] 2. Debug                           -  抓取日志
 - [x] 3. catwrt_update                   -  检查更新
 - [x] 4. use_repo                        -  启用软件源
+- [x] 6. sysupgrade                      -  系统更新(未经测试)
 - [x] 5. diagnostics                     -  网络诊断
 - [x] 0. Exit                            -  退出
 - [x] 热更新和安装脚本
-- [ ] 实现 Sysupgrade 更新系统
 - [ ] 预设初始化配置
 - [ ] 预设 Wi-FI 配置(wireless)
 - [ ] 实现对旁路网关(旁路由)配置
+- [ ] 一键升级插件(升级系统后)
 - [ ] 简易商店
