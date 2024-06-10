@@ -8,7 +8,9 @@ Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
 
 ```bash
 curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bash
+```
 
+```bash
 # curl https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh | bash
 ```
 
@@ -19,7 +21,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bas
 - [x] 3. catwrt_update                   -  检查更新
 - [x] 4. use_repo                        -  启用软件源
 - [x] 0. Exit                            -  退出
-- [] 实现 Sysupgrade 更新系统
-- [] 预设初始化配置
-- [] 实现对旁路网关(旁路由)配置
-- [] 网络诊断
+- [ ] 实现 Sysupgrade 更新系统
+- [ ] 预设初始化配置
+- [ ] 实现对旁路网关(旁路由)配置
+- [ ] 网络诊断
