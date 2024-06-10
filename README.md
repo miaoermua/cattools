@@ -20,6 +20,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bas
 - [x] 2. Debug                           -  抓取日志
 - [x] 3. catwrt_update                   -  检查更新
 - [x] 4. use_repo                        -  启用软件源
+- [x] 5. diagnostics                     -  网络诊断
 - [x] 0. Exit                            -  退出
 - [ ] 热更新和安装脚本
 - [ ] 实现 Sysupgrade 更新系统
