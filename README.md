@@ -25,5 +25,6 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bas
 - [ ] 热更新和安装脚本
 - [ ] 实现 Sysupgrade 更新系统
 - [ ] 预设初始化配置
+- [ ] 预设 Wi-FI 配置(wireless)
 - [ ] 实现对旁路网关(旁路由)配置
-- [ ] 网络诊断
+- [ ] 简易商店
