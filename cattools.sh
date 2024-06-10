@@ -41,11 +41,10 @@ install_cattools() {
 
         chmod +x "$CATTOOLS_PATH"
         echo "cattools 安装成功。"
-        echo ""
     fi
 }
 
-# HotUpdate
+# Hotupdate
 check_for_updates() {
     local UPDATE_URLS=(
         "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
@@ -57,18 +56,22 @@ check_for_updates() {
     for URL in "${UPDATE_URLS[@]}"; do
         if curl -m 5 -s -o "$TEMP_FILE" "$URL"; then
             if [ -s "$TEMP_FILE" ]; then
-                echo "更新已找到,替换当前脚本..."
+                echo "更新已找到，替换当前脚本..."
                 mv "$TEMP_FILE" "$0"
                 chmod +x "$0"
                 exec "$0" "$@"
             fi
         fi
     done
-
+    
     rm -f "$TEMP_FILE"
     echo "没有找到更新，继续运行当前脚本..."
-    echo ""
 }
+
+check_for_updates
+
+install_cattools
+
 
 # Menu Function
 show_menu() {
@@ -285,10 +288,6 @@ use_repo(){
     echo "更新软件包列表..."
     opkg update
 }
-
-install_cattools
-
-check_for_updates
 
 while true; do
     show_menu
