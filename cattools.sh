@@ -433,10 +433,13 @@ sysupgrade() {
     else
         firmware_url=$AMD64_BIOS_SYSUP
     fi
-
-    echo "Warning: 该功能未经过实践，不保证是否升级成功，请三思而后行！"
-    echo "即将升级系统，存在风险请你三思确认 (y/n) 30 秒后默认退出脚本！"
-    read -t 30 -n 1 -p "确认升级吗？ " user_input
+    
+    echo ""
+    echo "Warning:"
+    echo "该功能未经过实践，不保证是否升级成功，请三思而后行！"
+    echo "即将升级系统，存在风险请输入 (y/n) 确认，30 秒后默认退出脚本！"
+    echo "升级系统会导致启用软件源安装的所有软件被新固件覆盖，ROOT 账户的密码可能被还原为默认密码 (password) 升级过程中会保留插件配置和预装插件获得升级。"
+    read -t 30 -n 1 -p "所以你确认需要升级吗? " user_input
     if [ $? -ne 0 ] || [ "$user_input" != "y" ]; then
         echo -e "\n用户已取消升级!"
         exit 1
