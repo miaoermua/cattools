@@ -7,9 +7,9 @@ Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
 执行以下任意命令就可以安装并使用脚本
 
 ```bash
-ctrl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bash
+curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bash
 
-# ctrl https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh | bash
+# curl https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh | bash
 ```
 
 ## Todo
