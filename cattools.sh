@@ -19,6 +19,23 @@ if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
     exit 1
 fi
 
+# install
+install_cattools() {
+    local CATTOOLS_PATH="/usr/bin/cattools"
+    local CATTOOLS_URL="https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+
+    if [ ! -f "$CATTOOLS_PATH" ]; then
+        echo "cattools 未安装，正在安装..."
+        curl -m 5 -s -o "$CATTOOLS_PATH" "$CATTOOLS_URL"
+        if [ $? -ne 0 ]; then
+            echo "cattools 下载失败，请检查网络连接。"
+            exit 1
+        fi
+        chmod +x "$CATTOOLS_PATH"
+        echo "cattools 安装成功。"
+    fi
+}
+
 # HotUpdate
 check_for_updates() {
     local UPDATE_URLS=(
@@ -258,6 +275,14 @@ use_repo(){
     echo "更新软件包列表..."
     opkg update
 }
+
+# init
+
+install_cattools
+
+check_for_updates
+
+# choice
 
 while true; do
     show_menu
