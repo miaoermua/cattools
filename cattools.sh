@@ -22,17 +22,26 @@ fi
 # install
 install_cattools() {
     local CATTOOLS_PATH="/usr/bin/cattools"
-    local CATTOOLS_URL="https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+    local CATTOOLS_URLS=(
+        "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+        "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh"
+    )
 
     if [ ! -f "$CATTOOLS_PATH" ]; then
         echo "cattools 未安装，正在安装..."
-        curl -m 5 -s -o "$CATTOOLS_PATH" "$CATTOOLS_URL"
-        if [ $? -ne 0 ]; then
+
+        for URL in "${CATTOOLS_URLS[@]}"; do
+            curl -m 5 -s -o "$CATTOOLS_PATH" "$URL" && break
+        done
+
+        if [ ! -f "$CATTOOLS_PATH" ] || [ ! -s "$CATTOOLS_PATH" ]; then
             echo "cattools 下载失败，请检查网络连接。"
             exit 1
         fi
+
         chmod +x "$CATTOOLS_PATH"
         echo "cattools 安装成功。"
+        echo ""
     fi
 }
 
@@ -49,6 +58,7 @@ check_for_updates() {
         if curl -m 5 -s -o "$TEMP_FILE" "$URL"; then
             if [ -s "$TEMP_FILE" ]; then
                 echo "更新已找到,替换当前脚本..."
+                echo ""
                 mv "$TEMP_FILE" "$0"
                 chmod +x "$0"
                 exec "$0" "$@"
@@ -58,6 +68,7 @@ check_for_updates() {
 
     rm -f "$TEMP_FILE"
     echo "没有找到更新，继续运行当前脚本..."
+    echo ""
 }
 
 # Menu Function
@@ -66,11 +77,11 @@ show_menu() {
     echo "                         CatTools                         "
     echo "  https://www.miaoer.xyz/posts/network/catwrt-bash-script "
     echo "----------------------------------------------------------"
-    echo "1. SetIP                                        -  设置 IP"
-    echo "2. Debug                                        -  抓取日志"
-    echo "3. catwrt_update                                -  检查更新"
-    echo "4. use_repo                                     -  启用软件源"
-    echo "0. Exit                                         -  退出"
+    echo "1. SetIP                                    -  设置 IP"
+    echo "2. Debug                                    -  抓取日志"
+    echo "3. catwrt_update                            -  检查更新"
+    echo "4. use_repo                                 -  启用软件源"
+    echo "0. Exit                                     -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
 }
