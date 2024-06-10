@@ -58,7 +58,6 @@ check_for_updates() {
         if curl -m 5 -s -o "$TEMP_FILE" "$URL"; then
             if [ -s "$TEMP_FILE" ]; then
                 echo "更新已找到,替换当前脚本..."
-                echo ""
                 mv "$TEMP_FILE" "$0"
                 chmod +x "$0"
                 exec "$0" "$@"
@@ -287,13 +286,9 @@ use_repo(){
     opkg update
 }
 
-# init
-
 install_cattools
 
 check_for_updates
-
-# choice
 
 while true; do
     show_menu
