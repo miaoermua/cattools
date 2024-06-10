@@ -8,7 +8,6 @@ AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/Cat
 AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
 
 # Check ROOT & OpenWrt
-
 if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this script, please use root user"
     exit 1
@@ -20,23 +19,47 @@ if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
     exit 1
 fi
 
+# HotUpdate
+check_for_updates() {
+    local UPDATE_URLS=(
+        "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+        "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh"
+    )
+
+    local TEMP_FILE=$(mktemp)
+
+    for URL in "${UPDATE_URLS[@]}"; do
+        if curl -m 5 -s -o "$TEMP_FILE" "$URL"; then
+            if [ -s "$TEMP_FILE" ]; then
+                echo "更新已找到,替换当前脚本..."
+                mv "$TEMP_FILE" "$0"
+                chmod +x "$0"
+                exec "$0" "$@"
+            fi
+        fi
+    done
+
+    rm -f "$TEMP_FILE"
+    echo "没有找到更新，继续运行当前脚本..."
+}
 
 # Menu Function
 show_menu() {
-    echo "-------------------------"
-    echo "        CatTools         "
-    echo "-------------------------"
-    echo "1. SetIP"
-    echo "2. Debug"
-    echo "3. catwrt_update"
-    echo "4. use_repo"
-    echo "0. Exit"
-    echo "-------------------------"
-    echo -n "Please enter your choice: "
+    echo "----------------------------------------------------------"
+    echo "                         CatTools                         "
+    echo "  https://www.miaoer.xyz/posts/network/catwrt-bash-script "
+    echo "----------------------------------------------------------"
+    echo "1. SetIP                                        -  设置 IP"
+    echo "2. Debug                                        -  抓取日志"
+    echo "3. catwrt_update                                -  检查更新"
+    echo "4. use_repo                                     -  启用软件源"
+    echo "0. Exit                                         -  退出"
+    echo "----------------------------------------------------------"
+    echo -n "请输入数字并回车(Please enter your choice): "
 }
 
 setip(){
-    read -p "请输入 IP(默认为 $DEFAULT_IP): " input_ip
+    read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
     if [ -z $input_ip ]; then
         input_ip=$DEFAULT_IP 
     fi
