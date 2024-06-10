@@ -4,7 +4,13 @@
 
 Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
 
-执行以下任意命令使用脚本
+安装 Cattools
+
+```bash
+curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
+```
+
+执行以下任意命令在线使用 Cattools
 
 ```bash
 curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bash
@@ -22,7 +28,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bas
 - [x] 4. use_repo                        -  启用软件源
 - [x] 5. diagnostics                     -  网络诊断
 - [x] 0. Exit                            -  退出
-- [ ] 热更新和安装脚本
+- [x] 热更新和安装脚本
 - [ ] 实现 Sysupgrade 更新系统
 - [ ] 预设初始化配置
 - [ ] 预设 Wi-FI 配置(wireless)
