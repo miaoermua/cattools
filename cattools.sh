@@ -19,60 +19,6 @@ if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
     exit 1
 fi
 
-# install
-install_cattools() {
-    local CATTOOLS_PATH="/usr/bin/cattools"
-    local CATTOOLS_URLS=(
-        "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
-        "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh"
-    )
-
-    if [ ! -f "$CATTOOLS_PATH" ]; then
-        echo "cattools 未安装，正在安装..."
-
-        for URL in "${CATTOOLS_URLS[@]}"; do
-            curl -m 5 -s -o "$CATTOOLS_PATH" "$URL" && break
-        done
-
-        if [ ! -f "$CATTOOLS_PATH" ] || [ ! -s "$CATTOOLS_PATH" ]; then
-            echo "cattools 下载失败，请检查网络连接。"
-            exit 1
-        fi
-
-        chmod +x "$CATTOOLS_PATH"
-        echo "cattools 安装成功。"
-    fi
-}
-
-# Hotupdate
-check_for_updates() {
-    local UPDATE_URLS=(
-        "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
-        "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh"
-    )
-
-    local TEMP_FILE=$(mktemp)
-
-    for URL in "${UPDATE_URLS[@]}"; do
-        if curl -m 5 -s -o "$TEMP_FILE" "$URL"; then
-            if [ -s "$TEMP_FILE" ]; then
-                echo "更新已找到，替换当前脚本..."
-                mv "$TEMP_FILE" "$0"
-                chmod +x "$0"
-                exec "$0" "$@"
-            fi
-        fi
-    done
-    
-    rm -f "$TEMP_FILE"
-    echo "没有找到更新，继续运行当前脚本..."
-}
-
-check_for_updates
-
-install_cattools
-
-
 # Menu Function
 show_menu() {
     echo "----------------------------------------------------------"
