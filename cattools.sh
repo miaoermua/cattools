@@ -19,6 +19,22 @@ if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
     exit 1
 fi
 
+# installed
+install_cattools() {
+    if [ ! -f /usr/bin/cattools ]; then
+        echo "cattools not found, installing..."
+        if curl --silent --connect-timeout 5 -o /usr/bin/cattools https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
+            echo "cattools installed successfully from the first URL."
+        elif curl --silent --connect-timeout 5 -o /usr/bin/cattools https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh; then
+            echo "cattools installed successfully from the second URL."
+        else
+            echo "Failed to download cattools from both URLs."
+            exit 1
+        fi
+        chmod +x /usr/bin/cattools
+    fi
+}
+
 # Update
 update_cattools() {
     local temp_file=$(mktemp)
@@ -36,6 +52,7 @@ update_cattools() {
     echo "cattools updated successfully."
 }
 
+install_cattools
 update_cattools
 
 # Menu Function
@@ -49,6 +66,7 @@ show_menu() {
     echo "3. catwrt_update                            -  检查更新"
     echo "4. use_repo                                 -  启用软件源"
     echo "5. diagnostics                              -  网络诊断"
+    echo "6. sysupgrade                               -  系统更新"
     echo "0. Exit                                     -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -409,6 +427,42 @@ catnd(){
     echo "CatWrt Network Diagnostics by @miaoermua"
 }
 
+# Sysupgrade
+sysupgrade() {
+    if [ "$(uname -m)" != "x86_64" ]; then
+        echo "仅有 x86_64 可以使用脚本进行系统升级。"
+        exit 1
+    fi
+
+    disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
+    if (( $(echo "$disk_size != 800.28" | bc -l) )); then
+        echo "磁盘空间未修改或不匹配，无法继续升级。"
+        exit 1
+    fi
+
+    efi_mode=0
+    if [ -d /sys/firmware/efi ]; then
+        efi_mode=1
+    fi
+
+    if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
+        firmware_url=$AMD64_EFI_SYSUP
+    else
+        firmware_url=$AMD64_BIOS_SYSUP
+    fi
+
+    echo "Warning: 该功能未经过实践，不保证是否升级成功，请三思而后行！"
+    echo "即将升级系统，存在风险请你三思确认 (y/n) 30 秒后默认退出脚本！"
+    read -t 30 -n 1 -p "确认升级吗？ " user_input
+    if [ $? -ne 0 ] || [ "$user_input" != "y" ]; then
+        echo -e "\n用户已取消升级!"
+        exit 1
+    fi
+
+    echo -e "\n正在升级系统..."
+    sysupgrade -v $firmware_url
+}
+
 while true; do
     show_menu
     read choice
@@ -427,6 +481,9 @@ while true; do
             ;;
         5)
             catnd
+            ;;
+        6)
+            sysupgrade
             ;;
         0)
             echo "Exiting..."
