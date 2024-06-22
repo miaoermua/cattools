@@ -36,8 +36,6 @@ update_cattools() {
     echo "cattools updated successfully."
 }
 
-update_cattools
-
 # Menu Function
 menu() {
     echo "----------------------------------------------------------"
@@ -55,6 +53,32 @@ menu() {
     echo -n "请输入数字并回车(Please enter your choice): "
 }
 
+# Parameters
+help() {
+    echo "Usage: $0 [-help] [-update]"
+    echo
+    echo "Options:"
+    echo "  -help     帮助"
+    echo "  -update   跳过启动时 Cattools 脚本更新检查"
+    exit 0
+}
+
+skip_update=false
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -help) show_help ;;
+        -update) skip_update=true ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+if [ "$skip_update" = false ]; then
+    update_cattools
+fi
+
+# Setup
 setip(){
     read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
     if [ -z $input_ip ]; then
