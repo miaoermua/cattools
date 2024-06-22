@@ -39,7 +39,7 @@ update_cattools() {
 update_cattools
 
 # Menu Function
-show_menu() {
+menu() {
     echo "----------------------------------------------------------"
     echo "                         CatTools                         "
     echo "  https://www.miaoer.xyz/posts/network/catwrt-bash-script "
@@ -450,7 +450,7 @@ sysupgrade() {
 }
 
 while true; do
-    show_menu
+    menu
     read choice
     case $choice in
         1)
