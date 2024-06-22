@@ -43,11 +43,12 @@ menu() {
     echo "  https://www.miaoer.xyz/posts/network/catwrt-bash-script "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                    -  设置 IP"
-    echo "2. Debug                                    -  抓取日志"
-    echo "3. catwrt_update                            -  检查更新"
-    echo "4. use_repo                                 -  启用软件源"
-    echo "5. diagnostics                              -  网络诊断"
-    echo "6. sysupgrade                               -  系统更新"
+    echo "2. network_wizard                           -  网络向导"
+    echo "3. Debug                                    -  抓取日志"
+    echo "4. catwrt_update                            -  检查更新"
+    echo "5. use_repo                                 -  启用软件源"
+    echo "6. diagnostics                              -  网络诊断"
+    echo "7. sysupgrade                               -  系统更新"
     echo "0. Exit                                     -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -565,18 +566,21 @@ while true; do
             setip
             ;;
         2)
-            debug
+            network_wizard
             ;;
         3)
-            catwrt_update
+            debug
             ;;
         4)
-            use_repo
+            catwrt_update
             ;;
         5)
-            catnd
+            use_repo
             ;;
         6)
+            catnd
+            ;;
+        7)
             sysupgrade
             ;;
         0)
