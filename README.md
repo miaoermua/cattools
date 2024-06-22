@@ -4,13 +4,15 @@
 
 Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
 
-执行下列命令一键安装 Cattools，安装后输入 `cattools` 或 `/usr/bin/cattools` 并回车即可使用。
+执行下列命令 **一键安装 Cattools**，安装后输入 `cattools` 或 `/usr/bin/cattools` 并回车即可使用。
 
 ```bash
 curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 ```
 
-执行以下任意命令在线使用 Cattools
+---
+
+执行以下任意命令 **在线使用 Cattools**
 
 ```bash
 curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bash
