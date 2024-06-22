@@ -92,6 +92,90 @@ setip(){
     echo "默认 IP 已设置为 $input_ip"
 }
 
+# Network Wizard
+network_wizard() {
+    read -p "Do you want Network Wizard"? /// 是否使用网络向导？(Enter 确认，按 0 退出): " use_wizard
+    if [ "$use_wizard" == "0" ]; then
+        echo "网络向导已退出。"
+        return
+    fi
+    
+    echo "CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
+    read -p "是否修改 IP 地址？(Enter 确认，按 0 退出): " modify_ip
+    if [ "$modify_ip" != "0" ]; then
+        read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
+        if [[ -z $input_ip ]]; then
+            input_ip=$DEFAULT_IP
+        elif ! [[ $input_ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            echo "无效的 IP 地址。"
+            return
+        fi
+
+        uci set network.lan.ipaddr=$input_ip
+        echo "IP 地址已设置为 $input_ip"
+    fi
+    
+    echo "Recommended DNS: 223.6.6.6 119.29.29.99 /// 推荐使用的DNS: 223.6.6.6 119.29.29.99" 
+    read -p "是否使用推荐的 DNS 服务器？(Enter 确认，按 0 退出): " use_dns
+    if [ "$use_dns" != "0" ]; then
+        read -p "请输入 DNS (默认为 $DEFAULT_DNS): " input_dns
+        if [[ -z $input_dns ]]; then
+            input_dns=$DEFAULT_DNS
+        elif ! [[ $input_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}( [0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            echo "无效的 DNS 地址。"
+            return
+        fi
+
+        uci set network.lan.dns="$input_dns"
+        echo "DNS 服务器已设置为 $input_dns"
+    fi
+    
+    echo "IPv6 is enabled by default /// IPv6 默认是开启的"
+    read -p "是否禁用 IPv6 网络？(Enter 确认，按 1 禁用，按 0 退出): " disable_ipv6
+    if [ "$disable_ipv6" == "1" ]; then
+        uci delete dhcp.lan.dhcpv6 
+        uci delete dhcp.lan.ra
+        uci delete dhcp.lan.ra_management
+        uci delete network.lan.ip6assign
+        echo "IPv6 已禁用"
+    fi
+    
+    echo "Default connection mode is DHCP /// 默认模式为 DHCP"
+    read -p "是否进行 PPPoE 拨号？(Enter 确认，按 1 继续修改账号和密码，按0退出): " use_pppoe
+    if [ "$use_pppoe" == "1" ]; then
+        read -p "请输入宽带账号: " username
+        read -s -p "请输入宽带密码: " password
+        uci set network.wan.proto=pppoe
+        uci set network.wan.username=$username
+        uci set network.wan.password=$password
+        echo "PPPoE 拨号配置已完成"
+    fi
+    
+    echo "Default client IP range: 30 to 200 /// 默认 DHCP 客户端 IP 段为 30 到 200"
+    read -p "是否修改 IP 可用段？(Enter 确认，按 1 修改地址池大小，按 0 退出): " modify_dhcp
+    if [ "$modify_dhcp" == "1" ]; then
+        read -p "请输入 DHCP 起始地址 (默认为 30): " dhcp_start
+        read -p "请输入 DHCP 地址池大小 (默认为 200): " dhcp_limit
+        uci set dhcp.lan.start=${dhcp_start:-30}
+        uci set dhcp.lan.limit=${dhcp_limit:-200}
+        echo "DHCP 地址池已设置为 ${dhcp_start:-30}-${dhcp_limit:-200}"
+    fi
+
+    echo "enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
+    read -p "是否开启强制 DHCP 模式？(Enter 确认，按 1 跳过，按 0 退出): " force_dhcp
+    if [ "$force_dhcp" != "1" ]; then
+        uci set dhcp.lan.force=1
+        echo "强制 DHCP 模式已开启"
+    fi
+
+    uci commit
+    /etc/init.d/network restart
+    /etc/init.d/dnsmasq restart
+    /etc/init.d/firewall restart
+    echo "网络配置已保存并应用，服务已重启，如遇到问题请手动重启！"
+    echo ""
+}
+
 # Debug
 debug() {
     if [ -f /www/logs.txt ]; then
