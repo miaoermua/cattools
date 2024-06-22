@@ -2,7 +2,6 @@
 # env
 DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
-UPTIME="grep 'model name' /proc/cpuinfo | uniq | awk -F: '{print $2}' && uptime"
 AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
 MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
 AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
@@ -40,7 +39,6 @@ update_cattools() {
 # Menu Function
 menu() {
     echo ""
-    echo "$UPTIME"
     echo "----------------------------------------------------------"
     echo "                         CatTools                         "
     echo "  https://www.miaoer.xyz/posts/network/catwrt-bash-script "
@@ -210,40 +208,6 @@ network_wizard() {
     echo ""
 }
 
-# Debug Function Check VM 
-debug_check_vm() {
-    virtualization="Physical Machine"
-
-    if [[ -f /proc/cpuinfo ]]; then
-        if grep -q -i 'hypervisor' /proc/cpuinfo; then
-            virtualization="Virtual Machine (Detected via /proc/cpuinfo)"
-        fi
-    fi
-
-    if command -v systemd-detect-virt &> /dev/null; then
-        virt_type=$(systemd-detect-virt)
-        if [[ "$virt_type" != "none" ]]; then
-            virtualization="Virtual Machine ($virt_type)"
-        fi
-    fi
-
-    if dmesg | grep -q -i 'vmware'; then
-        virtualization="Virtual Machine (VMware)"
-    elif dmesg | grep -q -i 'qemu'; then
-        virtualization="Virtual Machine (QEMU)"
-    elif dmesg | grep -q -i 'kvm'; then
-        virtualization="Virtual Machine (KVM)"
-    elif dmesg | grep -q -i 'xen'; then
-        virtualization="Virtual Machine (Xen)"
-    elif dmesg | grep -q -i 'vbox'; then
-        virtualization="Virtual Machine (VirtualBox)"
-    elif dmesg | grep -q -i 'hyperv'; then
-        virtualization="Virtual Machine (Hyper-V)"
-    fi
-
-    echo $virtualization
-}
-
 # Debug
 debug() {
     if [ -f /www/logs.txt ]; then
@@ -256,20 +220,23 @@ debug() {
     echo "## RELEASE" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     cat /etc/catwrt_release >> /www/logs.txt
+    echo ""
     
     echo "## STATUS" >> /www/logs.txt
     echo "=================" >> /www/logs.txt
     eval $UPTIME >> /www/logs.txt
-    debug_check_vm >> /www/logs.txt
+    echo ""
     
     echo "## Memory Usage" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     free -h >> /www/logs.txt
-
+    echo ""
+    
     echo "## Disk Usage" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     df -h >> /www/logs.txt
-
+    echo ""
+    
     echo "## Application" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     opkg list_installed >> /www/logs.txt
@@ -277,47 +244,56 @@ debug() {
     echo "## SYSLOG" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     logread >> /www/logs.txt
-
+    echo ""
+    
     echo "## DMESG" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     dmesg >> /www/logs.txt
-
+    echo ""
+    
     echo "## Plugins" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     cat /tmp/openclash.log >> /www/logs.txt
     cat /tmp/log/ssrplus.log >> /www/logs.txt
     cat /tmp/log/passwall.log >> /www/logs.txt
     cat /tmp/log/passwall2.log >> /www/logs.txt
-
+    echo ""
+    
     echo "## Task" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     top -b -n 1 >> /www/logs.txt
-
+    echo ""
+    
     echo "## Network Configuration" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     ifconfig -a >> /www/logs.txt
-
+    echo ""
+    
     echo "## UCI Network" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     uci show network >> /www/logs.txt
-
+    echo ""
+    
     echo "## Firewall" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     iptables -L -v -n >> /www/logs.txt
     ip6tables -L -v -n >> /www/logs.txt
-
+    echo ""
+    
     echo "## Routing Table" >> /www/logs.txt
     echo "==========" >> /www/logs.txt
     ip route >> /www/logs.txt
     ip -6 route >> /www/logs.txt
-
-    lan_ip=$(uci get network.lan.ipaddr)
+    echo ""
     
+    lan_ip=$(uci get network.lan.ipaddr)
+
+    echo "Finish!"
     echo "请使用浏览器访问此地址下载 LOG 文件  http://$lan_ip/logs.txt"
     echo "日志已收集到 /www/logs.txt 如果你使用 PPPoE 拨号请手动将宽带账密删除，再使用以下链接上传 Github issues 附件!"
     ehco ""
     ehco "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
-    ehco "尽可能使用 Github 提交你的问题 TG Guoup: t.me/miaoergroup   ///   QQ Guoup: 669190476"
+    ehco "尽可能使用 Github 提交你的问题不会操作再使用社交软件 TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476"
     ehco ""
     exit
 }
