@@ -152,28 +152,58 @@ network_wizard() {
         echo "PPPoE 拨号配置已完成"
     fi
     
-    echo "Default client IP range: 30 to 200 /// 默认 DHCP 客户端 IP 段为 30 到 200"
-    read -p "是否修改 IP 可用段？(Enter 确认，按 1 修改地址池大小，按 0 退出): " modify_dhcp
-    if [ "$modify_dhcp" == "1" ]; then
-        read -p "请输入 DHCP 起始地址 (默认为 30): " dhcp_start
-        read -p "请输入 DHCP 地址池大小 (默认为 200): " dhcp_limit
-        uci set dhcp.lan.start=${dhcp_start:-30}
-        uci set dhcp.lan.limit=${dhcp_limit:-200}
-        echo "DHCP 地址池已设置为 ${dhcp_start:-30}-${dhcp_limit:-200}"
+    read -p "Use recommended DNS servers 223.6.6.6 119.29.29.99? /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？(Enter 确认，按 0 退出): " use_dns
+    if [ "$use_dns" = "0" ]; then
+        exit 0
+    elif [ -z "$use_dns" ]; then
+        uci set network.lan.dns="223.6.6.6 119.29.29.99"
+    else
+        if [[ $use_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}(\s+([0-9]{1,3}\.){3}[0-9]{1,3})*$ ]]; then
+            uci set network.lan.dns="$use_dns"
+        else
+            echo "Invalid DNS format /// 无效的 DNS 格式"
+            exit 1
+        fi
+    fi
+
+    read -p "Do you want to change the DHCP IP pool range? (default: 30-200) /// 是否修改 IP 可用段？(默认: 30-200, 按 1 手动输入范围): " dhcp_choice
+    if [ "$dhcp_choice" = "1" ]; then
+        read -p "Enter the DHCP IP pool range (e.g., 40-210) /// 输入 DHCP IP 地址范围 (例如: 40-210): " dhcp_range
+        if [[ $dhcp_range =~ ^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\-([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]; then
+            dhcp_start=$(echo $dhcp_range | cut -d '-' -f 1)
+            dhcp_limit=$(echo $dhcp_range | cut -d '-' -f 2)
+            uci set dhcp.lan.start=$dhcp_start
+            uci set dhcp.lan.limit=$dhcp_limit
+        else
+            echo "Invalid DHCP range format /// 无效的 DHCP 范围格式"
+            exit 1
+        fi
+    else
+        uci set dhcp.lan.start=30
+        uci set dhcp.lan.limit=200
     fi
 
     echo "enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
-    read -p "是否开启强制 DHCP 模式？(Enter 确认，按 1 跳过，按 0 退出): " force_dhcp
+    read -p "是否开启强制 DHCP 模式？(Enter 确认，按 1 跳过): " force_dhcp
     if [ "$force_dhcp" != "1" ]; then
         uci set dhcp.lan.force=1
         echo "强制 DHCP 模式已开启"
+    fi
+    
+    echo "Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
+    read -p "是否开启 UPNP？(Enter 确认，按 1 跳过): " enable_upnp
+    if [ "$enable_upnp" != "1" ]; then
+        uci set upnpd.config.enabled=1
+        echo "UPNP 已开启"
     fi
 
     uci commit
     /etc/init.d/network restart
     /etc/init.d/dnsmasq restart
     /etc/init.d/firewall restart
-    echo "网络配置已保存并应用，服务已重启，如遇到问题请手动重启！"
+    /etc/init.d/miniupnpd restart
+    echo "Network configuration saved and applied. If you encounter any issues, please restart!"
+    echo "网络配置已保存并应用，服务已重启，如遇到问题问题请手动重启！"
     echo ""
 }
 
