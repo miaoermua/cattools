@@ -95,7 +95,7 @@ setip(){
 
 # Network Wizard
 network_wizard() {
-    read -p "Do you want Network Wizard"? /// 是否使用网络向导？(Enter 确认，按 0 退出): " use_wizard
+    read -p "Do you want Network Wizard? /// 是否使用网络向导？(Enter 确认，按 0 退出): " use_wizard
     if [ "$use_wizard" == "0" ]; then
         echo "网络向导已退出。"
         return
@@ -142,7 +142,7 @@ network_wizard() {
     fi
     
     echo "Default connection mode is DHCP /// 默认模式为 DHCP"
-    read -p "是否进行 PPPoE 拨号？(Enter 确认，按 1 继续修改账号和密码，按0退出): " use_pppoe
+    read -p "是否进行 PPPoE 拨号？(Enter 确认，按 1 继续修改账号和密码，按 0 退出): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
         read -p "请输入宽带账号: " username
         read -s -p "请输入宽带密码: " password
