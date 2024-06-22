@@ -67,7 +67,7 @@ skip_update=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -help) show_help ;;
+        -help) help ;;
         -update) skip_update=true ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
