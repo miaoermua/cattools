@@ -60,8 +60,13 @@ help() {
     echo "Usage: $0 [-help] [-update]"
     echo
     echo "Options:"
-    echo "  -help     帮助"
-    echo "  -update   跳过启动时 Cattools 脚本更新检查"
+    echo "  -help or -h        帮助"
+    echo "  -update or -u      跳过 Cattools 脚本更新检查"
+    echo ""
+    echo "HELP:"
+    echo "遇到问题了? 请使用本工具菜单中的 debug 选项，尝试反馈以解决问题!"
+    echo "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
+    echo "TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476  // Blog: miaoer.xyz"
     exit 0
 }
 
@@ -69,7 +74,9 @@ skip_update=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
+        -h) help ;;
         -help) help ;;
+        -u) skip_update=true ;;
         -update) skip_update=true ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
