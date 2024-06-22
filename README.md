@@ -10,16 +10,6 @@ Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
 curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 ```
 
----
-
-执行以下任意命令 **在线使用 Cattools**
-
-```bash
-curl https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh | bash
-
-# curl https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh | bash
-```
-
 ## Todo
 
 - [x] 1. SetIP                           -  设置 IP
