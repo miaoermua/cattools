@@ -376,8 +376,8 @@ main
 # Repo
 use_repo(){
     # fk is
-    if [ -f "/var/opkg-lists/istore_compat" ]; then
-        rm /var/opkg-lists/istore_compat
+    if [ -f "/etc/opkg/compatfeeds.conf" ]; then
+        rm /etc/opkg/compatfeeds.conf
     fi
     echo "=============================================================================="
     echo "Warning:"
