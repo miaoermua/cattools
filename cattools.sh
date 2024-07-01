@@ -92,10 +92,19 @@ fi
 
 # Setup
 setip(){
-    read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
-    if [ -z $input_ip ]; then
-        input_ip=$DEFAULT_IP 
-    fi
+    DEFAULT_IP="192.168.1.4"
+    while true; do
+        read -p "Please enter the IP Addr and press Enter /// 请输入 IP (默认为 $DEFAULT_IP): " input_ip
+        if [ -z "$input_ip" ]; then
+            input_ip=$DEFAULT_IP 
+        fi
+
+        if echo "$input_ip" | grep -Eo '^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$' > /dev/null; then
+            break
+        else
+            echo "Invalid IP address format /// 非法的 IP 地址格式，请重新输入"
+        fi
+    done
 
     uci set network.lan.ipaddr=$input_ip 
     uci commit network
