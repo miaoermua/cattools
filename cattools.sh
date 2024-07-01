@@ -301,10 +301,10 @@ debug() {
     echo "Finish!"
     echo "请使用浏览器访问此地址下载 LOG 文件  http://$lan_ip/logs.txt"
     echo "日志已收集到 /www/logs.txt 如果你使用 PPPoE 拨号请手动将宽带账密删除，再使用以下链接上传 Github issues 附件!"
-    ehco ""
-    ehco "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
-    ehco "尽可能使用 Github 提交你的问题不会操作再使用社交软件 TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476"
-    ehco ""
+    echo ""
+    echo "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
+    echo "尽可能使用 Github 提交你的问题不会操作再使用社交软件 TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476"
+    echo ""
     exit
 }
 
