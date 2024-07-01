@@ -377,11 +377,13 @@ main
 }
 
 # Repo
-use_repo(){
-    # fk is
-    if [ -f "/etc/opkg/compatfeeds.conf" ]; then
-        rm /etc/opkg/compatfeeds.conf
+# Repo
+use_repo() {
+    # 删除现有的 istore_compat 文件
+    if [ -f "/var/opkg-lists/istore_compat" ]; then
+        rm /var/opkg-lists/istore_compat
     fi
+
     echo "=============================================================================="
     echo "Warning:"
     echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
@@ -394,37 +396,35 @@ use_repo(){
         echo -n "$i "
         sleep 1
     done
-
-    system_arch=$(uname -m)
-    release="/etc/catwrt_release"
     
-
-    if [ -f "$release" ]; then
-        source "$release"
-    else
-        echo "Error: $release"
-        return
-    fi
+    arch=$(uname -m)
     
-    echo ""
+    model=$(grep "Model:" /etc/catwrt_release | cut -d ' ' -f2)
 
-    if [[ "$system_arch" == "x86_64" && "$arch" == "amd64" ]]; then
-        echo "正在获取 x86_64 软件源..."
-        curl -o /etc/opkg/distfeeds.conf $AMD64_REPO
-    elif [[ "$system_arch" == "aarch64" && "$arch" == "mt798x" ]]; then
-        echo "正在获取 mt798x 软件源..."
-        curl -o /etc/opkg/distfeeds.conf $MT798X_REPO
+    download_success=false
+
+    if [[ $model =~ "mt798x" ]]; then
+        # mt798x
+        curl --retry 2 --max-time 5 -o /etc/opkg/distfeeds.conf $MT798X_REPO && download_success=true
+    
+    elif [ "$arch" = "x86_64" ]; then
+        # amd64
+        curl --retry 2 --max-time 5 -o /etc/opkg/distfeeds.conf $AMD64_REPO && download_success=true
+        
     else
-        echo "Unsupported System Arch: $system_arch or $arch ."
+        echo "不支持的机型: $model"
         return
     fi
 
-    if [ -f "/var/lock/opkg.lock" ]; then
-        rm /var/lock/opkg.lock
+    if [ "$download_success" = true ]; then
+        if [ -f "/var/lock/opkg.lock" ]; then
+            rm /var/lock/opkg.lock
+        fi
+    
+        opkg update
+    else
+        echo "下载失败，无法更新软件源。"
     fi
-
-    echo "更新软件包列表..."
-    opkg update
 }
 
 # catnd
