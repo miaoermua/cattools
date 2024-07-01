@@ -21,7 +21,7 @@ fi
 
 # Update
 update_cattools() {
-    echo: "Please wait for the script to be updated."
+    echo "Please wait for the script to be updated."
     local temp_file=$(mktemp)
     if curl --silent --connect-timeout 5 -o "$temp_file" https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
         echo "cattools update downloaded from the first URL."
