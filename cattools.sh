@@ -587,6 +587,8 @@ sysupgrade() {
         echo "仅有 x86_64 可以使用脚本进行系统升级。"
         exit 1
     fi
+    
+    echo ""
 
     disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
     if (( $(echo "$disk_size != 800.28" | bc -l) )); then
@@ -607,9 +609,13 @@ sysupgrade() {
     
     echo ""
     echo "Warning:"
-    echo "该功能未经过实践，不保证是否升级成功，请三思而后行！"
-    echo "即将升级系统，存在风险请输入 (y/n) 确认，30 秒后默认退出脚本！"
-    echo "升级系统会导致启用软件源安装的所有软件被新固件覆盖，ROOT 账户的密码可能被还原为默认密码 (password) 升级过程中会保留插件配置和预装插件获得升级。"
+    echo "该功能通过 sysupgrade 进行升级系统，未经过可靠性实践，不保证 100% 升级成功，请三思而后行!"
+    echo "即将升级系统，存在风险请输入 (y/n) 确认，30 秒后默认退出!"
+    echo ""
+    echo "+ 升级系统会导致启用软件源安装的所有软件被新固件覆盖"
+    echo "+ ROOT 账户的密码可能被还原为默认密码 (password)"
+    echo "+ 升级过程中会保留插件配置和预装插件以获得升级"
+    echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
     read -t 30 -n 1 -p "所以你确认需要升级吗? " user_input
     if [ $? -ne 0 ] || [ "$user_input" != "y" ]; then
         echo -e "\n用户已取消升级!"
