@@ -626,14 +626,23 @@ sysupgrade() {
     echo "+ ROOT 账户的密码可能被还原为默认密码 (password)"
     echo "+ 升级过程中会保留插件配置和预装插件以获得升级"
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
-    read -t 30 -n 1 -p "所以你确认需要升级吗? " user_input
-    if [ $? -ne 0 ] || [ "$user_input" != "y" ]; then
-        echo -e "\n用户已取消升级!"
-        exit 1
-    fi
 
-    echo -e "\n正在升级系统..."
-    sysupgrade -v $firmware_url
+    while true; do
+        read -p "是否继续升级 (y/n)?" confirm_upgrade
+        if [ "$confirm_upgrade" = "y" ]; then
+            echo "正在进行系统升级..."
+            # 执行系统升级命令
+            sysupgrade -v /path/to/your/firmware.img
+            echo "系统升级完成正在重启"
+            break
+        elif [ "$confirm_upgrade" = "n" ]; then
+            echo "系统升级已取消。"
+            break
+        else
+            echo "无效的输入，请输入 y 或 n。"
+        fi
+    done
+
 }
 
 # Use Mirrors repo and History repo
