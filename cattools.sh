@@ -207,6 +207,46 @@ network_wizard() {
         uci set upnpd.config.enabled=1
         echo "UPNP 已开启"
     fi
+    arch=$(grep "arch" /etc/catwrt_release | cut -d'=' -f2)
+
+    # 仅在 x86 和 aarch64_generic 架构上进行网口绑定
+    if [ "$arch" = "amd64" ] || [ "$arch" = "aarch64_generic" ]; then
+        echo "Configure network interfaces /// 配置网口"
+        echo ""
+        echo " Wan    LAN1    LANx..."
+        echo " eth0   eth1   ethx..."
+        echo " □       □      □ ..."
+        echo ""
+        read -p "Press Enter to configure network interfaces, press 1 to skip /// 回车确认配置网口，按 1 跳过: " configure_network
+        if [ "$configure_network" != "1" ]; then
+            # 获取所有网口列表
+            interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
+
+            # 默认桥接网口为 eth1，检测其他可用网口并添加到桥接列表
+            bridge_ports="eth1"
+            for iface in $interfaces; do
+                if [ "$iface" != "eth0" ] && [ "$iface" != "eth1" ]; then
+                bridge_ports="$bridge_ports $iface"
+                fi
+            done
+
+            # 设置 eth0 为 wan
+            uci set network.wan.ifname='eth0'
+            uci set network.wan.proto='dhcp'
+
+            # 绑定检测到的网口为 lan
+            uci set network.lan.type='bridge'
+            uci set network.lan.ifname="$bridge_ports"
+            uci set network.lan._orig_ifname="$bridge_ports"
+            uci set network.lan._orig_bridge='true'
+
+            echo "Network interfaces configured and restarted: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
+        else
+            echo "Skipping network interface configuration /// 跳过网口配置"
+        fi
+    else
+        echo "System architecture $arch is not supported by this script. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
+    fi
 
     uci commit
     /etc/init.d/network restart
