@@ -52,7 +52,7 @@ menu() {
     echo "4. catwrt_update                           -  检查更新"
     echo "5. use_repo                                -  启用软件源"
     echo "6. diagnostics                             -  网络诊断"
-    echo "7. grade                              -  系统更新"
+    echo "7. sysupgrade                              -  系统更新"
     echo "8. use_mirrors_repo                        -  选择软件源镜像"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
