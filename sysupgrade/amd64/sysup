@@ -28,15 +28,15 @@ AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/Ca
     fi
 
     while true; do
-        read -p "Do you want to upgrade your system? /// 是否继续升级 (y/n): " confirm_upgrade
+        read -p "Do you want to upgrade your system? /// 是否继续升级 (1/2): " confirm_upgrade
         case $confirm_upgrade in
-            [Yy]* )
+            1)
                 sysupgrade -v $firmware_url
                  echo "系统升级完成正在重启"
                 break;;
-            [Nn]* )
+            2)
                 echo "System upgrade cancelled. /// 系统升级已取消"
                 break;;
-            * ) echo "Please answer yes or no. /// 无效的输入，请输入 y 或 n";;
+            * ) echo "Please answer yes or no. /// 无效的输入，请输入 1 或 2";;
         esac
     done
