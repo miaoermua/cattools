@@ -4,8 +4,8 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
 MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
-AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
-AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
+AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
+AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
 # Check ROOT & OpenWrt
 if [ $(id -u) != "0" ]; then
@@ -627,19 +627,26 @@ sysupgrade() {
     echo "+ 升级过程中会保留插件配置和预装插件以获得升级"
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
 
-    while true; do
-        read -p "Do you want to upgrade your system? /// 是否继续升级 (y/n): " confirm_upgrade
-        case $confirm_upgrade in
-            [Yy]* )
-                sysupgrade -v $firmware_url
-                 echo "系统升级完成正在重启"
-                break;;
-            [Nn]* )
-                echo "System upgrade cancelled. /// 系统升级已取消"
-                break;;
-            * ) echo "Please answer yes or no. /// 无效的输入，请输入 y 或 n";;
-        esac
-    done
+    read -t 15 -p "确认升级系统 (y/n)? " confirm_upgrade
+    if [[ $confirm_upgrade =~ ^[Yy]$ ]]; then
+        echo "是否需要加速下载？默认加速，按 2 跳过加速。"
+        read -t 5 -p "选择: " use_accel
+        if [ "$use_accel" == "2" ]; then
+            if [ $efi_mode -eq 1 ]; then
+                curl $AMD64_EFI_SYSUP | bash
+            else
+                curl $AMD64_BIOS_SYSUP | bash
+            fi
+        else
+            if [ $efi_mode -eq 1 ]; then
+                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP | bash
+            else
+                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP | bash
+            fi
+        fi
+    else
+        echo "升级取消。"
+    fi
 
 }
 
