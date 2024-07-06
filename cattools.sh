@@ -628,19 +628,17 @@ sysupgrade() {
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
 
     while true; do
-        read -p "是否继续升级 (y/n)?" confirm_upgrade
-        if [ "$confirm_upgrade" = "y" ]; then
-            echo "正在进行系统升级..."
-            # 执行系统升级命令
-            sysupgrade -v $firmware_url
-            echo "系统升级完成正在重启"
-            break
-        elif [ "$confirm_upgrade" = "n" ]; then
-            echo "系统升级已取消。"
-            break
-        else
-            echo "无效的输入，请输入 y 或 n。"
-        fi
+        read -p "Do you want to upgrade your system? /// 是否继续升级 (y/n): " confirm_upgrade
+        case $confirm_upgrade in
+            [Yy]* )
+                sysupgrade -v $firmware_url
+                 echo "系统升级完成正在重启"
+                break;;
+            [Nn]* )
+                echo "System upgrade cancelled. /// 系统升级已取消"
+                break;;
+            * ) echo "Please answer yes or no. /// 无效的输入，请输入 y 或 n";;
+        esac
     done
 
 }
