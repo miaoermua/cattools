@@ -1,0 +1,42 @@
+#!/bin/bash
+
+AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
+AMD64_BIOS_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined.img.gz"
+
+    if [ "$(uname -m)" != "x86_64" ]; then
+        echo "仅有 x86_64 可以使用脚本进行系统升级。"
+        exit 1
+    fi
+    
+    echo ""
+
+    disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
+    if (( $(echo "$disk_size != 800.28" | bc -l) )); then
+        echo "磁盘空间未修改或不匹配，无法继续升级。"
+        exit 1
+    fi
+
+    efi_mode=0
+    if [ -d /sys/firmware/efi ]; then
+        efi_mode=1
+    fi
+
+    if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
+        firmware_url=$AMD64_EFI_SYSUP
+    else
+        firmware_url=$AMD64_BIOS_SYSUP
+    fi
+
+    while true; do
+        read -p "Do you want to upgrade your system? /// 是否继续升级 (y/n): " confirm_upgrade
+        case $confirm_upgrade in
+            [Yy]* )
+                sysupgrade -v $firmware_url
+                 echo "系统升级完成正在重启"
+                break;;
+            [Nn]* )
+                echo "System upgrade cancelled. /// 系统升级已取消"
+                break;;
+            * ) echo "Please answer yes or no. /// 无效的输入，请输入 y 或 n";;
+        esac
+    done
