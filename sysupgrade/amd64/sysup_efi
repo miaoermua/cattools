@@ -1,0 +1,5 @@
+#!/bin/bash
+
+AMD64_EFI_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-squashfs-combined-efi.img.gz"
+
+sysupgrade -v $AMD64_EFI_SYSUP
