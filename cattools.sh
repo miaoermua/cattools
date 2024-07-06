@@ -704,21 +704,21 @@ sysupgrade() {
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
     echo "+ 该更新同样会下载最新版本，应当更新前使用 Cattools 中的 catwrt_update 检查更新"
 
-    read -t 30 -p "Confirm the upgrade /// 确认升级系统? ([1] 确认/[2] 取消) " confirm_upgrade
-    if [ -z "$confirm_upgrade" ] || [ "$confirm_upgrade" == "1" ]; then
-        echo "Accelerate using CN region /// 是否需要使用由 GHProxy 提供的加速下载? ([1] 加速/[2] 不加速) "
+    read -t 15 -p "确认升级系统 (y/n)? " confirm_upgrade
+    if [[ $confirm_upgrade =~ ^[Yy]$ ]]; then
+        echo "是否需要加速下载？默认加速，按 2 跳过加速。"
         read -t 5 -p "选择: " use_accel
-        if [ -z "$use_accel" ] || [ "$use_accel" != "2" ]; then
+        if [ "$use_accel" == "2" ]; then
             if [ $efi_mode -eq 1 ]; then
-                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP_BASHURL | bash
+                curl $AMD64_EFI_SYSUP | bash
             else
-                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP_BASHURL | bash
+                curl $AMD64_BIOS_SYSUP | bash
             fi
         else
             if [ $efi_mode -eq 1 ]; then
-                curl $AMD64_EFI_SYSUP_BASHURL | bash
+                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP | bash
             else
-                curl $AMD64_BIOS_SYSUP_BASHURL | bash
+                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP | bash
             fi
         fi
     else
