@@ -632,7 +632,7 @@ sysupgrade() {
         if [ "$confirm_upgrade" = "y" ]; then
             echo "正在进行系统升级..."
             # 执行系统升级命令
-            sysupgrade -v /path/to/your/firmware.img
+            sysupgrade -v $firmware_url
             echo "系统升级完成正在重启"
             break
         elif [ "$confirm_upgrade" = "n" ]; then
