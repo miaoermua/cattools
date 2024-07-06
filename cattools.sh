@@ -4,8 +4,8 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
 MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
-AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
-AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
+AMD64_EFI_SYSUP_BASHURL="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
+AMD64_BIOS_SYSUP_BASHURL="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
 # Check ROOT & OpenWrt
 if [ $(id -u) != "0" ]; then
@@ -52,7 +52,7 @@ menu() {
     echo "4. catwrt_update                           -  检查更新"
     echo "5. use_repo                                -  启用软件源"
     echo "6. diagnostics                             -  网络诊断"
-    echo "7. sysupgrade                              -  系统更新"
+    echo "7. grade                              -  系统更新"
     echo "8. use_mirrors_repo                        -  选择软件源镜像"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
@@ -399,7 +399,7 @@ use_repo() {
     echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
     echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
     echo "支持我们: https://www.miaoer.xyz/sponsor"
-    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 终止操作)"
     echo "=============================================================================="
     
     for i in $(seq 10 -1 1); do
@@ -591,10 +591,10 @@ catnd(){
     echo "CatWrt Network Diagnostics by @miaoermua"
 }
 
-# Sysupgrade
+# sysupgrade
 sysupgrade() {
     if [ "$(uname -m)" != "x86_64" ]; then
-        echo "仅有 x86_64 可以使用脚本进行系统升级。"
+        echo "System sysupgrade using scripts are only available on AMD64(x86_64) /// 仅 AMD64(x86_64) 可以使用脚本进行系统升级"
         exit 1
     fi
     
@@ -602,7 +602,7 @@ sysupgrade() {
 
     disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
     if (( $(echo "$disk_size != 800.28" | bc -l) )); then
-        echo "磁盘空间未修改或不匹配，无法继续升级。"
+        echo "Disk space mismatch! /// 磁盘空间未修改或不匹配，无法继续升级"
         exit 1
     fi
 
@@ -610,44 +610,38 @@ sysupgrade() {
     if [ -d /sys/firmware/efi ]; then
         efi_mode=1
     fi
-
-    if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
-        firmware_url=$AMD64_EFI_SYSUP
-    else
-        firmware_url=$AMD64_BIOS_SYSUP
-    fi
     
     echo ""
     echo "Warning:"
-    echo "该功能通过 sysupgrade 进行升级系统，未经过可靠性实践，不保证 100% 升级成功，请三思而后行!"
-    echo "即将升级系统，存在风险请输入 (y/n) 确认，30 秒后默认退出!"
+    echo "========================================================================="
+    echo "即将升级系统，存在不可恢复风险请输入 ([1] 确认/[2] 取消)，15s 后将默认继续升级!"
+    echo "该功能通过 OpenWrt sysupgrade 升级系统，不保证 100% 升级成功，请三思!"
     echo ""
     echo "+ 升级系统会导致启用软件源安装的所有软件被新固件覆盖"
-    echo "+ ROOT 账户的密码可能被还原为默认密码 (password)"
+    echo "+ ROOT 账户的密码可能被还原为默认密码: (password)"
     echo "+ 升级过程中会保留插件配置和预装插件以获得升级"
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
+    echo "+ 该更新同样会下载最新版本，应当更新前使用 Cattools 中的 catwrt_update 检查更新"
 
-    read -t 15 -p "确认升级系统 (y/n)? " confirm_upgrade
-    if [[ $confirm_upgrade =~ ^[Yy]$ ]]; then
-        echo "是否需要加速下载？默认加速，按 2 跳过加速。"
+    read -t 30 -p "Confirm the upgrade /// 确认升级系统? ([1] 确认/[2] 取消) " confirm_upgrade
+    if [ -z "$confirm_upgrade" ] || [ "$confirm_upgrade" == "1" ]; then
+        echo "Accelerate using CN region /// 是否需要使用由 GHProxy 提供的加速下载? ([1] 加速/[2] 不加速) "
         read -t 5 -p "选择: " use_accel
-        if [ "$use_accel" == "2" ]; then
+        if [ -z "$use_accel" ] || [ "$use_accel" != "2" ]; then
             if [ $efi_mode -eq 1 ]; then
-                curl $AMD64_EFI_SYSUP | bash
+                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP_BASHURL | bash
             else
-                curl $AMD64_BIOS_SYSUP | bash
+                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP_BASHURL | bash
             fi
         else
             if [ $efi_mode -eq 1 ]; then
-                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP | bash
+                curl $AMD64_EFI_SYSUP_BASHURL | bash
             else
-                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP | bash
+                curl $AMD64_BIOS_SYSUP_BASHURL | bash
             fi
         fi
     else
-        echo "升级取消。"
-    fi
-
+        echo "User Cancel /// 升级取消"
 }
 
 # Use Mirrors repo and History repo
