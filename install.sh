@@ -28,3 +28,5 @@ install_cattools() {
     echo "cattools is installed successfully!"
     echo "please type ‘cattools’ or ‘/usr/bin/cattools’ to run it."
 }
+
+install_cattools
