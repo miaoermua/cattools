@@ -7,6 +7,13 @@ MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
+# color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
 # Check ROOT & OpenWrt
 if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this script, please use root user"
@@ -43,7 +50,7 @@ update_cattools() {
 menu() {
     echo ""
     echo "----------------------------------------------------------"
-    echo "                         CatTools                         "
+    echo "                         ${BLUE}CatTools${NC}                         "
     echo "           https://github.com/miaoermua/cattools          "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                   -  设置 IP"
