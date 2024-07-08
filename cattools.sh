@@ -30,16 +30,31 @@ fi
 update_cattools() {
     echo "Please wait for the script to be updated."
     local temp_file=$(mktemp)
-    if curl --silent --connect-timeout 5 -o "$temp_file" https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
-        echo "cattools update downloaded from the first URL."
-    elif curl --silent --connect-timeout 5 -o "$temp_file" https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh; then
-        echo "cattools update downloaded from the second URL."
-    else
+    local retries=3
+    local success=false
+
+    while [ $retries -gt 0 ]; do
+        if curl --silent --connect-timeout 3 --max-time 9 -o "$temp_file" https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
+            echo "cattools update downloaded from the first URL."
+            success=true
+            break
+        elif curl --silent --connect-timeout 3 --max-time 9 -o "$temp_file" https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh; then
+            echo "cattools update downloaded from the second URL."
+            success=true
+            break
+        else
+            echo "Attempt $(3 - retries + 1) failed. Retrying..."
+            retries=$((retries - 1))
+        fi
+    done
+
+    if [ "$success" = false ]; then
         echo "Unable to download the latest version, continue to use the current offline version."
         echo ""
         rm -f "$temp_file"
         return
     fi
+
     mv "$temp_file" /usr/bin/cattools
     chmod +x /usr/bin/cattools
     echo "cattools updated successfully."
