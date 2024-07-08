@@ -592,7 +592,7 @@ catnd(){
 }
 
 # Sysupgrade
-sysupgrade() {
+sysupgrade(){
     if [ "$(uname -m)" != "x86_64" ]; then
         echo "仅有 x86_64 可以使用脚本进行系统升级。"
         exit 1
@@ -619,39 +619,40 @@ sysupgrade() {
     
     echo ""
     echo "Warning:"
-    echo "该功能通过 sysupgrade 进行升级系统，未经过可靠性实践，不保证 100% 升级成功，请三思而后行!"
-    echo "即将升级系统，存在风险请输入 (y/n) 确认，30 秒后默认退出!"
+    echo "========================================================================="
+    echo "即将升级系统，存在不可恢复风险请输入 ([1] 确认/[2] 取消)，15s 后将默认继续升级!"
+    echo "该功能通过 OpenWrt sysupgrade 升级系统，不保证 100% 升级成功，请三思!"
     echo ""
     echo "+ 升级系统会导致启用软件源安装的所有软件被新固件覆盖"
-    echo "+ ROOT 账户的密码可能被还原为默认密码 (password)"
+    echo "+ ROOT 账户的密码可能被还原为默认密码: (password)"
     echo "+ 升级过程中会保留插件配置和预装插件以获得升级"
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
+    echo "+ 该更新同样会下载最新版本，应当更新前使用 Cattools 中的 catwrt_update 检查更新"
 
-    read -t 15 -p "确认升级系统 (y/n)? " confirm_upgrade
-    if [[ $confirm_upgrade =~ ^[Yy]$ ]]; then
+    read -t 30 -p "确认升级系统 (1 确认/2 取消)? " confirm_upgrade
+    if [ -z "$confirm_upgrade" ] || [ "$confirm_upgrade" = "1" ]; then
         echo "是否需要加速下载？默认加速，按 2 跳过加速。"
         read -t 5 -p "选择: " use_accel
-        if [ "$use_accel" == "2" ]; then
+        if [ -z "$use_accel" ] || [ "$use_accel" != "2" ]; then
             if [ $efi_mode -eq 1 ]; then
-                curl $AMD64_EFI_SYSUP | bash
+                curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
             else
-                curl $AMD64_BIOS_SYSUP | bash
+                curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios | bash
             fi
         else
             if [ $efi_mode -eq 1 ]; then
-                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP | bash
+                curl https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
             else
-                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP | bash
+                curl https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios | bash
             fi
         fi
     else
         echo "升级取消。"
     fi
-
 }
 
 # Use Mirrors repo and History repo
-use_mirrors_repo() {
+use_mirrors_repo(){
     if [ -f "/var/opkg-lists/istore_compat" ]; then
         rm /var/opkg-lists/istore_compat
     fi
