@@ -371,14 +371,15 @@ catwrt_update() {
     
     contrast_version() {
         if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
-            echo "================================"
-            echo "Your CatWrt is up to date!"
-            echo "================================"
+            echo "======================================================="
+            echo "              Your CatWrt is up to date!"
+            echo "======================================================="
         else
-            echo "================================"
+            echo "======================================================="
             echo "Your CatWrt is out of date, you should upgrade it!"
-            echo "You can visit 'https://www.miaoer.xyz/posts/network/catwrt' to get more information!"
-            echo "================================"
+            echo "Visit the blog for more information"
+            echo "https://www.miaoer.xyz/posts/network/catwrt"
+            echo "======================================================="
         fi
     }
     
@@ -387,7 +388,7 @@ catwrt_update() {
         echo "Remote Version : $version_remote"
         echo "Local  Hash    : $hash_local"
         echo "Remote Hash    : $hash_remote"
-        echo "================================"
+        echo "======================================================="
         echo ""
     }
     
