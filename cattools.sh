@@ -390,7 +390,7 @@ apply_repo() {
     if [ -f /etc/catwrt_release ]; then
         source /etc/catwrt_release
     else
-        # 如果 /etc/catwrt_release 文件不存在，则读取 /etc/openwrt_release 文件
+        # If the `/etc/catwrt_release` file does not exist, the `/etc/openwrt_release` file is read.
         if [ -f /etc/openwrt_release ]; then
             openwrt_version=$(grep DISTRIB_RELEASE /etc/openwrt_release | cut -d"'" -f2)
             arch=$(grep DISTRIB_TARGET /etc/openwrt_release | cut -d"/" -f1)
@@ -401,7 +401,7 @@ apply_repo() {
                     elif grep -q "R23.2" /etc/openwrt_release; then
                         version="v23.2"
                     else
-                        echo "未知的 x86_64 版本"
+                        echo "Unknown arch x86_64 /// 未知的 x86_64 版本"
                         exit 1
                     fi
                     ;;
@@ -410,17 +410,17 @@ apply_repo() {
                         version="v22.12"
                         arch="rkarm"
                     else
-                        echo "未知的 aarch64_generic 版本"
+                        echo "Unknown arch aarch64_generic ///未知的 aarch64_generic 版本"
                         exit 1
                     fi
                     ;;
                 *)
-                    echo "未知的架构: $arch"
+                    echo "Unknown arch $arch /// 未知的架构: $arch"
                     exit 1
                     ;;
             esac
         else
-            echo "/etc/catwrt_release 和 /etc/openwrt_release 文件均不存在"
+            echo "`/etc/catwrt_release` or `/etc/openwrt_release` Files do not exist /// 文件不存在或者系统损坏!"
             exit 1
         fi
     fi
@@ -441,7 +441,7 @@ apply_repo() {
                 elif [ "$version" == "v24.8" ]; then
                     REPO_URL="$BASE_URL/amd64"
                 else
-                    echo "未知的 amd64 版本"
+                    echo "Unknown arch $arch /// 未知的架构: $arch"
                     exit 1
                 fi
                 ;;
@@ -453,7 +453,7 @@ apply_repo() {
                 elif [ "$version" == "v23.2" ]; then
                     REPO_URL="$BASE_URL/history/v23.2/mt7986a"
                 else
-                    echo "未知的 mt798x 版本"
+                    echo "Unknown arch mt798x /// 未知的 mt798x 版本"
                     exit 1
                 fi
                 ;;
@@ -461,12 +461,12 @@ apply_repo() {
                 if [ "$version" == "v22.12" ]; then
                     REPO_URL="$BASE_URL/rkarm"
                 else
-                    echo "未知的 rkarm 版本"
+                    echo "Unknown arch rkarm /// 未知的 rkarm 版本"
                     exit 1
                 fi
                 ;;
             *)
-                echo "未知的架构: $arch"
+                echo "Unknown arch $arch /// 未知的架构: $arch"
                 exit 1
                 ;;
         esac
