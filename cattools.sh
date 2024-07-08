@@ -53,6 +53,7 @@ menu() {
     echo "5. apply_repo                              -  软件源配置"
     echo "6. diagnostics                             -  网络诊断"
     echo "7. sysupgrade                              -  系统更新"
+    echo "8. enhancement                             -  实用增强"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -735,6 +736,231 @@ sysupgrade(){
     fi
 }
 
+# Enhancement MENU
+enhancement_menu() {
+    echo "增强配置  提高用户体验"
+    echo ""
+    echo "1. Tailscale 配置"
+    echo "2. TTYD 配置免密(危险仅用于无网调试)"
+    echo "3. SSL/TLS 证书上传配置"
+    echo "0. 返回 Cattools 主菜单"
+    echo
+    read -p "请输入数字并回车(Please enter your choice):" choice
+    case $choice in
+        1) configure_tailscale ;;
+        2) configure_ttyd ;;
+        3) manual_deploy_uhttpd_ssl_cert ;;
+        0) menu ;;
+        *) echo "无效选项，请重试" && menu ;;
+    esac
+}
+
+configure_tailscale(){
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "[ERROR] 请先配置软件源"
+        menu
+        return
+    fi
+
+    if ! opkg list_installed | grep -q "tailscale" || ! opkg list_installed | grep -q "tailscaled"; then
+        echo "正在安装 tailscale 和 tailscaled 软件包..."
+        opkg install tailscale
+        if [ $? -ne 0 ]; then
+            echo "[ERROR] 安装 tailscale 失败，请先配置软件源。"
+            menu
+            return
+        fi
+    fi
+    
+    subnet=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | head -n 1)
+    if [ -z "$subnet" ]; then
+        echo "[ERROR] 无法获取当前子网。"
+        menu
+        return
+    fi
+
+    tailscale up --advertise-routes=$subnet --accept-routes --advertise-exit-node
+
+    firewall_file="/etc/firewall.user"
+    rules=("iptables -I FORWARD -i tailscale0 -j ACCEPT"
+           "iptables -I FORWARD -o tailscale0 -j ACCEPT"
+           "iptables -t nat -I POSTROUTING -o tailscale0 -j MASQUERADE")
+
+    for rule in "${rules[@]}"; do
+        if ! grep -q "^$rule$" $firewall_file; then
+            echo $rule >> $firewall_file
+        fi
+    done
+
+        lan_ip=$(uci get network.lan.ipaddr)
+        
+    echo ""
+    echo "点击上面的 tailscale login 链接然后再进行以下配置"
+    echo "========================================================================="
+    echo ""
+    echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/network/iface_add"
+    echo "新增以下配置:"
+    echo ""
+    echo "新接口的名称: tailscale"
+    echo "新接口的协议: 静态 (默认)"
+    echo "包括以下接口: 以太网适配器: \"tailscale0\" (tailscale)"
+    echo "提交 下一步"
+    echo ""
+    echo "## 接口 - TAILSCALE"
+    echo "IPv4 地址: 输入 tailscale 中的 CatWrt 地址"
+    echo "IPv4 子网掩码: 255.0.0.0"
+    echo "保存 下一步"
+    echo ""
+    echo "##接口 - TAILSCALE - 防火墙设置"
+    echo "创建/分配防火墙区域: LAN"
+    echo "保存并应用"
+
+    echo "Tailscale 配置部分，剩下的交给你了~"
+    menu
+}
+
+# TTYD
+configure_ttyd(){
+    if ! opkg list_installed | grep -q "luci-app-ttyd" || ! opkg list_installed | grep -q "ttyd"; then
+        echo "[ERROR]未安装 luci-app-ttyd 或 ttyd 软件包，请先配置软件源并安装这些软件包"
+        menu
+        return
+    fi
+    
+    echo ""
+    echo "Warning:"
+    echo "========================================================================="
+    echo "此操作将修改 TTYD 的配置以自动登录 root 用户，而且不需要密码"
+    echo "这存在被远程执行的安全风险!仅适用于方便未放行端口时的调试，使用后请务必回到此处配置禁用。"
+    echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
+    read -r confirmation
+    if [ "$confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    
+    echo ""
+    echo "你真的阅读了此警告吗，这非常主要!请务必使用此功能后将其禁用，以避免遭受远程执行命令!"
+    echo "禁用只需要在 Cattools 里面再选一次此功能就可以完成禁用，这是我们的承诺哦!"
+    echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
+    read -r second_confirmation
+    if [ "$second_confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    
+    if grep -q "option command '/bin/login -f root'" /etc/config/ttyd; then
+        sed -i "s/option command '\/bin\/login -f root'/option command '\/bin\/login'/" /etc/config/ttyd
+        /etc/init.d/ttyd restart
+            echo ""
+            echo "TTYD 配置已还原为默认配置"
+    else
+        sed -i "s/option command '\/bin\/login'/option command '\/bin\/login -f root'/" /etc/config/ttyd
+        /etc/init.d/ttyd restart
+        echo ""
+        echo "TTYD 配置已修改为自动登录 root"
+        lan_ip=$(uci get network.lan.ipaddr)
+        echo "TTYD 访问链接  http://$lan_ip:7681"
+    fi
+    
+    menu
+}
+
+# Manual upload SSL/TLS
+manual_deploy_uhttpd_ssl_cert() {
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "[ERROR] 请先配置软件源"
+        menu
+        return
+    fi
+
+    if ! grep -q "option cert '/etc/uhttpd.crt'" /etc/config/uhttpd || ! grep -q "option key '/etc/uhttpd.key'" /etc/config/uhttpd; then
+        echo "[ERROR] uhttpd 配置文件中的证书或密钥路径已被修改，无法继续执行!"
+        echo "请检查 /etc/config/uhttpd"
+        menu
+        return
+    fi
+
+    if ! grep -q "list listen_http '0.0.0.0:80'" /etc/config/uhttpd || \
+       ! grep -q "list listen_http '\[::\]:80'" /etc/config/uhttpd || \
+       ! grep -q "list listen_https '0.0.0.0:443'" /etc/config/uhttpd || \
+       ! grep -q "list listen_https '\[::\]:443'" /etc/config/uhttpd; then
+        echo "[ERROR] uhttpd 配置文件中的监听端口配置已被修改，请检查!"
+    fi
+
+    if ! opkg list_installed | grep -q "unzip"; then
+        echo "正在安装 unzip..."
+        opkg update
+        opkg install unzip
+        if [ $? -ne 0 ]; then
+            echo "[ERROR] 安装 unzip 失败。请检查软件源配置"
+            menu
+            return
+        fi
+    fi
+        lan_ip=$(uci get network.lan.ipaddr)
+
+    echo ""   
+    echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/system/filetransfer 上传证书 zip 文件。"
+    echo "仅支持 Aliyun / Tencent Cloud 创建的 Ngnix 和 apache SSL/TLS 证书"
+    echo "本功能仅做手动证书部署，并不代表你的 DNS 已解析或者网页 (:80/:443 or:8080) 端口通畅"
+    echo "不支持已安装 ngnix 的设备"
+    echo "上传完成后，按 [1] 确认/ [0] 退出"
+    read -r confirmation
+    if [ "$confirmation" != "1" ]; then
+        echo "[ERROR] 上传未确认"
+        menu
+        return
+    fi
+
+    zip_files=($(ls /tmp/upload/*.zip 2>/dev/null))
+    if [ ${#zip_files[@]} -gt 1 ]; then
+        echo "[ERROR] 检测到多个 zip 文件，请仅上传一个 zip 文件"
+        menu
+        return
+    elif [ ${#zip_files[@]} -eq 0 ]; then
+        echo "[ERROR] 未找到上传的 zip 文件"
+        menu
+        return
+    fi
+
+    uploaded_zip=${zip_files[0]}
+
+    if [ -f /etc/uhttpd.crt ]; then
+        mv /etc/uhttpd.crt /etc/uhttpd.crt.bak
+    fi
+    if [ -f /etc/uhttpd.key ]; then
+        mv /etc/uhttpd.key /etc/uhttpd.key.bak
+    fi
+
+    unzip -o "$uploaded_zip" -d /tmp/deploy_ssl
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] 解压失败"
+        menu
+        return
+    fi
+
+    crt_file=$(find /tmp/deploy_ssl -name "*.crt" -o -name "*.pem" 2>/dev/null | head -n 1)
+    key_file=$(find /tmp/deploy_ssl -name "*.key" 2>/dev/null | head -n 1)
+    if [ -z "$crt_file" ] || [ -z "$key_file" ]; then
+        echo "[ERROR] 未找到有效的证书文件或密钥文件"
+        menu
+        return
+    fi
+
+    cp "$crt_file" /etc/uhttpd.crt
+    cp "$key_file" /etc/uhttpd.key
+
+    rm -rf /tmp/deploy_ssl
+    rm "$uploaded_zip"
+
+    echo "证书部署完成，正在重启 UHTTPD"
+    /etc/init.d/uhttpd restart
+    menu
+}
+
 while true; do
     menu
     read choice
@@ -759,6 +985,9 @@ while true; do
             ;;
         7)
             sysupgrade
+            ;;
+        8)
+            enhancement_menu
             ;;
         0)
             echo "Exiting..."
