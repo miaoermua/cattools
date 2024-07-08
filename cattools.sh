@@ -739,12 +739,14 @@ sysupgrade(){
 # Enhancement MENU
 enhancement_menu() {
     echo "增强配置  提高用户体验"
+    echo "========================"
     echo ""
     echo "1. Tailscale 配置"
     echo "2. TTYD 配置免密(危险)"
     echo "3. SSL/TLS 证书上传配置"
     echo "4. 重置 root 密码"
     echo "5. 恢复出厂设置(重置系统)"
+    echo ""
     echo "0. 返回 Cattools 主菜单"
     echo
     read -p "请输入数字并回车(Please enter your choice):" choice
@@ -753,7 +755,7 @@ enhancement_menu() {
         2) configure_ttyd ;;
         3) manual_deploy_uhttpd_ssl_cert ;;
         0) menu ;;
-        *) echo "无效选项，请重试" && menu ;;
+        *) echo "无效选项，请重试" && enhancement_menu ;;
     esac
 }
 
