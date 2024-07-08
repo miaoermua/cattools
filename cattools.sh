@@ -740,9 +740,9 @@ sysupgrade(){
 enhancement_menu() {
     echo "增强配置  提高用户体验"
     echo ""
-    echo "1. Tailscale 一键配置"
-    echo "2. Ttyd 配置"
-    echo "3. SSL/TLS 手动上传配置"
+    echo "1. Tailscale 配置"
+    echo "2. TTYD 配置免密(危险仅用于无网调试)"
+    echo "3. SSL/TLS 证书上传配置"
     echo "0. 返回 Cattools 主菜单"
     echo
     read -p "请输入数字并回车(Please enter your choice):" choice
@@ -821,20 +821,50 @@ configure_tailscale(){
 
 # TTYD
 configure_ttyd(){
-    ttyd_file="/etc/config/ttyd"
-    original_command="option command '/bin/login'"
-    modified_command="option command '/bin/login -f root'"
-
-    if grep -q "$modified_command" $ttyd_file; then
-        sed -i "s|$modified_command|$original_command|" $ttyd_file
-        echo "TTYD 配置已还原为默认"
-    else
-        sed -i "s|$original_command|$modified_command|" $ttyd_file
-        echo "TTYD 配置已修改为 root 登录"
+    if ! opkg list_installed | grep -q "luci-app-ttyd" || ! opkg list_installed | grep -q "ttyd"; then
+        echo "[ERROR]未安装 luci-app-ttyd 或 ttyd 软件包，请先配置软件源并安装这些软件包"
+        menu
+        return
     fi
     
-    /etc/init.d/ttyd restart
-    echo "TTYD 服务已重新启动"
+    echo ""
+    echo "Warning:"
+    echo "========================================================================="
+    echo "此操作将修改 TTYD 的配置以自动登录 root 用户，而且不需要密码"
+    echo "这存在被远程执行的安全风险!仅适用于方便未放行端口时的调试，使用后请务必回到此处配置禁用。"
+    echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
+    read -r confirmation
+    if [ "$confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    
+    echo ""
+    echo "你真的阅读了此警告吗，这非常主要!请务必使用此功能后将其禁用，以避免遭受远程执行命令!"
+    echo "禁用只需要在 Cattools 里面再选一次此功能就可以完成禁用，这是我们的承诺哦!"
+    echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
+    read -r second_confirmation
+    if [ "$second_confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    
+    if grep -q "option command '/bin/login -f root'" /etc/config/ttyd; then
+        sed -i "s/option command '\/bin\/login -f root'/option command '\/bin\/login'/" /etc/config/ttyd
+        /etc/init.d/ttyd restart
+            echo ""
+            echo "TTYD 配置已还原为默认配置"
+    else
+        sed -i "s/option command '\/bin\/login'/option command '\/bin\/login -f root'/" /etc/config/ttyd
+        /etc/init.d/ttyd restart
+        echo ""
+        echo "TTYD 配置已修改为自动登录 root"
+        lan_ip=$(uci get network.lan.ipaddr)
+        echo "TTYD 访问链接  http://$lan_ip:7681"
+    fi
+    
     menu
 }
 
@@ -880,7 +910,7 @@ manual_deploy_uhttpd_ssl_cert() {
     echo "上传完成后，按 [1] 确认/ [0] 退出"
     read -r confirmation
     if [ "$confirmation" != "1" ]; then
-        echo "[ERROR] 上传未确认。返回主菜单"
+        echo "[ERROR] 上传未确认"
         menu
         return
     fi
