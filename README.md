@@ -16,7 +16,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [x] 2. network_wizard                  -  网络向导
 - [x] 3. Debug                           -  抓取日志
 - [x] 4. catwrt_update                   -  检查更新
-- [x] 5. use_repo                        -  启用软件源
+- [x] 5. apply_repo                      -  软件源配置
 - [x] 6. sysupgrade                      -  系统更新
 - [x] 7. diagnostics                     -  网络诊断
 - [x] 0. Exit                            -  退出
