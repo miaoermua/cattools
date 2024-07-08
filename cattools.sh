@@ -846,6 +846,20 @@ manual_deploy_uhttpd_ssl_cert() {
         return
     fi
 
+    if ! grep -q "option cert '/etc/uhttpd.crt'" /etc/config/uhttpd || ! grep -q "option key '/etc/uhttpd.key'" /etc/config/uhttpd; then
+        echo "[ERROR] uhttpd 配置文件中的证书或密钥路径已被修改，无法继续执行!"
+        echo "请检查 /etc/config/uhttpd"
+        menu
+        return
+    fi
+
+    if ! grep -q "list listen_http '0.0.0.0:80'" /etc/config/uhttpd || \
+       ! grep -q "list listen_http '\[::\]:80'" /etc/config/uhttpd || \
+       ! grep -q "list listen_https '0.0.0.0:443'" /etc/config/uhttpd || \
+       ! grep -q "list listen_https '\[::\]:443'" /etc/config/uhttpd; then
+        echo "[ERROR] uhttpd 配置文件中的监听端口配置已被修改，请检查!"
+    fi
+
     if ! opkg list_installed | grep -q "unzip"; then
         echo "正在安装 unzip..."
         opkg update
@@ -893,7 +907,7 @@ manual_deploy_uhttpd_ssl_cert() {
 
     unzip -o "$uploaded_zip" -d /tmp/deploy_ssl
     if [ $? -ne 0 ]; then
-        echo "[ERROR] 解压失败。返回主菜单"
+        echo "[ERROR] 解压失败"
         menu
         return
     fi
@@ -901,7 +915,7 @@ manual_deploy_uhttpd_ssl_cert() {
     crt_file=$(find /tmp/deploy_ssl -name "*.crt" -o -name "*.pem" 2>/dev/null | head -n 1)
     key_file=$(find /tmp/deploy_ssl -name "*.key" 2>/dev/null | head -n 1)
     if [ -z "$crt_file" ] || [ -z "$key_file" ]; then
-        echo "[ERROR] 未找到有效的证书文件或密钥文件。返回主菜单"
+        echo "[ERROR] 未找到有效的证书文件或密钥文件"
         menu
         return
     fi
