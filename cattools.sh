@@ -4,8 +4,8 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
 MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
-AMD64_EFI_SYSUP_BASHURL="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
-AMD64_BIOS_SYSUP_BASHURL="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
+AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
+AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
 # Check ROOT & OpenWrt
 if [ $(id -u) != "0" ]; then
@@ -517,7 +517,6 @@ apply_repo() {
     
     echo "完成"
 }
-
 # catnd
 
 catnd(){
@@ -672,10 +671,10 @@ catnd(){
     echo "CatWrt Network Diagnostics by @miaoermua"
 }
 
-# sysupgrade
-sysupgrade() {
+# Sysupgrade
+sysupgrade(){
     if [ "$(uname -m)" != "x86_64" ]; then
-        echo "System sysupgrade using scripts are only available on AMD64(x86_64) /// 仅 AMD64(x86_64) 可以使用脚本进行系统升级"
+        echo "仅有 x86_64 可以使用脚本进行系统升级。"
         exit 1
     fi
     
@@ -683,13 +682,19 @@ sysupgrade() {
 
     disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
     if (( $(echo "$disk_size != 800.28" | bc -l) )); then
-        echo "Disk space mismatch! /// 磁盘空间未修改或不匹配，无法继续升级"
+        echo "磁盘空间未修改或不匹配，无法继续升级。"
         exit 1
     fi
 
     efi_mode=0
     if [ -d /sys/firmware/efi ]; then
         efi_mode=1
+    fi
+
+    if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
+        firmware_url=$AMD64_EFI_SYSUP
+    else
+        firmware_url=$AMD64_BIOS_SYSUP
     fi
     
     echo ""
@@ -704,28 +709,176 @@ sysupgrade() {
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
     echo "+ 该更新同样会下载最新版本，应当更新前使用 Cattools 中的 catwrt_update 检查更新"
 
-    read -t 15 -p "确认升级系统 (y/n)? " confirm_upgrade
-    if [[ $confirm_upgrade =~ ^[Yy]$ ]]; then
+    read -t 30 -p "确认升级系统 (1 确认/2 取消)? " confirm_upgrade
+    if [ -z "$confirm_upgrade" ] || [ "$confirm_upgrade" = "1" ]; then
         echo "是否需要加速下载？默认加速，按 2 跳过加速。"
         read -t 5 -p "选择: " use_accel
-        if [ "$use_accel" == "2" ]; then
+        if [ -z "$use_accel" ] || [ "$use_accel" != "2" ]; then
             if [ $efi_mode -eq 1 ]; then
-                curl $AMD64_EFI_SYSUP | bash
+                curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
             else
-                curl $AMD64_BIOS_SYSUP | bash
+                curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios | bash
             fi
         else
             if [ $efi_mode -eq 1 ]; then
-                curl https://mirror.ghproxy.com/$AMD64_EFI_SYSUP | bash
+                curl https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
             else
-                curl https://mirror.ghproxy.com/$AMD64_BIOS_SYSUP | bash
+                curl https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios | bash
             fi
         fi
     else
-        echo "User Cancel /// 升级取消"
+        echo "升级取消。"
+    fi
 }
 
-# choice
+# Use Mirrors repo and History repo
+use_mirrors_repo(){
+    if [ -f "/var/opkg-lists/istore_compat" ]; then
+        rm /var/opkg-lists/istore_compat
+    fi
+
+    echo "=============================================================================="
+    echo "Warning:"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
+    echo "支持我们: https://www.miaoer.xyz/sponsor"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
+    echo "=============================================================================="
+    
+    for i in $(seq 10 -1 1); do
+        echo -n "$i "
+        sleep 1
+    done
+    get_url_prefix() {
+        local version=$1
+        local arch=$2
+    
+        case "$version" in
+            v23.8)
+                case "$arch" in
+                    amd64)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/"
+                        ;;
+                    mt798x)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/"
+                        ;;
+                    *)
+                        echo "不支持的架构"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            v23.2)
+                case "$arch" in
+                    amd64)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v23.2/amd64/"
+                        ;;
+                    mt798x)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v23.2/mt7986a/"
+                        ;;
+                    *)
+                        echo "不支持的架构"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            v22.12)
+                case "$arch" in
+                    amd64)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v22.12/amd64/"
+                        ;;
+                    aarch64_generic)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/rkarm/"
+                        ;;
+                    aarch64_cortex-a53)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v22.12/aarch64_cortex-a53/"
+                        ;;
+                    *)
+                        echo "不支持的架构"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            *)
+                echo "不支持的版本"
+                exit 1
+                ;;
+        esac
+    }
+    
+    OPENWRT_RELEASE_FILE="/etc/openwrt_release"
+    
+    if [ -f "$RELEASE" ]; then
+        # Read release information
+        . "$RELEASE"
+    elif [ -f "$OPENWRT_RELEASE_FILE" ]; then
+        if grep -q "R22.12.1" "$OPENWRT_RELEASE_FILE"; then
+            version="v22.12"
+            if grep -q "aarch64_cortex-a53" "$OPENWRT_RELEASE_FILE"; then
+                arch="aarch64_cortex-a53"
+            elif grep -q "aarch64_generic" "$OPENWRT_RELEASE_FILE"; then
+                arch="aarch64_generic"
+            fi
+        else
+            echo "$OPENWRT_RELEASE_FILE 不包含支持的版本信息"
+            exit 1
+        fi
+    else
+        echo "$RELEASE 和 $OPENWRT_RELEASE_FILE 文件都不存在或者设备不被 CatWrt LTS 支持!"
+        exit 1
+    fi
+    
+    if [ -z "$version" ] || [ -z "$arch" ]; then
+        echo "缺少必要的版本或架构信息"
+        exit 1
+    fi
+    
+    url_prefix=$(get_url_prefix "$version" "$arch")
+    
+    # Display options
+    echo "请选择源:"
+    echo "1 主站"
+    echo "2 cfnetlify"
+    echo "3 netlify"
+    echo "4 cfvercel"
+    echo "5 vercel"
+    
+    read -p "请输入数字并回车(Please enter your choice):  " choice
+    
+    case "$choice" in
+        1)
+            conf_file="distfeeds.conf"
+            ;;
+        2)
+            conf_file="cfnetlify.conf"
+            ;;
+        3)
+            conf_file="netlify.conf"
+            ;;
+        4)
+            conf_file="cfvercel.conf"
+            ;;
+        5)
+            conf_file="vercel.conf"
+            ;;
+        *)
+            echo "无效的选择"
+            exit 1
+            ;;
+    esac
+    
+    # Download the selected configuration file and rename it to distfeeds.conf
+    curl --connect-timeout 5 --retry 2 -o /etc/opkg/distfeeds.conf "${url_prefix}${conf_file}"
+
+        if [ -f "/var/lock/opkg.lock" ]; then
+            rm /var/lock/opkg.lock
+        fi
+    
+        opkg update
+    
+    echo "源已切换到 ${url_prefix}${conf_file}"
+}
+
 while true; do
     menu
     read choice
