@@ -738,11 +738,16 @@ sysupgrade(){
 
 # Enhancement MENU
 enhancement_menu() {
-    echo "增强配置  提高用户体验"
+    echo ""
+    echo "增强配置"
+    echo "========================"
     echo ""
     echo "1. Tailscale 配置"
-    echo "2. TTYD 配置免密(危险仅用于无网调试)"
+    echo "2. TTYD 配置免密(危险)"
     echo "3. SSL/TLS 证书上传配置"
+    echo "4. 重置 root 密码"
+    echo "5. 恢复出厂设置(重置系统)"
+    echo ""
     echo "0. 返回 Cattools 主菜单"
     echo
     read -p "请输入数字并回车(Please enter your choice):" choice
@@ -751,7 +756,7 @@ enhancement_menu() {
         2) configure_ttyd ;;
         3) manual_deploy_uhttpd_ssl_cert ;;
         0) menu ;;
-        *) echo "无效选项，请重试" && menu ;;
+        *) echo "无效选项，请重试" && enhancement_menu ;;
     esac
 }
 
@@ -907,7 +912,7 @@ manual_deploy_uhttpd_ssl_cert() {
     echo "仅支持 Aliyun / Tencent Cloud 创建的 Ngnix 和 apache SSL/TLS 证书"
     echo "本功能仅做手动证书部署，并不代表你的 DNS 已解析或者网页 (:80/:443 or:8080) 端口通畅"
     echo "不支持已安装 ngnix 的设备"
-    echo "上传完成后，按 [1] 确认/ [0] 退出"
+    echo "上传完成后，按 ([1] 确认/[2] 取消)"
     read -r confirmation
     if [ "$confirmation" != "1" ]; then
         echo "[ERROR] 上传未确认"
@@ -959,6 +964,53 @@ manual_deploy_uhttpd_ssl_cert() {
     echo "证书部署完成，正在重启 UHTTPD"
     /etc/init.d/uhttpd restart
     menu
+}
+
+openwrt_firstboot() {
+    echo ""
+    echo "Warning:"
+    echo "========================================================================="
+    echo "此操作将重置 OpenWrt 系统，删除所有配置并恢复出厂(原始固件)设置"
+    echo "如遇到问题可以使用 Cattools 里面的 sysupgrade 进行完整包升级，下策才是重置系统"
+    echo "你确定要继续吗？([1] 确认/[2] 取消)"
+    read -r confirmation
+    if [ "$confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    
+    echo ""
+    echo "你真的阅读了此警告吗，这非常主要!你的系统即将重置!"
+    echo "你将放弃 OpenWrt 中的一切，从头来过!"
+    echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
+    read -r second_confirmation
+    if [ "$second_confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    firstboot && reboot
+}
+
+reset_root_password() {
+    echo ""
+    echo "此操作将重置 root 用户的密码"
+    echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
+    read -r confirmation
+    if [ "$confirmation" != "1" ]; then
+        echo "操作取消"
+        menu
+        return
+    fi
+    password_hash='$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.'
+    sed -i "s|^root:[^:]*:|root:$password_hash:|" /etc/shadow
+    echo "Warning:"
+    echo "========================================================================="
+    echo "root 用户密码已重置为 password"
+    echo "请在终端中输入 passwd 修改密码，或者在 系统-管理权 中修改"
+    ehco "长期使用默认密码(弱密码)极易遭受远程指令攻击，后果严重"
+    exit
 }
 
 while true; do
