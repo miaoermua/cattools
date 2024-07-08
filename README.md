@@ -26,8 +26,8 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [ ] 实现对旁路网关(旁路由)配置
 - [ ] 升级插件(升级系统后)
 - [ ] 插件商店
-- [x]Tailscale 配置 (未经测试)
-- [x]重置系统 (未经测试)
-- [x]重置密码 (未经测试)
-- [x]TTYD 配置
-- [x]SSL/TLS 上传 zip 证书配置
+- [x] Tailscale 配置 (未经测试)
+- [x] 重置系统 (未经测试)
+- [x] 重置密码 (未经测试)
+- [x] TTYD 配置
+- [x] SSL/TLS 上传 zip 证书配置
