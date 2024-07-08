@@ -17,7 +17,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [x] 3. Debug                           -  抓取日志
 - [x] 4. catwrt_update                   -  检查更新
 - [x] 5. use_repo                        -  启用软件源
-- [x] 6. sysupgrade                      -  系统更新(未经测试)
+- [x] 6. sysupgrade                      -  系统更新
 - [x] 7. diagnostics                     -  网络诊断
 - [x] 0. Exit                            -  退出
 - [x] 热更新和安装脚本
@@ -26,3 +26,8 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [ ] 实现对旁路网关(旁路由)配置
 - [ ] 升级插件(升级系统后)
 - [ ] 插件商店
+- [x]Tailscale 配置 (未经测试)
+- [x]重置系统 (未经测试)
+- [x]重置密码 (未经测试)
+- [x]TTYD 配置
+- [x]SSL/TLS 上传 zip 证书配置
