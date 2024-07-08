@@ -4,8 +4,8 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 AMD64_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/distfeeds.conf"
 MT798X_REPO="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/distfeeds.conf"
-AMD64_EFI_SYSUP_BASHURL="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
-AMD64_BIOS_SYSUP_BASHURL="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
+AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
+AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
 # Check ROOT & OpenWrt
 if [ $(id -u) != "0" ]; then
@@ -50,9 +50,10 @@ menu() {
     echo "2. network_wizard                          -  网络向导"
     echo "3. Debug                                   -  抓取日志"
     echo "4. catwrt_update                           -  检查更新"
-    echo "5. apply_repo                              -  软件源配置"
+    echo "5. use_repo                                -  启用软件源"
     echo "6. diagnostics                             -  网络诊断"
     echo "7. sysupgrade                              -  系统更新"
+    echo "8. use_mirrors_repo                        -  选择软件源镜像"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -386,136 +387,54 @@ main
 }
 
 # Repo
-apply_repo() {
-    if [ -f /etc/catwrt_release ]; then
-        source /etc/catwrt_release
-    else
-        # 如果 /etc/catwrt_release 文件不存在，则读取 /etc/openwrt_release 文件
-        if [ -f /etc/openwrt_release ]; then
-            openwrt_version=$(grep DISTRIB_RELEASE /etc/openwrt_release | cut -d"'" -f2)
-            arch=$(grep DISTRIB_TARGET /etc/openwrt_release | cut -d"/" -f1)
-            case "$arch" in
-                x86_64)
-                    if grep -q "R22.11.11" /etc/openwrt_release; then
-                        version="v22.12"
-                    elif grep -q "R23.2" /etc/openwrt_release; then
-                        version="v23.2"
-                    else
-                        echo "未知的 x86_64 版本"
-                        exit 1
-                    fi
-                    ;;
-                aarch64_generic)
-                    if grep -q "R22.12.1" /etc/openwrt_release; then
-                        version="v22.12"
-                        arch="rkarm"
-                    else
-                        echo "未知的 aarch64_generic 版本"
-                        exit 1
-                    fi
-                    ;;
-                *)
-                    echo "未知的架构: $arch"
-                    exit 1
-                    ;;
-            esac
-        else
-            echo "/etc/catwrt_release 和 /etc/openwrt_release 文件均不存在"
-            exit 1
-        fi
-    fi
-    
-    BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
-    
-    select_repo() {
-        case "$arch" in
-            amd64)
-                if [ "$version" == "v23.8" ]; then
-                    REPO_URL="$BASE_URL/amd64"
-                elif [ "$version" == "v22.12" ]; then
-                    REPO_URL="$BASE_URL/history/v22.12/amd64"
-                elif [ "$version" == "v23.2" ]; then
-                    REPO_URL="$BASE_URL/history/v23.2/amd64"
-                else
-                    echo "未知的 amd64 版本"
-                    exit 1
-                fi
-                ;;
-            mt798x)
-                if [ "$version" == "v23.8" ]; then
-                    REPO_URL="$BASE_URL/mt798x"
-                elif [ "$version" == "v22.12" ]; then
-                    REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53"
-                elif [ "$version" == "v23.2" ]; then
-                    REPO_URL="$BASE_URL/history/v23.2/mt7986a"
-                else
-                    echo "未知的 mt798x 版本"
-                    exit 1
-                fi
-                ;;
-            rkarm)
-                if [ "$version" == "v22.12" ]; then
-                    REPO_URL="$BASE_URL/rkarm"
-                else
-                    echo "未知的 rkarm 版本"
-                    exit 1
-                fi
-                ;;
-            *)
-                echo "未知的架构: $arch"
-                exit 1
-                ;;
-        esac
-    }
-    
-        echo "=============================================================================="
-        echo "Warning:"
-        echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
-        echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
-        echo "支持我们: https://www.miaoer.xyz/sponsor"
-        echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
-        echo "=============================================================================="
-    
-    select_repo
-    
-    echo ""
-    echo "请选择要使用的软件源:"
-    echo "1) repo.miaoer.xyz (主站)"
-    echo "2) cfnetlify"
-    echo "3) netlify"
-    echo "4) cfvercel"
-    echo "5) vercel (默认)"
-    
-    read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
-    choice=${choice:-5}
-    
-    case $choice in
-        1) conf_file="distfeeds.conf";;
-        2) conf_file="cfnetlify.conf";;
-        3) conf_file="netlify.conf";;
-        4) conf_file="cfvercel.conf";;
-        5) conf_file="vercel.conf";;
-        *) conf_file="vercel.conf";;
-    esac
-    
-    CONF_PATH="$REPO_URL/$conf_file"
-    if curl --output /dev/null --silent --head --fail "$CONF_PATH"; then
-        echo "使用 $CONF_PATH"
-    else
-        echo "源文件不存在: $CONF_PATH"
-        exit 1
-    fi
-    
-    curl -sL "$CONF_PATH" -o /etc/opkg/distfeeds.conf
-    
-    # fack istore_compat
-    if [ -f /var/opkg-lists/istore_compat ]; then
+# Repo
+use_repo() {
+    # 删除现有的 istore_compat 文件
+    if [ -f "/var/opkg-lists/istore_compat" ]; then
         rm /var/opkg-lists/istore_compat
     fi
+
+    echo "=============================================================================="
+    echo "Warning:"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
+    echo "支持我们: https://www.miaoer.xyz/sponsor"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
+    echo "=============================================================================="
     
-    opkg update
+    for i in $(seq 10 -1 1); do
+        echo -n "$i "
+        sleep 1
+    done
     
-    echo "完成"
+    arch=$(uname -m)
+    
+    model=$(grep "Model:" /etc/catwrt_release | cut -d ' ' -f2)
+
+    download_success=false
+
+    if [[ $model =~ "mt798x" ]]; then
+        # mt798x
+        curl --retry 2 --max-time 5 -o /etc/opkg/distfeeds.conf $MT798X_REPO && download_success=true
+    
+    elif [ "$arch" = "x86_64" ]; then
+        # amd64
+        curl --retry 2 --max-time 5 -o /etc/opkg/distfeeds.conf $AMD64_REPO && download_success=true
+        
+    else
+        echo "不支持的机型: $model"
+        return
+    fi
+
+    if [ "$download_success" = true ]; then
+        if [ -f "/var/lock/opkg.lock" ]; then
+            rm /var/lock/opkg.lock
+        fi
+    
+        opkg update
+    else
+        echo "下载失败，无法更新软件源。"
+    fi
 }
 
 # catnd
@@ -672,10 +591,10 @@ catnd(){
     echo "CatWrt Network Diagnostics by @miaoermua"
 }
 
-# sysupgrade
+# Sysupgrade
 sysupgrade() {
     if [ "$(uname -m)" != "x86_64" ]; then
-        echo "System sysupgrade using scripts are only available on AMD64(x86_64) /// 仅 AMD64(x86_64) 可以使用脚本进行系统升级"
+        echo "仅有 x86_64 可以使用脚本进行系统升级。"
         exit 1
     fi
     
@@ -683,7 +602,7 @@ sysupgrade() {
 
     disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
     if (( $(echo "$disk_size != 800.28" | bc -l) )); then
-        echo "Disk space mismatch! /// 磁盘空间未修改或不匹配，无法继续升级"
+        echo "磁盘空间未修改或不匹配，无法继续升级。"
         exit 1
     fi
 
@@ -691,18 +610,22 @@ sysupgrade() {
     if [ -d /sys/firmware/efi ]; then
         efi_mode=1
     fi
+
+    if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
+        firmware_url=$AMD64_EFI_SYSUP
+    else
+        firmware_url=$AMD64_BIOS_SYSUP
+    fi
     
     echo ""
     echo "Warning:"
-    echo "========================================================================="
-    echo "即将升级系统，存在不可恢复风险请输入 ([1] 确认/[2] 取消)，15s 后将默认继续升级!"
-    echo "该功能通过 OpenWrt sysupgrade 升级系统，不保证 100% 升级成功，请三思!"
+    echo "该功能通过 sysupgrade 进行升级系统，未经过可靠性实践，不保证 100% 升级成功，请三思而后行!"
+    echo "即将升级系统，存在风险请输入 (y/n) 确认，30 秒后默认退出!"
     echo ""
     echo "+ 升级系统会导致启用软件源安装的所有软件被新固件覆盖"
-    echo "+ ROOT 账户的密码可能被还原为默认密码: (password)"
+    echo "+ ROOT 账户的密码可能被还原为默认密码 (password)"
     echo "+ 升级过程中会保留插件配置和预装插件以获得升级"
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
-    echo "+ 该更新同样会下载最新版本，应当更新前使用 Cattools 中的 catwrt_update 检查更新"
 
     read -t 15 -p "确认升级系统 (y/n)? " confirm_upgrade
     if [[ $confirm_upgrade =~ ^[Yy]$ ]]; then
@@ -722,10 +645,159 @@ sysupgrade() {
             fi
         fi
     else
-        echo "User Cancel /// 升级取消"
+        echo "升级取消。"
+    fi
+
 }
 
-# choice
+# Use Mirrors repo and History repo
+use_mirrors_repo() {
+    if [ -f "/var/opkg-lists/istore_compat" ]; then
+        rm /var/opkg-lists/istore_compat
+    fi
+
+    echo "=============================================================================="
+    echo "Warning:"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
+    echo "支持我们: https://www.miaoer.xyz/sponsor"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
+    echo "=============================================================================="
+    
+    for i in $(seq 10 -1 1); do
+        echo -n "$i "
+        sleep 1
+    done
+    get_url_prefix() {
+        local version=$1
+        local arch=$2
+    
+        case "$version" in
+            v23.8)
+                case "$arch" in
+                    amd64)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/amd64/"
+                        ;;
+                    mt798x)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/mt798x/"
+                        ;;
+                    *)
+                        echo "不支持的架构"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            v23.2)
+                case "$arch" in
+                    amd64)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v23.2/amd64/"
+                        ;;
+                    mt798x)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v23.2/mt7986a/"
+                        ;;
+                    *)
+                        echo "不支持的架构"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            v22.12)
+                case "$arch" in
+                    amd64)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v22.12/amd64/"
+                        ;;
+                    aarch64_generic)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/rkarm/"
+                        ;;
+                    aarch64_cortex-a53)
+                        echo "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo/history/v22.12/aarch64_cortex-a53/"
+                        ;;
+                    *)
+                        echo "不支持的架构"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            *)
+                echo "不支持的版本"
+                exit 1
+                ;;
+        esac
+    }
+    
+    OPENWRT_RELEASE_FILE="/etc/openwrt_release"
+    
+    if [ -f "$RELEASE" ]; then
+        # Read release information
+        . "$RELEASE"
+    elif [ -f "$OPENWRT_RELEASE_FILE" ]; then
+        if grep -q "R22.12.1" "$OPENWRT_RELEASE_FILE"; then
+            version="v22.12"
+            if grep -q "aarch64_cortex-a53" "$OPENWRT_RELEASE_FILE"; then
+                arch="aarch64_cortex-a53"
+            elif grep -q "aarch64_generic" "$OPENWRT_RELEASE_FILE"; then
+                arch="aarch64_generic"
+            fi
+        else
+            echo "$OPENWRT_RELEASE_FILE 不包含支持的版本信息"
+            exit 1
+        fi
+    else
+        echo "$RELEASE 和 $OPENWRT_RELEASE_FILE 文件都不存在或者设备不被 CatWrt LTS 支持!"
+        exit 1
+    fi
+    
+    if [ -z "$version" ] || [ -z "$arch" ]; then
+        echo "缺少必要的版本或架构信息"
+        exit 1
+    fi
+    
+    url_prefix=$(get_url_prefix "$version" "$arch")
+    
+    # Display options
+    echo "请选择源:"
+    echo "1 主站"
+    echo "2 cfnetlify"
+    echo "3 netlify"
+    echo "4 cfvercel"
+    echo "5 vercel"
+    
+    read -p "请输入数字并回车(Please enter your choice):  " choice
+    
+    case "$choice" in
+        1)
+            conf_file="distfeeds.conf"
+            ;;
+        2)
+            conf_file="cfnetlify.conf"
+            ;;
+        3)
+            conf_file="netlify.conf"
+            ;;
+        4)
+            conf_file="cfvercel.conf"
+            ;;
+        5)
+            conf_file="vercel.conf"
+            ;;
+        *)
+            echo "无效的选择"
+            exit 1
+            ;;
+    esac
+    
+    # Download the selected configuration file and rename it to distfeeds.conf
+    curl --connect-timeout 5 --retry 2 -o /etc/opkg/distfeeds.conf "${url_prefix}${conf_file}"
+
+        if [ -f "/var/lock/opkg.lock" ]; then
+            rm /var/lock/opkg.lock
+        fi
+    
+        opkg update
+    
+    echo "源已切换到 ${url_prefix}${conf_file}"
+}
+
 while true; do
     menu
     read choice
@@ -743,13 +815,16 @@ while true; do
             catwrt_update
             ;;
         5)
-            apply_repo
+            use_repo
             ;;
         6)
             catnd
             ;;
         7)
             sysupgrade
+            ;;
+        8)
+            use_mirrors_repo
             ;;
         0)
             echo "Exiting..."
