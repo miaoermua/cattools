@@ -53,6 +53,7 @@ menu() {
     echo "5. apply_repo                              -  软件源配置"
     echo "6. diagnostics                             -  网络诊断"
     echo "7. sysupgrade                              -  系统更新"
+    ehco "8. enhancement                             -  实用增强"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
