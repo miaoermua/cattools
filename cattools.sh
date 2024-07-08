@@ -738,7 +738,8 @@ sysupgrade(){
 
 # Enhancement MENU
 enhancement_menu() {
-    echo "增强配置  提高用户体验"
+    echo ""
+    echo "增强配置"
     echo "========================"
     echo ""
     echo "1. Tailscale 配置"
