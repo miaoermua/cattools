@@ -53,7 +53,7 @@ menu() {
     echo "5. apply_repo                              -  软件源配置"
     echo "6. diagnostics                             -  网络诊断"
     echo "7. sysupgrade                              -  系统更新"
-    ehco "8. enhancement                             -  实用增强"
+    echo "8. enhancement                             -  实用增强"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -751,14 +751,13 @@ enhancement_menu() {
         2) configure_ttyd ;;
         3) manual_deploy_uhttpd_ssl_cert ;;
         0) menu ;;
-        *) echo "无效选项，请重试。" && menu ;;
+        *) echo "无效选项，请重试" && menu ;;
     esac
 }
 
 configure_tailscale(){
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置软件源。"
-        echo "返回主菜单。"
+        echo "[ERROR] 请先配置软件源"
         menu
         return
     fi
@@ -768,7 +767,6 @@ configure_tailscale(){
         opkg install tailscale
         if [ $? -ne 0 ]; then
             echo "[ERROR] 安装 tailscale 失败，请先配置软件源。"
-            echo "返回主菜单。"
             menu
             return
         fi
@@ -777,7 +775,6 @@ configure_tailscale(){
     subnet=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | head -n 1)
     if [ -z "$subnet" ]; then
         echo "[ERROR] 无法获取当前子网。"
-        echo "返回主菜单。"
         menu
         return
     fi
@@ -830,22 +827,21 @@ configure_ttyd(){
 
     if grep -q "$modified_command" $ttyd_file; then
         sed -i "s|$modified_command|$original_command|" $ttyd_file
-        echo "TTYD 配置已还原为默认。"
+        echo "TTYD 配置已还原为默认"
     else
         sed -i "s|$original_command|$modified_command|" $ttyd_file
-        echo "TTYD 配置已修改为 root 登录。"
+        echo "TTYD 配置已修改为 root 登录"
     fi
     
     /etc/init.d/ttyd restart
-    echo "TTYD 服务已重新启动。"
+    echo "TTYD 服务已重新启动"
     menu
 }
 
 # Manual upload SSL/TLS
 manual_deploy_uhttpd_ssl_cert() {
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "请先配置软件源。"
-        echo "返回主菜单。"
+        echo "[ERROR] 请先配置软件源"
         menu
         return
     fi
@@ -855,8 +851,7 @@ manual_deploy_uhttpd_ssl_cert() {
         opkg update
         opkg install unzip
         if [ $? -ne 0 ]; then
-            echo "[ERROR] 安装 unzip 失败。请检查软件源配置。"
-            echo "返回主菜单。"
+            echo "[ERROR] 安装 unzip 失败。请检查软件源配置"
             menu
             return
         fi
@@ -867,23 +862,22 @@ manual_deploy_uhttpd_ssl_cert() {
     echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/system/filetransfer 上传证书 zip 文件。"
     echo "仅支持 Aliyun / Tencent Cloud 创建的 Ngnix 和 apache SSL/TLS 证书"
     echo "本功能仅做手动证书部署，并不代表你的 DNS 已解析或者网页 (:80/:443 or:8080) 端口通畅"
-    ehco "不支持已安装 ngnix 的设备"
-    echo "上传完成后，按 [1] 确认/ [0] 退出。"
+    echo "不支持已安装 ngnix 的设备"
+    echo "上传完成后，按 [1] 确认/ [0] 退出"
     read -r confirmation
     if [ "$confirmation" != "1" ]; then
-        echo "[ERROR] 上传未确认。返回主菜单。"
+        echo "[ERROR] 上传未确认。返回主菜单"
         menu
         return
     fi
 
-    zip_files=($(ls /tmp/*.zip 2>/dev/null))
+    zip_files=($(ls /tmp/upload/*.zip 2>/dev/null))
     if [ ${#zip_files[@]} -gt 1 ]; then
-        echo "[ERROR] 检测到多个 zip 文件，请仅上传一个 zip 文件。"
-        echo "返回主菜单。"
+        echo "[ERROR] 检测到多个 zip 文件，请仅上传一个 zip 文件"
         menu
         return
     elif [ ${#zip_files[@]} -eq 0 ]; then
-        echo "[ERROR] 未找到上传的 zip 文件。返回主菜单。"
+        echo "[ERROR] 未找到上传的 zip 文件"
         menu
         return
     fi
@@ -899,7 +893,7 @@ manual_deploy_uhttpd_ssl_cert() {
 
     unzip -o "$uploaded_zip" -d /tmp/deploy_ssl
     if [ $? -ne 0 ]; then
-        echo "[ERROR] 解压失败。返回主菜单。"
+        echo "[ERROR] 解压失败。返回主菜单"
         menu
         return
     fi
@@ -907,7 +901,7 @@ manual_deploy_uhttpd_ssl_cert() {
     crt_file=$(find /tmp/deploy_ssl -name "*.crt" -o -name "*.pem" 2>/dev/null | head -n 1)
     key_file=$(find /tmp/deploy_ssl -name "*.key" 2>/dev/null | head -n 1)
     if [ -z "$crt_file" ] || [ -z "$key_file" ]; then
-        echo "[ERROR] 未找到有效的证书文件或密钥文件。返回主菜单。"
+        echo "[ERROR] 未找到有效的证书文件或密钥文件。返回主菜单"
         menu
         return
     fi
