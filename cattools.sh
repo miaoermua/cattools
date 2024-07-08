@@ -742,20 +742,22 @@ enhancement_menu() {
     echo ""
     echo "1. Tailscale 一键配置"
     echo "2. Ttyd 配置"
+    echo "3. SSL/TLS 手动上传配置"
     echo "0. 返回 Cattools 主菜单"
     echo
     read -p "请输入数字并回车(Please enter your choice):" choice
     case $choice in
         1) configure_tailscale ;;
         2) configure_ttyd ;;
+        3) manual_deploy_uhttpd_ssl_cert ;;
         0) menu ;;
-        *) echo "无效选项，请重试。" && enhance_menu ;;
+        *) echo "无效选项，请重试。" && menu ;;
     esac
 }
 
 configure_tailscale(){
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "请先配置软件源。"
+        echo "[ERROR] 请先配置软件源。"
         echo "返回主菜单。"
         menu
         return
@@ -765,16 +767,16 @@ configure_tailscale(){
         echo "正在安装 tailscale 和 tailscaled 软件包..."
         opkg install tailscale
         if [ $? -ne 0 ]; then
-            echo "安装 tailscale 失败，请先配置软件源。"
+            echo "[ERROR] 安装 tailscale 失败，请先配置软件源。"
             echo "返回主菜单。"
-            main_menu
+            menu
             return
         fi
     fi
     
     subnet=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | head -n 1)
     if [ -z "$subnet" ]; then
-        echo "无法获取当前子网。"
+        echo "[ERROR] 无法获取当前子网。"
         echo "返回主菜单。"
         menu
         return
@@ -839,6 +841,87 @@ configure_ttyd(){
     menu
 }
 
+# Manual upload SSL/TLS
+manual_deploy_uhttpd_ssl_cert() {
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "请先配置软件源。"
+        echo "返回主菜单。"
+        menu
+        return
+    fi
+
+    if ! opkg list_installed | grep -q "unzip"; then
+        echo "正在安装 unzip..."
+        opkg update
+        opkg install unzip
+        if [ $? -ne 0 ]; then
+            echo "[ERROR] 安装 unzip 失败。请检查软件源配置。"
+            echo "返回主菜单。"
+            menu
+            return
+        fi
+    fi
+        lan_ip=$(uci get network.lan.ipaddr)
+
+    echo ""   
+    echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/system/filetransfer 上传证书 zip 文件。"
+    echo "仅支持 Aliyun / Tencent Cloud 创建的 Ngnix 和 apache SSL/TLS 证书"
+    echo "本功能仅做手动证书部署，并不代表你的 DNS 已解析或者网页 (:80/:443 or:8080) 端口通畅"
+    ehco "不支持已安装 ngnix 的设备"
+    echo "上传完成后，按 [1] 确认/ [0] 退出。"
+    read -r confirmation
+    if [ "$confirmation" != "1" ]; then
+        echo "[ERROR] 上传未确认。返回主菜单。"
+        menu
+        return
+    fi
+
+    zip_files=($(ls /tmp/*.zip 2>/dev/null))
+    if [ ${#zip_files[@]} -gt 1 ]; then
+        echo "[ERROR] 检测到多个 zip 文件，请仅上传一个 zip 文件。"
+        echo "返回主菜单。"
+        menu
+        return
+    elif [ ${#zip_files[@]} -eq 0 ]; then
+        echo "[ERROR] 未找到上传的 zip 文件。返回主菜单。"
+        menu
+        return
+    fi
+
+    uploaded_zip=${zip_files[0]}
+
+    if [ -f /etc/uhttpd.crt ]; then
+        mv /etc/uhttpd.crt /etc/uhttpd.crt.bak
+    fi
+    if [ -f /etc/uhttpd.key ]; then
+        mv /etc/uhttpd.key /etc/uhttpd.key.bak
+    fi
+
+    unzip -o "$uploaded_zip" -d /tmp/deploy_ssl
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] 解压失败。返回主菜单。"
+        menu
+        return
+    fi
+
+    crt_file=$(find /tmp/deploy_ssl -name "*.crt" -o -name "*.pem" 2>/dev/null | head -n 1)
+    key_file=$(find /tmp/deploy_ssl -name "*.key" 2>/dev/null | head -n 1)
+    if [ -z "$crt_file" ] || [ -z "$key_file" ]; then
+        echo "[ERROR] 未找到有效的证书文件或密钥文件。返回主菜单。"
+        menu
+        return
+    fi
+
+    cp "$crt_file" /etc/uhttpd.crt
+    cp "$key_file" /etc/uhttpd.key
+
+    rm -rf /tmp/deploy_ssl
+    rm "$uploaded_zip"
+
+    echo "证书部署完成，正在重启 UHTTPD"
+    /etc/init.d/uhttpd restart
+    menu
+}
 
 while true; do
     menu
