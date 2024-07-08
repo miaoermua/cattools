@@ -737,22 +737,23 @@ sysupgrade(){
 
 # Enhancement MENU
 enhancement_menu() {
-    clear
+    echo "增强配置  提高用户体验"
+    echo ""
     echo "1. Tailscale 一键配置"
     echo "2. Ttyd 配置"
-    echo "3. 返回主菜单"
+    echo "0. 返回 Cattools 主菜单"
     echo
-    read -p "请选择一个选项: " choice
+    read -p "请输入数字并回车(Please enter your choice):" choice
     case $choice in
         1) configure_tailscale ;;
         2) configure_ttyd ;;
-        3) menu ;;
+        0) menu ;;
         *) echo "无效选项，请重试。" && enhance_menu ;;
     esac
 }
 
 configure_tailscale(){
-    if ! grep -q "catwrt" /etc/opkg/distfeeds.conf && ! ip a | grep -q "192.168.1."; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "请先配置软件源。"
         echo "返回主菜单。"
         menu
@@ -760,12 +761,16 @@ configure_tailscale(){
     fi
 
     if ! opkg list_installed | grep -q "tailscale" || ! opkg list_installed | grep -q "tailscaled"; then
-        echo "请先安装 tailscale 和 tailscaled 软件包。"
-        echo "返回主菜单。"
-        menu
-        return
+        echo "正在安装 tailscale 和 tailscaled 软件包..."
+        opkg install tailscale
+        if [ $? -ne 0 ]; then
+            echo "安装 tailscale 失败，请先配置软件源。"
+            echo "返回主菜单。"
+            main_menu
+            return
+        fi
     fi
-
+    
     subnet=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | head -n 1)
     if [ -z "$subnet" ]; then
         echo "无法获取当前子网。"
@@ -787,15 +792,26 @@ configure_tailscale(){
         fi
     done
 
+        lan_ip=$(uci get network.lan.ipaddr)
+        
     echo ""
-    echo "请在浏览器中访问 http://<IP>/cgi-bin/luci/admin/network/iface_add"
+    echo "点击上面的 tailscale login 链接然后再进行以下配置"
+    echo "========================================================================="
+    echo ""
+    echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/network/iface_add"
     echo "新增以下配置:"
     echo ""
     echo "新接口的名称: tailscale"
     echo "新接口的协议: 静态 (默认)"
     echo "包括以下接口: 以太网适配器: \"tailscale0\" (tailscale)"
+    echo "提交 下一步"
+    echo ""
+    echo "## 接口 - TAILSCALE"
     echo "IPv4 地址: 输入 tailscale 中的 CatWrt 地址"
     echo "IPv4 子网掩码: 255.0.0.0"
+    echo "保存 下一步"
+    echo ""
+    echo "##接口 - TAILSCALE - 防火墙设置"
     echo "创建/分配防火墙区域: LAN"
     echo "保存并应用"
 
@@ -811,10 +827,10 @@ configure_ttyd(){
 
     if grep -q "$modified_command" $ttyd_file; then
         sed -i "s|$modified_command|$original_command|" $ttyd_file
-        echo "Ttyd 配置已还原为默认。"
+        echo "TTYD 配置已还原为默认。"
     else
         sed -i "s|$original_command|$modified_command|" $ttyd_file
-        echo "Ttyd 配置已修改为 root 登录。"
+        echo "TTYD 配置已修改为 root 登录。"
     fi
     
     /etc/init.d/ttyd restart
