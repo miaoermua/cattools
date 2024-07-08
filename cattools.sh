@@ -144,7 +144,7 @@ network_wizard() {
         if [[ -z $input_ip ]]; then
             input_ip=$DEFAULT_IP
         elif ! [[ $input_ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-            echo "无效的 IP 地址。"
+            echo "无效的 IP 地址"
             return
         fi
 
@@ -239,7 +239,7 @@ network_wizard() {
     /etc/init.d/firewall restart
     /etc/init.d/miniupnpd restart
     echo "Network configuration saved and applied. If you encounter any issues, please restart!"
-    echo "网络配置已保存并应用，服务已重启，如遇到问题问题请手动重启！"
+    echo "网络配置已保存并应用，服务已重启，如遇到问题问题请手动重启!"
     echo ""
 }
 
@@ -336,70 +336,69 @@ debug() {
 # catwrt_update
 catwrt_update() {
 
-API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
-VERSION_FILE="/etc/catwrt_release"
-
-remote_error() {
-    echo "Remote $1 get failed for arch: $arch_self, please check your network!"
-    exit 1
-}
-
-local_error() {
-    echo "Local $1 get failed, please check your /etc/catwrt-release!"
-    exit 1
-}
-
-get_remote_hash() {
-    arch_self=$1
-    version_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.version")
-    hash_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.hash")
-
-    if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
-        remote_error "version or hash"
-    fi
-}
-
-init() {
-    if [ ! -f "$VERSION_FILE" ]; then
-        local_error "version file"
-    fi
-
-    version_local=$(grep 'version' "$VERSION_FILE" | cut -d '=' -f 2)
-    hash_local=$(grep 'hash' "$VERSION_FILE" | cut -d '=' -f 2)
-    source_local=$(grep 'source' "$VERSION_FILE" | cut -d '=' -f 2)
-    arch_local=$(grep 'arch' "$VERSION_FILE" | cut -d '=' -f 2)
-}
-
-contrast_version() {
-    if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
+    API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
+    
+    remote_error() {
+        echo "Remote $1 get failed for arch: $arch_self, please check your network!"
+        exit 1
+    }
+    
+    local_error() {
+        echo "Local $1 get failed, please check your /etc/catwrt-release!"
+        exit 1
+    }
+    
+    get_remote_hash() {
+        arch_self=$1
+        version_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.version")
+        hash_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.hash")
+    
+        if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
+            remote_error "version or hash"
+        fi
+    }
+    
+    init() {
+        if [ ! -f "$RELEASE" ]; then
+            local_error "version file"
+        fi
+    
+        version_local=$(grep 'version' "$RELEASE" | cut -d '=' -f 2)
+        hash_local=$(grep 'hash' "$RELEASE" | cut -d '=' -f 2)
+        source_local=$(grep 'source' "$RELEASE" | cut -d '=' -f 2)
+        arch_local=$(grep 'arch' "$RELEASE" | cut -d '=' -f 2)
+    }
+    
+    contrast_version() {
+        if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
+            echo "================================"
+            echo "Your CatWrt is up to date!"
+            echo "================================"
+        else
+            echo "================================"
+            echo "Your CatWrt is out of date, you should upgrade it!"
+            echo "You can visit 'https://www.miaoer.xyz/posts/network/catwrt' to get more information!"
+            echo "================================"
+        fi
+    }
+    
+    print_version() {
+        echo "Local  Version : $version_local"
+        echo "Remote Version : $version_remote"
+        echo "Local  Hash    : $hash_local"
+        echo "Remote Hash    : $hash_remote"
         echo "================================"
-        echo "Your CatWrt is up to date!"
-        echo "================================"
-    else
-        echo "================================"
-        echo "Your CatWrt is out of date, you should upgrade it!"
-        echo "You can visit 'https://www.miaoer.xyz/posts/network/catwrt' to get more information!"
-        echo "================================"
-    fi
-}
-
-print_version() {
-    echo "Local  Version : $version_local"
-    echo "Remote Version : $version_remote"
-    echo "Local  Hash    : $hash_local"
-    echo "Remote Hash    : $hash_remote"
-    echo "================================"
-    echo ""
-}
-
-main() {
-    init
-    get_remote_hash "$arch_local"
-    contrast_version
-    print_version
-}
-main
-}
+        echo ""
+    }
+    
+    main() {
+        init
+        get_remote_hash "$arch_local"
+        contrast_version
+        print_version
+    }
+    main
+    }
 
 # Repo
 apply_repo() {
@@ -839,7 +838,7 @@ configure_tailscale(){
     menu
 }
 
-# TTYD
+# TTYD (NOT SAFETY)
 configure_ttyd(){
     if ! opkg list_installed | grep -q "luci-app-ttyd" || ! opkg list_installed | grep -q "ttyd"; then
         echo "[ERROR]未安装 luci-app-ttyd 或 ttyd 软件包，请先配置软件源并安装这些软件包"
@@ -981,6 +980,8 @@ manual_deploy_uhttpd_ssl_cert() {
     menu
 }
 
+# Firstboot
+
 openwrt_firstboot() {
     echo ""
     echo "Warning:"
@@ -1008,6 +1009,7 @@ openwrt_firstboot() {
     firstboot && reboot
 }
 
+# Reset password
 reset_root_password() {
     echo ""
     echo "此操作将重置 root 用户的密码"
