@@ -137,13 +137,15 @@ network_wizard() {
         return
     fi
 
-    if [ condition_to_check_single_port_device ]; then
-        read -p "检测到单网口设备，是否进行旁路网关设置？([Enter] 确认 / [0] 跳过旁路设置)：" choice
-        if [ "$choice" == "0" ]; then
-            echo "继续使用网络向导..."
-            network_wizard
-        else
+    interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
+    iface_count=$(echo "$interfaces" | wc -w)
+
+    if [ "$iface_count" -eq 1 ]; then
+        echo "Detected a single network interface /// 检测到单个网口"
+        read -p "是否进行旁路网关设置？([Enter] 确认 / [0] 跳过旁路设置)：" choice
+        if [ "$choice" != "0" ]; then
             bypass_gateway
+            return
         fi
     fi
     
@@ -183,7 +185,8 @@ network_wizard() {
         echo "PPPoE 拨号配置已完成"
     fi
     
-    read -p "Use recommended DNS servers 223.6.6.6 119.29.29.99? /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
+    echo "Use recommended DNS servers 223.6.6.6 119.29.29.99?"
+    read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
         exit 0
     elif [ -z "$use_dns" ]; then
@@ -197,7 +200,8 @@ network_wizard() {
         fi
     fi
 
-    read -p "Do you want to change the DHCP IP pool range? (default: 30-200) /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 手动输入范围 ): " dhcp_choice
+    echo "Do you want to change the DHCP IP pool range? (default: 30-200)"
+    read -p " /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 自定义范围 ): " dhcp_choice
     if [ "$dhcp_choice" = "1" ]; then
         read -p "Enter the DHCP IP pool range (e.g., 40-210) /// 输入 DHCP IP 地址范围 (例如: 40-210): " dhcp_range
         if [[ $dhcp_range =~ ^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\-([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]; then
@@ -237,7 +241,8 @@ network_wizard() {
         echo " eth0   eth1    ethx  ..."
         echo " □       □       □    ..."
         echo ""
-        read -p "Press Enter to configure network interfaces, press 1 to skip /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
+        echo "Press [Enter] to configure network interfaces, press [1] to skip"
+        read -p " /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
         if [ "$configure_network" != "1" ]; then
             # 获取所有网口列表
             interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
@@ -270,7 +275,7 @@ network_wizard() {
             echo "Skipping network interface configuration /// 跳过网口配置"
         fi
     else
-        echo "System architecture $arch is not supported by this script. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
+        echo "System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
     fi
     
     uci commit
