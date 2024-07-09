@@ -113,7 +113,7 @@ network_wizard() {
     fi
     
     echo "CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
-    read -p "是否修改 IP 地址？([Enter] 确认，按 [0] 跳过): " modify_ip
+    read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" != "0" ]; then
         read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
         if [[ -z $input_ip ]]; then
@@ -128,7 +128,7 @@ network_wizard() {
     fi
     
     echo "IPv6 is enabled by default /// IPv6 默认是开启的"
-    read -p "是否禁用 IPv6 网络？([Enter] 确认，按 [1] 禁用，按 [0] 跳过): " disable_ipv6
+    read -p "是否禁用 IPv6 网络？([Enter] 跳过 / [1] 禁用): " disable_ipv6
     if [ "$disable_ipv6" == "1" ]; then
         uci delete dhcp.lan.dhcpv6 
         uci delete dhcp.lan.ra
@@ -138,7 +138,7 @@ network_wizard() {
     fi
     
     echo "Default connection mode is DHCP /// 默认模式为 DHCP"
-    read -p "是否进行 PPPoE 拨号？([Enter] 使用 DHCP，按 [1] 添加账号和密码，按 [0] 跳过): " use_pppoe
+    read -p "是否进行 PPPoE 拨号？([Enter] 继续 DHCP /  [1] PPPoE 拨号): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
         read -p "请输入宽带账号: " username
         read -s -p "请输入宽带密码: " password
@@ -148,7 +148,7 @@ network_wizard() {
         echo "PPPoE 拨号配置已完成"
     fi
     
-    read -p "Use recommended DNS servers 223.6.6.6 119.29.29.99? /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认，按 [0] 跳过): " use_dns
+    read -p "Use recommended DNS servers 223.6.6.6 119.29.29.99? /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
         exit 0
     elif [ -z "$use_dns" ]; then
@@ -162,7 +162,7 @@ network_wizard() {
         fi
     fi
 
-    read -p "Do you want to change the DHCP IP pool range? (default: 30-200) /// 是否修改 IP 可用段？(默认: 30-200, 按 1 手动输入范围 [Enter] 确认): " dhcp_choice
+    read -p "Do you want to change the DHCP IP pool range? (default: 30-200) /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 手动输入范围 ): " dhcp_choice
     if [ "$dhcp_choice" = "1" ]; then
         read -p "Enter the DHCP IP pool range (e.g., 40-210) /// 输入 DHCP IP 地址范围 (例如: 40-210): " dhcp_range
         if [[ $dhcp_range =~ ^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\-([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]; then
