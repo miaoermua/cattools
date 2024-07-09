@@ -131,20 +131,30 @@ setip(){
 
 # Network Wizard
 network_wizard() {
-    read -p "Do you want Network Wizard? /// 是否使用网络向导？(Enter 确认，按 0 退出): " use_wizard
+    read -p "Do you want Network Wizard? /// 是否使用网络向导？([Enter] 确认 / [0] 退出): " use_wizard
     if [ "$use_wizard" == "0" ]; then
         echo "网络向导已退出。"
         return
     fi
+
+    if [ condition_to_check_single_port_device ]; then
+        read -p "检测到单网口设备，是否进行旁路网关设置？([Enter] 确认 / [0] 跳过旁路设置)：" choice
+        if [ "$choice" == "0" ]; then
+            echo "继续使用网络向导..."
+            network_wizard
+        else
+            bypass_gateway
+        fi
+    fi
     
     echo "CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
-    read -p "是否修改 IP 地址？(Enter 确认，按 0 退出): " modify_ip
+    read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" != "0" ]; then
         read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
         if [[ -z $input_ip ]]; then
             input_ip=$DEFAULT_IP
         elif ! [[ $input_ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-            echo "无效的 IP 地址"
+            echo "无效的 IP 地址。"
             return
         fi
 
@@ -152,23 +162,8 @@ network_wizard() {
         echo "IP 地址已设置为 $input_ip"
     fi
     
-    echo "Recommended DNS: 223.6.6.6 119.29.29.99 /// 推荐使用的DNS: 223.6.6.6 119.29.29.99" 
-    read -p "是否使用推荐的 DNS 服务器？(Enter 确认，按 0 退出): " use_dns
-    if [ "$use_dns" != "0" ]; then
-        read -p "请输入 DNS (默认为 $DEFAULT_DNS): " input_dns
-        if [[ -z $input_dns ]]; then
-            input_dns=$DEFAULT_DNS
-        elif ! [[ $input_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}( [0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-            echo "无效的 DNS 地址。"
-            return
-        fi
-
-        uci set network.lan.dns="$input_dns"
-        echo "DNS 服务器已设置为 $input_dns"
-    fi
-    
     echo "IPv6 is enabled by default /// IPv6 默认是开启的"
-    read -p "是否禁用 IPv6 网络？(Enter 确认，按 1 禁用，按 0 退出): " disable_ipv6
+    read -p "是否禁用 IPv6 网络？([Enter] 跳过 / [1] 禁用): " disable_ipv6
     if [ "$disable_ipv6" == "1" ]; then
         uci delete dhcp.lan.dhcpv6 
         uci delete dhcp.lan.ra
@@ -178,7 +173,7 @@ network_wizard() {
     fi
     
     echo "Default connection mode is DHCP /// 默认模式为 DHCP"
-    read -p "是否进行 PPPoE 拨号？(Enter 确认，按 1 继续修改账号和密码，按 0 退出): " use_pppoe
+    read -p "是否进行 PPPoE 拨号？([Enter] 继续 DHCP /  [1] PPPoE 拨号): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
         read -p "请输入宽带账号: " username
         read -s -p "请输入宽带密码: " password
@@ -188,7 +183,7 @@ network_wizard() {
         echo "PPPoE 拨号配置已完成"
     fi
     
-    read -p "Use recommended DNS servers 223.6.6.6 119.29.29.99? /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？(Enter 确认，按 0 退出): " use_dns
+    read -p "Use recommended DNS servers 223.6.6.6 119.29.29.99? /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
         exit 0
     elif [ -z "$use_dns" ]; then
@@ -202,7 +197,7 @@ network_wizard() {
         fi
     fi
 
-    read -p "Do you want to change the DHCP IP pool range? (default: 30-200) /// 是否修改 IP 可用段？(默认: 30-200, 按 1 手动输入范围): " dhcp_choice
+    read -p "Do you want to change the DHCP IP pool range? (default: 30-200) /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 手动输入范围 ): " dhcp_choice
     if [ "$dhcp_choice" = "1" ]; then
         read -p "Enter the DHCP IP pool range (e.g., 40-210) /// 输入 DHCP IP 地址范围 (例如: 40-210): " dhcp_range
         if [[ $dhcp_range =~ ^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\-([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]; then
@@ -220,26 +215,170 @@ network_wizard() {
     fi
 
     echo "enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
-    read -p "是否开启强制 DHCP 模式？(Enter 确认，按 1 跳过): " force_dhcp
+    read -p "是否开启强制 DHCP 模式？([Enter] 确认，按 [1] 跳过): " force_dhcp
     if [ "$force_dhcp" != "1" ]; then
         uci set dhcp.lan.force=1
         echo "强制 DHCP 模式已开启"
     fi
     
     echo "Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
-    read -p "是否开启 UPNP？(Enter 确认，按 1 跳过): " enable_upnp
+    read -p "是否开启 UPNP？([Enter] 确认，按 [1] 跳过): " enable_upnp
     if [ "$enable_upnp" != "1" ]; then
         uci set upnpd.config.enabled=1
         echo "UPNP 已开启"
     fi
+    arch=$(grep "arch" /etc/catwrt_release | cut -d'=' -f2)
 
+    # 仅在 x86 和 aarch64_generic 架构上进行网口绑定
+    if [ "$arch" = "amd64" ] || [ "$arch" = "aarch64_generic" ]; then
+        echo "Configure network interfaces /// 配置网口"
+        echo ""
+        echo " Wan    LAN1    LANx  ..."
+        echo " eth0   eth1    ethx  ..."
+        echo " □       □       □    ..."
+        echo ""
+        read -p "Press Enter to configure network interfaces, press 1 to skip /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
+        if [ "$configure_network" != "1" ]; then
+            # 获取所有网口列表
+            interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
+            iface_count=$(echo "$interfaces" | wc -w)
+    
+            if [ "$iface_count" -eq 1 ]; then
+                echo "Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
+            else
+                echo "Detected multiple network interfaces /// 检测到多个网口"
+                # 默认桥接网口为 eth1，检测其他可用网口并添加到桥接列表
+                bridge_ports=""
+                for iface in $interfaces; do
+                    if [ "$iface" != "eth0" ]; then
+                        bridge_ports="$bridge_ports $iface"
+                    fi
+                done
+
+                uci set network.wan.ifname='eth0'
+                uci set network.wan.proto='dhcp'
+
+                uci set network.lan.type='bridge'
+                uci set network.lan.ifname="$bridge_ports"
+                uci set network.lan._orig_ifname="$bridge_ports"
+                uci set network.lan._orig_bridge='true'
+
+    
+                echo "Network interfaces configured: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
+            fi
+        else
+            echo "Skipping network interface configuration /// 跳过网口配置"
+        fi
+    else
+        echo "System architecture $arch is not supported by this script. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
+    fi
+    
     uci commit
     /etc/init.d/network restart
     /etc/init.d/dnsmasq restart
     /etc/init.d/firewall restart
     /etc/init.d/miniupnpd restart
-    echo "Network configuration saved and applied. If you encounter any issues, please restart!"
-    echo "网络配置已保存并应用，服务已重启，如遇到问题问题请手动重启!"
+}
+
+# BypassGateway
+bypass_gateway() {
+        ip="$1"
+        if echo "$ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
+            return 0
+        else
+            return 1
+        fi
+    }
+    
+    # 输入主路由的 IP 地址
+    while true; do
+        read -p "请输入主路由的 IP 地址（例如 192.168.31.1）：" router_ip
+        if [ -z "$router_ip" ]; then
+            echo "主路由 IP 地址不能为空，请重新输入。"
+        elif ! is_private_ip "$router_ip"; then
+            echo "输入的 IP 地址无效，请输入有效的 IP 地址"
+        else
+            break
+        fi
+    done
+    
+    # 提取子网地址和设置本机 IP 地址
+    subnet=$(echo "$router_ip" | cut -d. -f1-3)
+    default_device_ip="${subnet}.4"
+    
+    while true; do
+        read -p "本机 IP 地址为 $default_device_ip 按回车键确认，或输入新的 IP 地址：" device_ip
+        if [ -z "$device_ip" ]; then
+            device_ip="$default_device_ip"
+            break
+        elif ! is_private_ip "$device_ip"; then
+            echo "输入的 IP 地址无效，请输入有效的 IP 地址。"
+        else
+            break
+        fi
+    done
+    
+    echo "主路由 IP 地址：$router_ip"
+    echo "本机 IP 地址：$device_ip"
+    
+    # 配置网络
+    uci set network.lan.ipaddr="$device_ip"
+    uci set network.lan.gateway="$router_ip"
+    uci set network.lan.proto='static'
+    uci commit network
+    
+    # 禁用 LAN 口的 IPv6 服务器
+    uci set dhcp.lan.dhcpv6='disabled'
+    uci set dhcp.lan.ra='disabled'
+    uci commit dhcp
+    
+    # 启用 MSS 钳制
+    uci set firewall.@defaults[0].mss_clamping='1'
+    
+    # 启用 IP 伪装和 MTU fix
+    # 找到 LAN 和 WAN 的 zone 配置节
+    lan_zone=$(uci show firewall | grep "=zone" | grep -E 'name=.lan' | cut -d'.' -f2)
+    wan_zone=$(uci show firewall | grep "=zone" | grep -E 'name=.wan' | cut -d'.' -f2)
+    
+    # 启用 LAN 区域的 IP 伪装和 MTU fix
+    if [ -n "$lan_zone" ]; then
+        uci set firewall.$lan_zone.masq='1'
+        uci set firewall.$lan_zone.mtu_fix='1'
+    else
+        echo "未找到名称为 'lan' 的 zone 配置节"
+        exit 1
+    fi
+    
+    # 启用 WAN 区域的 IP 伪装和 MTU 修复
+    if [ -n "$wan_zone" ]; then
+        uci set firewall.$wan_zone.masq='1'
+        uci set firewall.$wan_zone.mtu_fix='1'
+    else
+        echo "未找到名称为 'wan' 的 zone 配置节"
+        exit 1
+    fi
+    
+    uci commit firewall
+    
+    # 删除 WAN 口防火墙规则
+    uci delete firewall.$wan_zone
+    uci commit firewall
+    
+    # 关闭 LAN 口的 DHCP 服务并删除相关配置
+    uci set dhcp.lan.ignore='1'
+    uci delete dhcp.lan.leasetime
+    uci delete dhcp.lan.limit
+    uci delete dhcp.lan.start
+    uci commit dhcp
+    
+    lan_ip=$(uci get network.lan.ipaddr)
+    echo "旁路网关配置完成 $lan_ip "
+    
+    # 重启相关服务以应用更改
+    /etc/init.d/network restart
+    /etc/init.d/firewall restart
+    /etc/init.d/dnsmasq restart
+    
     echo ""
 }
 
