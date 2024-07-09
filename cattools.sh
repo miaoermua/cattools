@@ -287,20 +287,12 @@ network_wizard() {
 
 # BypassGateway
 bypass_gateway() {
-        ip="$1"
-        if echo "$ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
-            return 0
-        else
-            return 1
-        fi
-    }
-    
     # 输入主路由的 IP 地址
     while true; do
         read -p "请输入主路由的 IP 地址（例如 192.168.31.1）：" router_ip
         if [ -z "$router_ip" ]; then
             echo "主路由 IP 地址不能为空，请重新输入。"
-        elif ! is_private_ip "$router_ip"; then
+        elif ! echo "$router_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
             echo "输入的 IP 地址无效，请输入有效的 IP 地址"
         else
             break
@@ -316,7 +308,7 @@ bypass_gateway() {
         if [ -z "$device_ip" ]; then
             device_ip="$default_device_ip"
             break
-        elif ! is_private_ip "$device_ip"; then
+        elif ! echo "$device_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
             echo "输入的 IP 地址无效，请输入有效的 IP 地址。"
         else
             break
