@@ -893,22 +893,142 @@ enhancement_menu() {
     echo "增强配置"
     echo "========================"
     echo ""
-    echo "1. Tailscale 配置"
-    echo "2. TTYD 配置免密(危险)"
-    echo "3. SSL/TLS 证书上传配置"
-    echo "4. 重置 root 密码"
-    echo "5. 恢复出厂设置(重置系统)"
+    echo "1. Mihomo 配置"
+    echo "2. Tailscale 配置"
+    echo "3. TTYD 配置免密(危险)"
+    echo "4. SSL/TLS 证书上传配置"
+    echo "5. 重置 root 密码"
+    echo "6. 重置系统"
     echo ""
     echo "0. 返回 Cattools 主菜单"
     echo
-    read -p "请输入数字并回车(Please enter your choice):" choice
+    read -p "请输入数字并回车(Please enter your choice): " choice
     case $choice in
-        1) configure_tailscale ;;
-        2) configure_ttyd ;;
-        3) manual_deploy_uhttpd_ssl_cert ;;
+        1) configure_luci_mihomo ;;
+        2) configure_tailscale ;;
+        3) configure_ttyd ;;
+        4) manual_deploy_uhttpd_ssl_cert ;;
+        5) openwrt_firstboot ;;
+        6) reset_root_password ;;
         0) menu ;;
         *) echo "无效选项，请重试" && enhancement_menu ;;
     esac
+}
+
+configure_luci_mihomo() {
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "[ERROR] 请先配置软件源"
+        exit 1
+    fi
+
+    arch=$(uname -m)
+    case "$arch" in
+        "x86_64")
+            arch="amd64"
+            ;;
+        "aarch64")
+            arch="arm64"
+            ;;
+        *)
+            echo "[ERROR] 不支持的架构: $arch"
+            exit 1
+            ;;
+    esac
+
+    if ! opkg list_installed | grep -q luci-app-openclash; then
+        opkg update
+        opkg install luci-app-openclash
+    fi
+
+    download_mihomo_core() {
+        local core_name="$1"
+        shift
+        local urls=("$@")
+        local dest_dir="/etc/openclash/core"
+        local temp_file=$(mktemp)
+        local success=0
+        local failed_urls=()
+
+        for url in "${urls[@]}"; do
+            echo "尝试下载: $url"
+            if curl --silent --connect-timeout 5 --max-time 10 -o "$temp_file" "$url"; then
+                if tar -tzf "$temp_file" &>/dev/null; then
+                    tar -xz -C "$dest_dir" -f "$temp_file"
+                    mv "$dest_dir/clash" "$dest_dir/$core_name"
+                    rm -f "$temp_file"
+                    echo "已成功下载: $url"
+                    success=1
+                    break
+                else
+                    echo "[ERROR] 无效的压缩文件: $url"
+                    failed_urls+=("$url")
+                fi
+            else
+                echo "[ERROR] 下载失败: $url"
+                failed_urls+=("$url")
+            fi
+        done
+
+        if [ $success -ne 1 ]; then
+            rm -f "$temp_file"
+            echo "[ERROR] 所有下载链接均失败"
+            exit 1
+        fi
+    }
+
+    echo ""
+    echo "Warning:"
+    echo "========================================================================="
+    echo "我站不提供服务器，该功能只是补全 Mihomo 的内核，仅此而已所有结果由用户自行承担!"
+    echo "========================================================================="
+
+    sleep 2
+    
+    echo "请选择下载类型:"
+    echo "1. 全部下载 (默认 3 秒自动执行)"
+    echo "2. 仅下载 Mihomo 内核"
+    echo "3. 仅下载原版内核"
+    echo -n "输入选项 ([1]/[2]/[3]): "
+    read -t 3 -p "" choice
+
+    if [ -z "$choice" ]; then
+        choice=1
+    fi
+
+    local clash_meta_urls=(
+        "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-$arch.tar.gz"
+        "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-$arch.tar.gz"
+        "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-$arch.tar.gz"
+    )
+    
+    local clash_urls=(
+        "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/dev/clash-linux-$arch.tar.gz"
+        "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/dev/clash-linux-$arch.tar.gz"
+        "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/dev/clash-linux-$arch.tar.gz"
+    )
+    
+    case $choice in
+        1)
+            echo "正在更新 Mihomo 内核..."
+            download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
+            echo "正在更新原版内核..."
+            download_mihomo_core "clash" "${clash_urls[@]}"
+            ;;
+        2)
+            echo "正在更新 Mihomo 内核..."
+            download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
+            ;;
+        3)
+            echo "正在更新原版内核..."
+            download_mihomo_core "clash" "${clash_urls[@]}"
+            ;;
+        *)
+            echo "[ERROR] 无效选项"
+            exit 1
+            ;;
+    esac
+
+    echo "操作完成"
 }
 
 configure_tailscale(){
