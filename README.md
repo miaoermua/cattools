@@ -12,22 +12,26 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 
 ## Todo
 
+- [x] 热更新和安装脚本
+- [x] 命令行参数
 - [x] 1. SetIP                           -  设置 IP
-- [x] 2. network_wizard                  -  网络向导
+- [x] 2. network_wizard                  -  网络向导(旁路网关)
 - [x] 3. Debug                           -  抓取日志
 - [x] 4. catwrt_update                   -  检查更新
 - [x] 5. apply_repo                      -  软件源配置
 - [x] 6. sysupgrade                      -  系统更新
 - [x] 7. diagnostics                     -  网络诊断
+- [x] 8. enhancement                     -  实用增强
+- [x]  |——1. Mihomo 配置
+- [x]  |——2. Tailscale 配置
+- [x]  |——3. TTYD 配置(危险)
+- [x]  |——4. SSL/TLS 上传 zip 证书配置
+- [x]  |——5. 重置密码
+- [x]  |——6. 重置系统
 - [x] 0. Exit                            -  退出
-- [x] 热更新和安装脚本
-- [x] 命令行参数
+
+*大饼*
+
 - [ ] 预设 Wi-FI 配置(wireless)
-- [ ] 实现对旁路网关(旁路由)配置
 - [ ] 升级插件(升级系统后)
 - [ ] 插件商店
-- [x] Tailscale 配置 (未经测试)
-- [x] 重置系统 (未经测试)
-- [x] 重置密码 (未经测试)
-- [x] TTYD 配置
-- [x] SSL/TLS 上传 zip 证书配置
