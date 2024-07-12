@@ -2,6 +2,7 @@
 # env
 DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
+BACKUP_FILE="/etc/catwrt_opkg_list_installed"
 API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
@@ -882,6 +883,110 @@ sysupgrade(){
         echo "升级取消。"
     fi
 }
+
+# catwrt_opkg_list_installed
+catwrt_opkg_list_installed(){
+    PACKAGES=(
+        "luci-app-aria2"
+        "luci-app-acme"
+        "luci-app-adguardhome"
+        "luci-app-ssr-plus"
+        "luci-app-passwall"
+        "luci-app-openclash"
+        "luci-app-oaf"
+        "luci-app-mosdns"
+        "luci-app-ddns-go"
+        "luci-app-store"
+        "luci-i18n-adbyby-plus-zh-cn"
+        "luci-i18n-adblock-zh-cn"
+        "luci-i18n-airplay2-zh-cn"
+        "luci-i18n-design-config-zh-cn"
+        "luci-app-argon-config"
+        "luci-app-cifs-mount"
+        "luci-i18n-diskman-zh-cn"
+        "luci-i18n-frpc-zh-cn"
+        "luci-i18n-frps-zh-cn"
+        "luci-i18n-ipsec-server-zh-cn"
+        "luci-i18n-ipsec-vpnd-zh-cn"
+        "luci-i18n-mwan3-zh-cn"
+        "luci-i18n-mwan3helper-zh-cn"
+        "luci-i18n-n2n-zh-cn"
+        "luci-i18n-nps-zh-cn"
+        "luci-i18n-openvpn-server-zh-cn"
+        "luci-i18n-openvpn-zh-cn"
+        "luci-i18n-netdata-zh-cn"
+        "luci-i18n-pppoe-relay-zh-cn"
+        "luci-i18n-qbittorrent-zh-cn"
+        "luci-i18n-qos-zh-cn"
+        "luci-i18n-samba4-zh-cn"
+        "luci-i18n-smartdns-zh-cn"
+        "luci-i18n-socat-zh-cn"
+        "luci-i18n-sqm-zh-cn"
+        "luci-i18n-transmission-zh-cn"
+        "luci-i18n-ttyd-zh-cn"
+        "luci-i18n-udpxy-zh-cn"
+        "luci-i18n-uhttpd-zh-cn"
+        "luci-i18n-unblockmusic-zh-cn"
+        "luci-i18n-uugamebooster-zh-cn"
+        "luci-i18n-wireguard-zh-cn"
+        "luci-i18n-xlnetacc-zh-cn"
+        "luci-i18n-zerotier-zh-cn"
+        "luci-app-dockerman"
+        "luci-app-docker"
+        "ua2f"
+        "vim"
+        "nano"
+        "igmpproxy"
+    )
+    
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "请先配置软件源"
+        exit 1
+    fi
+    
+    backup_installed_packages() {
+        echo "[INFO] 备份白名单中的已安装软件包列表..."
+        > "$BACKUP_FILE"
+        for package in "${PACKAGES[@]}"; do
+            if opkg list_installed | grep -q "^$package "; then
+                echo "$package" >> "$BACKUP_FILE"
+            fi
+        done
+        echo "[INFO] 备份完成"
+    }
+    
+    restore_installed_packages() {
+        echo "[INFO] 还原备份的软件包列表..."
+        if [ -f "$BACKUP_FILE" ]; then
+            while IFS= read -r package; do
+                if ! opkg list_installed | grep -q "^$package "; then
+                    echo "安装缺失的软件包: $package"
+                    opkg update && opkg install "$package"
+                fi
+            done < "$BACKUP_FILE"
+            echo "还原完成"
+        else
+            echo "未检测到备份文件，跳过还原步骤..."
+        fi
+    }
+
+    main() {
+        if [ -f "$BACKUP_FILE" ]; then
+            read -p "检测到备份文件，是否需要恢复软件包？([ENTER] 确认 / [0] 取消) " choice
+            case "$choice" in
+                0)
+                    echo "你选择了不恢复，打算重新开始!如果你有需要请回来找我!"
+                    ;;
+                *)
+                    restore_installed_packages
+                    ;;
+            esac
+        else
+            backup_installed_packages
+        fi
+    }
+    main
+    }
 
 # Enhancement MENU
 enhancement_menu() {
