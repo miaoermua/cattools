@@ -39,6 +39,12 @@ else
     echo "Board name information not found"
 fi
 
+efi_mode=0
+
+if [ -d /sys/firmware/efi ]; then
+  efi_mode=1
+fi
+
 is_efi_boot() {
     [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ "$efi_mode" -eq 1 ]
 }
