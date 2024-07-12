@@ -22,12 +22,12 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [x] 6. sysupgrade                      -  系统更新
 - [x] 7. diagnostics                     -  网络诊断
 - [x] 8. enhancement                     -  实用增强
-- [x]  |——1. Mihomo 配置
-- [x]  |——2. Tailscale 配置
-- [x]  |——3. TTYD 配置(危险)
-- [x]  |——4. SSL/TLS 上传 zip 证书配置
-- [x]  |——5. 重置密码
-- [x]  |——6. 重置系统
+- [x]  |——  1. Mihomo 配置
+- [x]  |——  2. Tailscale 配置
+- [x]  |——  3. TTYD 配置(危险)
+- [x]  |——  4. SSL/TLS 上传 zip 证书配置
+- [x]  |——  5. 重置密码
+- [x]  |——  6. 重置系统
 - [x] 0. Exit                            -  退出
 
 *大饼*
