@@ -945,28 +945,32 @@ catwrt_opkg_list_installed(){
     fi
     
     backup_installed_packages() {
-        echo "[INFO] 备份白名单中的已安装软件包列表..."
+        echo "备份白名单中的已安装软件包列表..."
         > "$BACKUP_FILE"
         for package in "${PACKAGES[@]}"; do
             if opkg list_installed | grep -q "^$package "; then
                 echo "$package" >> "$BACKUP_FILE"
             fi
         done
-        echo "[INFO] 备份完成"
+        echo "备份完成"
     }
     
     restore_installed_packages() {
-        echo "[INFO] 还原备份的软件包列表..."
+        opkg list_installed | awk '{print \$1}' > /tmp/default_installed_packages
         if [ -f "$BACKUP_FILE" ]; then
             while IFS= read -r package; do
+                if grep -q "^$package$" "$DEFAULT_PACKAGES_FILE"; then
+                    echo "跳过固件默认包含的软件包: $package"
+                    continue
+                fi
                 if ! opkg list_installed | grep -q "^$package "; then
-                    echo "安装缺失的软件包: $package"
-                    opkg update && opkg install "$package"
+                    echo "安装固件默认缺失的软件包: $package"
+                    opkg install "$package"
                 fi
             done < "$BACKUP_FILE"
-            echo "还原完成"
+            echo "安装完成"
         else
-            echo "未检测到备份文件，跳过还原步骤..."
+            echo "未检测到备份文件!寄了!"
         fi
     }
 
@@ -984,6 +988,8 @@ catwrt_opkg_list_installed(){
         else
             backup_installed_packages
         fi
+
+        rm -f /tmp/default_installed_packages
     }
     main
     }
