@@ -1052,6 +1052,20 @@ catwrt_opkg_list_installed(){
 
     main() {
         if [ -f "$BACKUP_FILE" ]; then
+            echo "sponsor us"
+            echo "========================================================================="
+            echo "你执行的下面命令如果使用的主站软件源 repo.miaoer.xyz 将对服务器带宽产生新的挑战"
+            echo "我们希望你在使用后继续支持我们，继续为您提供更好的服务"
+            echo "如果不想支持我们也可以使用免费 serverless 提供的镜像服务选择非主站即可"
+            echo "不会对我们服务器造成流量激增，但访问速度受限于国际互联网"
+            echo ""
+            echo "https://www.miaoer.xyz/sponsor"
+            echo ""
+            echo "你可以复制下链接在浏览器上打开，待恢复软件包后再进行支付!"
+            
+            sleep 3
+            
+            echo ""
             read -p "检测到备份文件，是否需要恢复软件包？([ENTER] 确认 / [0] 取消) " choice
             case "$choice" in
                 0)
