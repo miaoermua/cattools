@@ -34,5 +34,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 
 - [ ] 预设 Wi-FI 配置(wireless)
 - [ ] 升级插件(升级系统后)
+- [ ] mt798x 系列升级系统
 - [ ] 插件商店
-- [ ] 扩容
+- [ ] 自动挂载扩容
+- [ ] NAS 快速配置(SMB)
