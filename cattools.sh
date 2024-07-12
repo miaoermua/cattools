@@ -1022,7 +1022,7 @@ catwrt_opkg_list_installed(){
     fi
     
     backup_installed_packages() {
-        echo "名单中已安装软件包列表..."
+        echo "正在备份名单中已安装软件包列表..."
         > "$BACKUP_FILE"
         for package in "${PACKAGES[@]}"; do
             if opkg list_installed | grep -q "^$package "; then
