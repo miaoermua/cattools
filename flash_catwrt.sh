@@ -81,6 +81,7 @@ if [ ! -f "$firmware_file" ]; then
     exit 1
 fi
 
+echo ""
 echo "固件已下载到 $firmware_file。即将使用 dd 命令覆写整个磁盘 /dev/$target_disk。"
 echo "此操作将永久删除所有数据，无法恢复"
 echo "按回车键继续，或按 Ctrl+C 取消操作"
@@ -89,5 +90,10 @@ read -r
 target_disk=$(lsblk -d | grep '^sd\|^vd\|^nvme' | awk '{print $1}')
 dd if="$firmware_file" of="/dev/$target_disk" bs=4M status=progress
 
-echo "固件更新完成，重启设备"
+echo "固件更新完成"
+echo ""
+echo "重启后可使用 cattools 命令配置 CatWrt，或者自行配置"
+echo "IP: 192.168.1.4"
+echo "密码: password"
+
 reboot
