@@ -35,3 +35,4 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [ ] 预设 Wi-FI 配置(wireless)
 - [ ] 升级插件(升级系统后)
 - [ ] 插件商店
+- [ ] 扩容
