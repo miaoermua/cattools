@@ -62,14 +62,14 @@ menu() {
     echo "           https://github.com/miaoermua/cattools          "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                   -  设置 IP"
-    echo "2. Network_Wizard                          -  网络向导"
+    echo "2. network_wizard                          -  网络向导"
     echo "3. Debug                                   -  抓取日志"
-    echo "4. Catwrt_Update                           -  检查更新"
-    echo "5. Apply_Repo                              -  软件源配置"
-    echo "6. Diagnostics                             -  网络诊断"
-    echo "7. Sysupgrade                              -  系统更新"
-    echo "8. Reinstalld_packages                     -  软件包恢复"
-    echo "9. Enhancement                             -  实用增强"
+    echo "4. catwrt_update                           -  检查更新"
+    echo "5. apply_repo                              -  软件源配置"
+    echo "6. diagnostics                             -  网络诊断"
+    echo "7. sysupgrade                              -  系统更新"
+    echo "8. restore                                 -  恢复软件包"
+    echo "9. enhancement                             -  实用增强"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -1022,7 +1022,7 @@ catwrt_opkg_list_installed(){
     fi
     
     backup_installed_packages() {
-        echo "正在备份名单中已安装软件包列表..."
+        echo "名单中已安装软件包列表..."
         > "$BACKUP_FILE"
         for package in "${PACKAGES[@]}"; do
             if opkg list_installed | grep -q "^$package "; then
