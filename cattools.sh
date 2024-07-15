@@ -489,6 +489,7 @@ catwrt_update() {
         version_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.version")
         hash_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.hash")
         channel_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.channel")
+        blogs_remote=$(echo "$API_URL" | jq -r ".${arch}.blogs")
 
         if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
             remote_error "version or hash"
@@ -509,13 +510,12 @@ catwrt_update() {
     contrast_version() {
         if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
             echo "======================================================="
-            echo "Your CatWrt is up to date! Also, you are using $channel_remote channel."
+            echo "Your CatWrt is latest version! Also, you are using $channel_remote channel."
             echo "======================================================="
         else
             echo "======================================================="
-            echo "Your CatWrt is out of date, you should upgrade it!"
-            echo "Visit the blog for more information"
-            echo "https://www.miaoer.xyz/posts/network/catwrt"
+            echo "Your CatWrt is outdated; you should upgrade it to the latest version!"
+            echo "Visit '$blogs_remote' for more information."
             echo "======================================================="
         fi
     }
