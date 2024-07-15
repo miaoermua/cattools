@@ -2,6 +2,7 @@
 # env
 DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
+BACKUP_FILE="/etc/catwrt_opkg_list_installed"
 API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
@@ -67,7 +68,8 @@ menu() {
     echo "5. apply_repo                              -  软件源配置"
     echo "6. diagnostics                             -  网络诊断"
     echo "7. sysupgrade                              -  系统更新"
-    echo "8. enhancement                             -  实用增强"
+    echo "8. restore                                 -  恢复软件包"
+    echo "9. enhancement                             -  实用增强"
     echo "0. Exit                                    -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -895,6 +897,199 @@ sysupgrade() {
     fi
 }
 
+# catwrt_opkg_list_installed
+catwrt_opkg_list_installed(){
+    PACKAGES=(
+        "luci-app-adbyby-plus"
+        "luci-i18n-adbyby-plus-zh-cn"
+        "luci-app-adblock"
+        "luci-i18n-adblock-zh-cn"
+        "luci-app-airplay2"
+        "luci-i18n-airplay2-zh-cn"
+        "luci-app-design-config"
+        "luci-i18n-design-config-zh-cn"
+        "luci-app-argon-config"
+        "luci-app-cifs-mount"
+        "luci-app-diskman"
+        "luci-i18n-diskman-zh-cn"
+        "luci-app-ddns-go"
+        "luci-i18n-ddns-go-zh-cn"
+        "luci-app-frpc"
+        "luci-i18n-frpc-zh-cn"
+        "luci-app-frps"
+        "luci-i18n-frps-zh-cn"
+        "luci-app-ipsec-server"
+        "luci-i18n-ipsec-server-zh-cn"
+        "luci-app-ipsec-vpnd"
+        "luci-i18n-ipsec-vpnd-zh-cn"
+        "luci-app-mwan3"
+        "luci-i18n-mwan3-zh-cn"
+        "luci-app-mwan3helper"
+        "luci-i18n-mwan3helper-zh-cn"
+        "luci-app-n2n"
+        "luci-i18n-n2n-zh-cn"
+        "luci-app-nps"
+        "luci-i18n-nps-zh-cn"
+        "luci-app-openvpn-server"
+        "luci-i18n-openvpn-server-zh-cn"
+        "luci-app-openvpn"
+        "luci-i18n-openvpn-zh-cn"
+        "luci-app-oaf"
+        "luci-i18n-oaf-zh-cn"
+        "luci-app-netdata"
+        "luci-i18n-netdata-zh-cn"
+        "luci-app-pppoe-relay"
+        "luci-i18n-pppoe-relay-zh-cn"
+        "luci-app-qbittorrent"
+        "luci-i18n-qbittorrent-zh-cn"
+        "luci-app-qos"
+        "luci-i18n-qos-zh-cn"
+        "luci-app-samba4"
+        "luci-i18n-samba4-zh-cn"
+        "luci-app-smartdns"
+        "luci-i18n-smartdns-zh-cn"
+        "luci-app-socat"
+        "luci-i18n-socat-zh-cn"
+        "luci-app-sqm"
+        "luci-i18n-sqm-zh-cn"
+        "luci-app-transmission"
+        "luci-i18n-transmission-zh-cn"
+        "luci-app-ttyd"
+        "luci-i18n-ttyd-zh-cn"
+        "luci-app-udpxy"
+        "luci-i18n-udpxy-zh-cn"
+        "luci-app-uhttpd"
+        "luci-i18n-uhttpd-zh-cn"
+        "luci-app-unblockmusic"
+        "luci-i18n-unblockmusic-zh-cn"
+        "luci-app-uugamebooster"
+        "luci-i18n-uugamebooster-zh-cn"
+        "luci-app-wireguard"
+        "luci-i18n-wireguard-zh-cn"
+        "luci-app-xlnetacc"
+        "luci-i18n-xlnetacc-zh-cn"
+        "luci-app-zerotier"
+        "luci-i18n-zerotier-zh-cn"
+        "luci-app-dockerman"
+        "luci-app-usb-printer"
+        "luci-i18n-usb-printer-zh-cn"
+        "luci-i18n-dockerman-zh-cn"
+        "luci-app-docker"
+        "luci-i18n-docker-zh-cn"
+        "luci-app-ssr-plus"
+        "luci-i18n-ssr-plus-zh-cn"
+        "luci-app-passwall"
+        "luci-i18n-passwall-zh-cn"
+        "luci-app-passwall2"
+        "luci-i18n-passwall2-zh-cn"
+        "luci-app-openclash"
+        "luci-app-poweroff"
+        "luci-app-passwall2"
+        "luci-i18n-passwall2-zh-cn"
+        "luci-app-LingTiGameAcc"
+        "luci-app-usb3disable"
+        "luci-app-pushbot"
+        "luci-app-store"
+        "luci-app-serverchan"
+        "luci-app-nezha-agent"
+        "luci-theme-design"
+        "luci-app-design-config"
+        "luci-theme-argon"
+        "luci-app-argon-config"
+        "luci-app-eqos"
+        "speedtest-go"
+        "ua2f"
+        "vim"
+        "nano"
+        "nginx"
+        "ethtool"
+        "tailscale"
+        "igmpproxy"
+        "openssh-client"
+        "openssh-keygen"
+        "openssh-server"
+        "openssh-sftp-server"
+        "kmod-usb2"
+        "kmod-usb3"
+        "kmod-usb-net-ipheth"
+        "libimobiledevice-utils"
+        "usbmuxd"
+        "kmod-usb-net-rndis"
+        "kmod-nls-base"
+        "kmod-usb-core"
+        "kmod-usb-net"
+        "kmod-usb-net-cdc-ether"
+    )
+    
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "请先配置软件源"
+        exit 1
+    fi
+    
+    backup_installed_packages() {
+        echo "名单中已安装软件包列表..."
+        > "$BACKUP_FILE"
+        for package in "${PACKAGES[@]}"; do
+            if opkg list_installed | grep -q "^$package "; then
+                echo "$package" >> "$BACKUP_FILE"
+            fi
+        done
+        echo "备份完成"
+    }
+    
+    restore_installed_packages() {
+        opkg list_installed | awk '{print \$1}' > /tmp/default_installed_packages
+        if [ -f "$BACKUP_FILE" ]; then
+            while IFS= read -r package; do
+                if grep -q "^$package$" "$DEFAULT_PACKAGES_FILE"; then
+                    echo "跳过固件默认包含的软件包: $package"
+                    continue
+                fi
+                if ! opkg list_installed | grep -q "^$package "; then
+                    echo "安装固件默认缺失的软件包: $package"
+                    opkg install "$package"
+                fi
+            done < "$BACKUP_FILE"
+            echo "安装完成"
+        else
+            echo "未检测到备份文件!寄了!"
+        fi
+    }
+
+    main() {
+        if [ -f "$BACKUP_FILE" ]; then
+            echo "sponsor us"
+            echo "========================================================================="
+            echo "你执行的下面命令如果使用的主站软件源 repo.miaoer.xyz 将对服务器带宽产生新的挑战"
+            echo "我们希望你在使用后继续支持我们，继续为您提供更好的服务"
+            echo "如果不想支持我们也可以使用免费 serverless 提供的镜像服务选择非主站即可"
+            echo "不会对我们服务器造成流量激增，但访问速度受限于国际互联网"
+            echo ""
+            echo "https://www.miaoer.xyz/sponsor"
+            echo ""
+            echo "你可以复制下链接在浏览器上打开，待恢复软件包后再进行支付!"
+            
+            sleep 3
+            
+            echo ""
+            read -p "检测到备份文件，是否需要恢复软件包？([ENTER] 确认 / [0] 取消) " choice
+            case "$choice" in
+                0)
+                    echo "你选择了不恢复，打算重新开始!如果你有需要请回来找我!"
+                    ;;
+                *)
+                    restore_installed_packages
+                    ;;
+            esac
+        else
+            backup_installed_packages
+        fi
+
+        rm -f /tmp/default_installed_packages
+    }
+    main
+    }
+
 # Enhancement MENU
 enhancement_menu() {
     echo ""
@@ -1300,38 +1495,41 @@ while true; do
     menu
     read choice
     case $choice in
-    1)
-        setip
-        ;;
-    2)
-        network_wizard
-        ;;
-    3)
-        debug
-        ;;
-    4)
-        catwrt_update
-        ;;
-    5)
-        apply_repo
-        ;;
-    6)
-        catnd
-        ;;
-    7)
-        sysupgrade
-        ;;
-    8)
-        enhancement_menu
-        ;;
-    0)
-        echo "Exiting..."
-        break
-        ;;
-    *)
-        echo "Invalid choice, please try again"
-        read -p "Press [Enter] key to continue..."
-        ;;
+        1)
+            setip
+            ;;
+        2)
+            network_wizard
+            ;;
+        3)
+            debug
+            ;;
+        4)
+            catwrt_update
+            ;;
+        5)
+            apply_repo
+            ;;
+        6)
+            catnd
+            ;;
+        7)
+            sysupgrade
+            ;;
+        8)
+            catwrt_opkg_list_installed
+            ;;
+        9)
+            enhancement_menu
+            ;;
+        0)
+            echo "Exiting..."
+            break
+            ;;
+        *)
+            echo "Invalid choice, please try again"
+            read -p "Press [Enter] key to continue..."
+            ;;
     esac
 done
 
