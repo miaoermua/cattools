@@ -1483,6 +1483,41 @@ while true; do
     menu
     read choice
     case $choice in
+        1)
+            setip
+            ;;
+        2)
+            network_wizard
+            ;;
+        3)
+            debug
+            ;;
+        4)
+            catwrt_update
+            ;;
+        5)
+            apply_repo
+            ;;
+        6)
+            catnd
+            ;;
+        7)
+            sysupgrade
+            ;;
+        8)
+            catwrt_opkg_list_installed
+            ;;
+        9)
+            enhancement_menu
+            ;;
+        0)
+            echo "Exiting..."
+            break
+            ;;
+        *)
+            echo "Invalid choice, please try again"
+            read -p "Press [Enter] key to continue..."
+            ;;
     esac
 done
 
