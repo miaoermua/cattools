@@ -854,6 +854,13 @@ sysupgrade() {
         firmware_url=$AMD64_BIOS_SYSUP
     fi
 
+    if [ -f /etc/catwrt_opkg_list_installed ]; then
+        rm /etc/catwrt_opkg_list_installed
+    fi
+    
+    catwrt_opkg_list_installed
+    echo "已经生成备份软件包列表，方便你后续更新后恢复部分消失的插件和软件"
+
     echo ""
     echo "Warning:"
     echo "========================================================================="
