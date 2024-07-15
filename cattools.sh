@@ -1527,7 +1527,7 @@ while true; do
             break
             ;;
         *)
-            echo "Invalid choice, please try again"
+            echo "Invalid choice, please try again /// 错误的数字请重试,[ENTER] 回车后重新输入"
             read -p "Press [Enter] key to continue..."
             ;;
     esac
