@@ -14,7 +14,7 @@ if [ $(id -u) != "0" ]; then
 fi
 
 openwrt_release=$(cat /etc/openwrt_release)
-if ! grep -q "OpenWrt" <<< "$openwrt_release"; then
+if ! grep -q "OpenWrt" <<<"$openwrt_release"; then
     echo "Your system is not supported!"
     exit 1
 fi
@@ -94,11 +94,14 @@ skip_update=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -h) help ;;
-        -help) help ;;
-        -u) skip_update=true ;;
-        -update) skip_update=true ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    -h) help ;;
+    -help) help ;;
+    -u) skip_update=true ;;
+    -update) skip_update=true ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        exit 1
+        ;;
     esac
     shift
 done
@@ -108,25 +111,25 @@ if [ "$skip_update" = false ]; then
 fi
 
 # Setup
-setip(){
+setip() {
     DEFAULT_IP="192.168.1.4"
     while true; do
         read -p "Please enter the IP Addr and press Enter /// 请输入 IP (默认为 $DEFAULT_IP): " input_ip
         if [ -z "$input_ip" ]; then
-            input_ip=$DEFAULT_IP 
+            input_ip=$DEFAULT_IP
         fi
 
-        if echo "$input_ip" | grep -Eo '^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$' > /dev/null; then
+        if echo "$input_ip" | grep -Eo '^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$' >/dev/null; then
             break
         else
             echo "Invalid IP address format /// 非法的 IP 地址格式，请重新输入"
         fi
     done
 
-    uci set network.lan.ipaddr=$input_ip 
+    uci set network.lan.ipaddr=$input_ip
     uci commit network
     /etc/init.d/network restart
-    
+
     echo "默认 IP 已设置为 $input_ip"
 }
 
@@ -149,7 +152,7 @@ network_wizard() {
             return
         fi
     fi
-    
+
     echo "CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
     read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" != "0" ]; then
@@ -164,17 +167,17 @@ network_wizard() {
         uci set network.lan.ipaddr=$input_ip
         echo "IP 地址已设置为 $input_ip"
     fi
-    
+
     echo "IPv6 is enabled by default /// IPv6 默认是开启的"
     read -p "是否禁用 IPv6 网络？([Enter] 跳过 / [1] 禁用): " disable_ipv6
     if [ "$disable_ipv6" == "1" ]; then
-        uci delete dhcp.lan.dhcpv6 
+        uci delete dhcp.lan.dhcpv6
         uci delete dhcp.lan.ra
         uci delete dhcp.lan.ra_management
         uci delete network.lan.ip6assign
         echo "IPv6 已禁用"
     fi
-    
+
     echo "Default connection mode is DHCP /// 默认模式为 DHCP"
     read -p "是否进行 PPPoE 拨号？([Enter] 继续 DHCP /  [1] PPPoE 拨号): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
@@ -185,7 +188,7 @@ network_wizard() {
         uci set network.wan.password=$password
         echo "PPPoE 拨号配置已完成"
     fi
-    
+
     echo "Use recommended DNS servers 223.6.6.6 119.29.29.99?"
     read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
@@ -225,7 +228,7 @@ network_wizard() {
         uci set dhcp.lan.force=1
         echo "强制 DHCP 模式已开启"
     fi
-    
+
     echo "Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
     read -p "是否开启 UPNP？([Enter] 确认，按 [1] 跳过): " enable_upnp
     if [ "$enable_upnp" != "1" ]; then
@@ -248,7 +251,7 @@ network_wizard() {
             # 获取所有网口列表
             interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
             iface_count=$(echo "$interfaces" | wc -w)
-    
+
             if [ "$iface_count" -eq 1 ]; then
                 echo "Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
             else
@@ -269,7 +272,6 @@ network_wizard() {
                 uci set network.lan._orig_ifname="$bridge_ports"
                 uci set network.lan._orig_bridge='true'
 
-    
                 echo "Network interfaces configured: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
             fi
         else
@@ -278,7 +280,7 @@ network_wizard() {
     else
         echo "System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
     fi
-    
+
     uci commit
     /etc/init.d/network restart
     /etc/init.d/dnsmasq restart
@@ -299,11 +301,11 @@ bypass_gateway() {
             break
         fi
     done
-    
+
     # 提取子网地址和设置本机 IP 地址
     subnet=$(echo "$router_ip" | cut -d. -f1-3)
     default_device_ip="${subnet}.4"
-    
+
     while true; do
         read -p "本机 IP 地址为 $default_device_ip 按回车键确认，或输入新的 IP 地址：" device_ip
         if [ -z "$device_ip" ]; then
@@ -315,29 +317,29 @@ bypass_gateway() {
             break
         fi
     done
-    
+
     echo "主路由 IP 地址：$router_ip"
     echo "本机 IP 地址：$device_ip"
-    
+
     # 配置网络
     uci set network.lan.ipaddr="$device_ip"
     uci set network.lan.gateway="$router_ip"
     uci set network.lan.proto='static'
     uci commit network
-    
+
     # 禁用 LAN 口的 IPv6 服务器
     uci set dhcp.lan.dhcpv6='disabled'
     uci set dhcp.lan.ra='disabled'
     uci commit dhcp
-    
+
     # 启用 MSS 钳制
     uci set firewall.@defaults[0].mss_clamping='1'
-    
+
     # 启用 IP 伪装和 MTU fix
     # 找到 LAN 和 WAN 的 zone 配置节
     lan_zone=$(uci show firewall | grep "=zone" | grep -E 'name=.lan' | cut -d'.' -f2)
     wan_zone=$(uci show firewall | grep "=zone" | grep -E 'name=.wan' | cut -d'.' -f2)
-    
+
     # 启用 LAN 区域的 IP 伪装和 MTU fix
     if [ -n "$lan_zone" ]; then
         uci set firewall.$lan_zone.masq='1'
@@ -346,7 +348,7 @@ bypass_gateway() {
         echo "未找到名称为 'lan' 的 zone 配置节"
         exit 1
     fi
-    
+
     # 启用 WAN 区域的 IP 伪装和 MTU 修复
     if [ -n "$wan_zone" ]; then
         uci set firewall.$wan_zone.masq='1'
@@ -355,28 +357,28 @@ bypass_gateway() {
         echo "未找到名称为 'wan' 的 zone 配置节"
         exit 1
     fi
-    
+
     uci commit firewall
-    
+
     # 删除 WAN 口防火墙规则
     uci delete firewall.$wan_zone
     uci commit firewall
-    
+
     # 关闭 LAN 口的 DHCP 服务并删除相关配置
     uci set dhcp.lan.ignore='1'
     uci delete dhcp.lan.leasetime
     uci delete dhcp.lan.limit
     uci delete dhcp.lan.start
     uci commit dhcp
-    
+
     lan_ip=$(uci get network.lan.ipaddr)
     echo "旁路网关配置完成 $lan_ip "
-    
+
     # 重启相关服务以应用更改
     /etc/init.d/network restart
     /etc/init.d/firewall restart
     /etc/init.d/dnsmasq restart
-    
+
     echo ""
 }
 
@@ -385,79 +387,79 @@ debug() {
     if [ -f /www/logs.txt ]; then
         rm /www/logs.txt
     fi
-    
-    cat /etc/banner >> /www/logs.txt
-    date >> /www/logs.txt
 
-    echo "## RELEASE" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    cat /etc/catwrt_release >> /www/logs.txt
-    echo ""
-    
-    echo "## STATUS" >> /www/logs.txt
-    echo "=================" >> /www/logs.txt
-    eval $UPTIME >> /www/logs.txt
-    echo ""
-    
-    echo "## Memory Usage" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    free -h >> /www/logs.txt
-    echo ""
-    
-    echo "## Disk Usage" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    df -h >> /www/logs.txt
-    echo ""
-    
-    echo "## Application" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    opkg list_installed >> /www/logs.txt
+    cat /etc/banner >>/www/logs.txt
+    date >>/www/logs.txt
 
-    echo "## SYSLOG" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    logread >> /www/logs.txt
+    echo "## RELEASE" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    cat /etc/catwrt_release >>/www/logs.txt
     echo ""
-    
-    echo "## DMESG" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    dmesg >> /www/logs.txt
+
+    echo "## STATUS" >>/www/logs.txt
+    echo "=================" >>/www/logs.txt
+    eval $UPTIME >>/www/logs.txt
     echo ""
-    
-    echo "## Plugins" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    cat /tmp/openclash.log >> /www/logs.txt
-    cat /tmp/log/ssrplus.log >> /www/logs.txt
-    cat /tmp/log/passwall.log >> /www/logs.txt
-    cat /tmp/log/passwall2.log >> /www/logs.txt
+
+    echo "## Memory Usage" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    free -h >>/www/logs.txt
     echo ""
-    
-    echo "## Task" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    top -b -n 1 >> /www/logs.txt
+
+    echo "## Disk Usage" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    df -h >>/www/logs.txt
     echo ""
-    
-    echo "## Network Configuration" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    ifconfig -a >> /www/logs.txt
+
+    echo "## Application" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    opkg list_installed >>/www/logs.txt
+
+    echo "## SYSLOG" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    logread >>/www/logs.txt
     echo ""
-    
-    echo "## UCI Network" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    uci show network >> /www/logs.txt
+
+    echo "## DMESG" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    dmesg >>/www/logs.txt
     echo ""
-    
-    echo "## Firewall" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    iptables -L -v -n >> /www/logs.txt
-    ip6tables -L -v -n >> /www/logs.txt
+
+    echo "## Plugins" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    cat /tmp/openclash.log >>/www/logs.txt
+    cat /tmp/log/ssrplus.log >>/www/logs.txt
+    cat /tmp/log/passwall.log >>/www/logs.txt
+    cat /tmp/log/passwall2.log >>/www/logs.txt
     echo ""
-    
-    echo "## Routing Table" >> /www/logs.txt
-    echo "==========" >> /www/logs.txt
-    ip route >> /www/logs.txt
-    ip -6 route >> /www/logs.txt
+
+    echo "## Task" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    top -b -n 1 >>/www/logs.txt
     echo ""
-    
+
+    echo "## Network Configuration" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    ifconfig -a >>/www/logs.txt
+    echo ""
+
+    echo "## UCI Network" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    uci show network >>/www/logs.txt
+    echo ""
+
+    echo "## Firewall" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    iptables -L -v -n >>/www/logs.txt
+    ip6tables -L -v -n >>/www/logs.txt
+    echo ""
+
+    echo "## Routing Table" >>/www/logs.txt
+    echo "==========" >>/www/logs.txt
+    ip route >>/www/logs.txt
+    ip -6 route >>/www/logs.txt
+    echo ""
+
     lan_ip=$(uci get network.lan.ipaddr)
 
     echo "Finish!"
@@ -476,37 +478,38 @@ catwrt_update() {
         echo "Remote $1 get failed for arch: $arch_self, please check your network!"
         exit 1
     }
-    
+
     local_error() {
         echo "Local $1 get failed, please check your /etc/catwrt-release!"
         exit 1
     }
-    
+
     get_remote_hash() {
         arch_self=$1
         version_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.version")
         hash_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.hash")
-    
+        channel_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.channel")
+
         if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
             remote_error "version or hash"
         fi
     }
-    
+
     init() {
         if [ ! -f "$RELEASE" ]; then
             local_error "version file"
         fi
-    
+
         version_local=$(grep 'version' "$RELEASE" | cut -d '=' -f 2)
         hash_local=$(grep 'hash' "$RELEASE" | cut -d '=' -f 2)
         source_local=$(grep 'source' "$RELEASE" | cut -d '=' -f 2)
         arch_local=$(grep 'arch' "$RELEASE" | cut -d '=' -f 2)
     }
-    
+
     contrast_version() {
         if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
             echo "======================================================="
-            echo "              Your CatWrt is up to date!"
+            echo "Your CatWrt is up to date! Also, you are using $channel_remote channel."
             echo "======================================================="
         else
             echo "======================================================="
@@ -516,16 +519,18 @@ catwrt_update() {
             echo "======================================================="
         fi
     }
-    
+
     print_version() {
-        echo "Local  Version : $version_local"
-        echo "Remote Version : $version_remote"
-        echo "Local  Hash    : $hash_local"
-        echo "Remote Hash    : $hash_remote"
+        echo "Remote Hash               : $hash_remote"
+        echo "Remote Version            : $version_remote"
+        echo "Remote Current Channel    : $channel_remote"
+        echo "Local  Version            : $version_local"
+        echo "Local  Hash               : $hash_local"
+
         echo "======================================================="
         echo ""
     }
-    
+
     main() {
         init
         get_remote_hash "$arch_local"
@@ -533,7 +538,7 @@ catwrt_update() {
         print_version
     }
     main
-    }
+}
 
 # Repo
 apply_repo() {
@@ -545,73 +550,22 @@ apply_repo() {
             openwrt_version=$(grep DISTRIB_RELEASE /etc/openwrt_release | cut -d"'" -f2)
             arch=$(grep DISTRIB_TARGET /etc/openwrt_release | cut -d"/" -f1)
             case "$arch" in
-                x86_64)
-                    if grep -q "R22.11.11" /etc/openwrt_release; then
-                        version="v22.12"
-                    elif grep -q "R23.2" /etc/openwrt_release; then
-                        version="v23.2"
-                    else
-                        echo "Unknown arch x86_64 /// 未知的 x86_64 版本"
-                        exit 1
-                    fi
-                    ;;
-                aarch64_generic)
-                    if grep -q "R22.12.1" /etc/openwrt_release; then
-                        version="v22.12"
-                        arch="rkarm"
-                    else
-                        echo "Unknown arch aarch64_generic ///未知的 aarch64_generic 版本"
-                        exit 1
-                    fi
-                    ;;
-                *)
-                    echo "Unknown arch $arch /// 未知的架构: $arch"
-                    exit 1
-                    ;;
-            esac
-        else
-            echo "`/etc/catwrt_release` or `/etc/openwrt_release` Files do not exist /// 文件不存在或者系统损坏!"
-            exit 1
-        fi
-    fi
-    
-    BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
-    
-    select_repo() {
-        case "$arch" in
-            amd64)
-                if [ "$version" == "v23.8" ]; then
-                    REPO_URL="$BASE_URL/amd64"
-                elif [ "$version" == "v22.12" ]; then
-                    REPO_URL="$BASE_URL/history/v22.12/amd64"
-                elif [ "$version" == "v23.2" ]; then
-                    REPO_URL="$BASE_URL/history/v23.2/amd64"
-                elif [ "$version" == "v24.3" ]; then
-                    REPO_URL="$BASE_URL/amd64"
-                elif [ "$version" == "v24.8" ]; then
-                    REPO_URL="$BASE_URL/amd64"
+            x86_64)
+                if grep -q "R22.11.11" /etc/openwrt_release; then
+                    version="v22.12"
+                elif grep -q "R23.2" /etc/openwrt_release; then
+                    version="v23.2"
                 else
-                    echo "Unknown arch $arch /// 未知的架构: $arch"
+                    echo "Unknown arch x86_64 /// 未知的 x86_64 版本"
                     exit 1
                 fi
                 ;;
-            mt798x)
-                if [ "$version" == "v23.8" ]; then
-                    REPO_URL="$BASE_URL/mt798x"
-                elif [ "$version" == "v22.12" ]; then
-                    REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53"
-                elif [ "$version" == "v23.2" ]; then
-                    REPO_URL="$BASE_URL/history/v23.2/mt7986a"
+            aarch64_generic)
+                if grep -q "R22.12.1" /etc/openwrt_release; then
+                    version="v22.12"
+                    arch="rkarm"
                 else
-                    echo "Unknown arch mt798x /// 未知的 mt798x 版本"
-                    exit 1
-                fi
-                ;;
-            rkarm)
-                if [ "$version" == "v22.12" ]; then
-                    REPO_URL="$BASE_URL/rkarm"
-                else
-                    echo "Unknown arch rkarm /// 未知的 rkarm 版本"
+                    echo "Unknown arch aarch64_generic ///未知的 aarch64_generic 版本"
                     exit 1
                 fi
                 ;;
@@ -619,19 +573,70 @@ apply_repo() {
                 echo "Unknown arch $arch /// 未知的架构: $arch"
                 exit 1
                 ;;
+            esac
+        else
+            echo "$(/etc/catwrt_release) or $(/etc/openwrt_release) Files do not exist /// 文件不存在或者系统损坏!"
+            exit 1
+        fi
+    fi
+
+    BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
+
+    select_repo() {
+        case "$arch" in
+        amd64)
+            if [ "$version" == "v23.8" ]; then
+                REPO_URL="$BASE_URL/amd64"
+            elif [ "$version" == "v22.12" ]; then
+                REPO_URL="$BASE_URL/history/v22.12/amd64"
+            elif [ "$version" == "v23.2" ]; then
+                REPO_URL="$BASE_URL/history/v23.2/amd64"
+            elif [ "$version" == "v24.3" ]; then
+                REPO_URL="$BASE_URL/amd64"
+            elif [ "$version" == "v24.8" ]; then
+                REPO_URL="$BASE_URL/amd64"
+            else
+                echo "Unknown arch $arch /// 未知的架构: $arch"
+                exit 1
+            fi
+            ;;
+        mt798x)
+            if [ "$version" == "v23.8" ]; then
+                REPO_URL="$BASE_URL/mt798x"
+            elif [ "$version" == "v22.12" ]; then
+                REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53"
+            elif [ "$version" == "v23.2" ]; then
+                REPO_URL="$BASE_URL/history/v23.2/mt7986a"
+            else
+                echo "Unknown arch mt798x /// 未知的 mt798x 版本"
+                exit 1
+            fi
+            ;;
+        rkarm)
+            if [ "$version" == "v22.12" ]; then
+                REPO_URL="$BASE_URL/rkarm"
+            else
+                echo "Unknown arch rkarm /// 未知的 rkarm 版本"
+                exit 1
+            fi
+            ;;
+        *)
+            echo "Unknown arch $arch /// 未知的架构: $arch"
+            exit 1
+            ;;
         esac
     }
-    
-        echo ""
-        echo "Warning:"
-        echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
-        echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
-        echo "支持我们: https://www.miaoer.xyz/sponsor"
-        echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
-        echo "=============================================================================="
-    
+
+    echo ""
+    echo "Warning:"
+    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
+    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
+    echo "支持我们: https://www.miaoer.xyz/sponsor"
+    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
+    echo "=============================================================================="
+
     select_repo
-    
+
     echo ""
     echo "请选择要使用的软件源:"
     echo "1) repo.miaoer.xyz (主站)"
@@ -639,19 +644,19 @@ apply_repo() {
     echo "3) netlify"
     echo "4) cfvercel"
     echo "5) vercel (默认)"
-    
+
     read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
     choice=${choice:-5}
-    
+
     case $choice in
-        1) conf_file="distfeeds.conf";;
-        2) conf_file="cfnetlify.conf";;
-        3) conf_file="netlify.conf";;
-        4) conf_file="cfvercel.conf";;
-        5) conf_file="vercel.conf";;
-        *) conf_file="vercel.conf";;
+    1) conf_file="distfeeds.conf" ;;
+    2) conf_file="cfnetlify.conf" ;;
+    3) conf_file="netlify.conf" ;;
+    4) conf_file="cfvercel.conf" ;;
+    5) conf_file="vercel.conf" ;;
+    *) conf_file="vercel.conf" ;;
     esac
-    
+
     CONF_PATH="$REPO_URL/$conf_file"
     if curl --output /dev/null --silent --head --fail "$CONF_PATH"; then
         echo "使用 $CONF_PATH"
@@ -659,31 +664,31 @@ apply_repo() {
         echo "源文件不存在: $CONF_PATH"
         exit 1
     fi
-    
+
     curl -sL "$CONF_PATH" -o /etc/opkg/distfeeds.conf
-    
+
     # fack istore_compat
     if [ -f /var/opkg-lists/istore_compat ]; then
         rm /var/opkg-lists/istore_compat
     fi
-    
+
     opkg update
-    
+
     echo "完成"
 }
 # catnd
 
-catnd(){
-    echo "$(date) - Starting CatWrt Network Diagnostics" 
+catnd() {
+    echo "$(date) - Starting CatWrt Network Diagnostics"
     echo " "
-    
+
     # Ping & PPPoE
-    ping -c 3 223.5.5.5 > /dev/null
+    ping -c 3 223.5.5.5 >/dev/null
     if [ $? -eq 0 ]; then
         echo "[Ping] Network connection succeeded!"
         echo " "
     else
-        ping -c 3 119.29.29.99 > /dev/null
+        ping -c 3 119.29.29.99 >/dev/null
         if [ $? -eq 0 ]; then
             echo "[Ping] Network connection succeeded,But there may be problems!"
             echo " "
@@ -696,129 +701,129 @@ catnd(){
             exit 1
         fi
     fi
-    
+
     # DNS
     valid_dns="1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4 223.6.6.6 223.5.5.5 180.76.76.76 208.67.222.222 208.67.220.220 119.29.29.99"
-    
+
     dns_config=$(grep 'option dns' /etc/config/network)
     dns_servers=$(echo $dns_config | awk -F "'" '{print $2}')
-    
+
     for ip in $dns_servers; do
-      if ! [[ $valid_dns =~ (^|[ ])$ip($|[ ]) ]]; then
-        echo "[DNS] Recommended to delete DNS $ip"
-        echo " "
-        exit 1
-      fi
+        if ! [[ $valid_dns =~ (^|[ ])$ip($|[ ]) ]]; then
+            echo "[DNS] Recommended to delete DNS $ip"
+            echo " "
+            exit 1
+        fi
     done
-    
+
     # Bad DNS
     echo "[DNS] DNS configuration looks good!"
     echo " "
-    
+
     bad_dns="114.114.114.114 114.114.115.115 119.29.29.29"
     if [[ $dns_config =~ $bad_dns ]]; then
-      echo "[DNS] DNS may be polluted or unreliable"
-      echo " "
+        echo "[DNS] DNS may be polluted or unreliable"
+        echo " "
     fi
-    
+
     # nslookup
-    nslookup bilibili.com > /dev/null
+    nslookup bilibili.com >/dev/null
     if [ $? -ne 0 ]; then
-      nslookup www.miaoer.xyz > /dev/null
-      if [ $? -eq 0 ]; then  
-        echo "[DNS] DNS resolution succeeded"
-        echo " "
-      else
-        echo "[DNS] NS resolution failed for 'www.miaoer.xyz'"
-        echo "[DNS] Your DNS server may have issues"
-        echo " "
-      fi
+        nslookup www.miaoer.xyz >/dev/null
+        if [ $? -eq 0 ]; then
+            echo "[DNS] DNS resolution succeeded"
+            echo " "
+        else
+            echo "[DNS] NS resolution failed for 'www.miaoer.xyz'"
+            echo "[DNS] Your DNS server may have issues"
+            echo " "
+        fi
     fi
-    
+
     # Public IP
-    echo CatWrt IPv4 Addr: $(curl --silent --connect-timeout 5 4.ipw.cn )
+    echo CatWrt IPv4 Addr: $(curl --silent --connect-timeout 5 4.ipw.cn)
     echo " "
-    
-    curl 6.ipw.cn --connect-timeout 5 > /dev/null 2>&1
+
+    curl 6.ipw.cn --connect-timeout 5 >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-      echo "[IPv6] IPv6 network connection timed out"
-      echo " "
+        echo "[IPv6] IPv6 network connection timed out"
+        echo " "
     else
-      echo CatWrt IPv6 Addr: $(curl --silent 6.ipw.cn) 
-      echo " "
+        echo CatWrt IPv6 Addr: $(curl --silent 6.ipw.cn)
+        echo " "
     fi
-    
+
     # IPv6
     resp=$(curl --silent test.ipw.cn)
-    
+
     if echo "$resp" | grep -q -E '240e|2408|2409|2401'; then
-      echo "[IPv6] IPv6 access is preferred"
-      echo " "
+        echo "[IPv6] IPv6 access is preferred"
+        echo " "
     else
-      echo "[IPv6] IPv4 access is preferred" 
-      echo " "
+        echo "[IPv6] IPv4 access is preferred"
+        echo " "
     fi
-    
+
     # Default IP
     ipaddr_config=$(grep '192.168.1.4' /etc/config/network)
-    
+
     if [ -z "$ipaddr_config" ]; then
-      echo "[Default-IP] address is not the catwrt default 192.168.1.4"
-      echo "Please configure your network at 'https://www.miaoer.xyz/posts/network/quickstart-catwrt'"
-      echo " "
+        echo "[Default-IP] address is not the catwrt default 192.168.1.4"
+        echo "Please configure your network at 'https://www.miaoer.xyz/posts/network/quickstart-catwrt'"
+        echo " "
     fi
-    
+
     # Bypass Gateway
     wan_config=$(grep 'config interface' /etc/config/network | grep 'wan')
-    
+
     if [ -z "$wan_config" ]; then
-      echo "[Bypass Gateway] No config for 'wan' interface found in /etc/config/network"
-      echo "Please check if your device is set as a Bypass Gateway"
-      echo " "
+        echo "[Bypass Gateway] No config for 'wan' interface found in /etc/config/network"
+        echo "Please check if your device is set as a Bypass Gateway"
+        echo " "
     fi
-    
+
     # Rotuer Mode(PPPoE)
     pass_config=$(grep 'password' /etc/config/network)
     user_config=$(grep 'username' /etc/config/network)
     pppoe_config=$(grep 'pppoe' /etc/config/network)
-    
+
     if [ -n "$pass_config" ] && [ -n "$user_config" ] && [ -n "$pppoe_config" ]; then
         echo "[PPPoE] PPPoE Rotuer Mode"
-        echo " " 
+        echo " "
     else
         echo "[PPPoE] DHCP protocol detected in WAN interface"
         echo "The device may not be in PPPoE Rotuer Mode"
-        echo " " 
+        echo " "
     fi
-    
+
     # IPv6 WAN6
-    grep 'config interface' /etc/config/network | grep 'wan6'  > /dev/null
+    grep 'config interface' /etc/config/network | grep 'wan6' >/dev/null
     if [ $? -ne 0 ]; then
-       echo "[wan6] Your IPv6 network may have issues"
-       echo " "
-    fi 
-    
-    grep 'dhcpv6' /etc/config/network > /dev/null
-    if [ $? -ne 0 ]; then
-       echo "[wan6] Your IPv6 network may have issues"
-       echo " "
+        echo "[wan6] Your IPv6 network may have issues"
+        echo " "
     fi
-    
+
+    grep 'dhcpv6' /etc/config/network >/dev/null
+    if [ $? -ne 0 ]; then
+        echo "[wan6] Your IPv6 network may have issues"
+        echo " "
+    fi
+
     # Tcping
     echo "[Tcping] Testing..."
-    
+
     tcping -q -c 1 cn.bing.com
     [ $? -ne 0 ] && echo "Failed: cn.bing.com"
-    
+
     tcping -q -c 1 bilibili.com
     [ $? -ne 0 ] && echo "Failed: bilibili.com"
-    
+
     tcping -q -c 1 github.com
     [ $? -ne 0 ] && echo "Failed: github.com"
-    
+
     tcping -q -c 1 google.com.hk
     [ $? -ne 0 ] && echo "Failed: google.com.hk"
-    
+
     echo " "
     echo "$(date) - Network check completed!"
     echo " "
@@ -826,16 +831,16 @@ catnd(){
 }
 
 # Sysupgrade
-sysupgrade(){
+sysupgrade() {
     if [ "$(uname -m)" != "x86_64" ]; then
         echo "仅有 x86_64 可以使用脚本进行系统升级。"
         exit 1
     fi
-    
+
     echo ""
 
     disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
-    if (( $(echo "$disk_size != 800.28" | bc -l) )); then
+    if (($(echo "$disk_size != 800.28" | bc -l))); then
         echo "磁盘空间未修改或不匹配，无法继续升级。"
         exit 1
     fi
@@ -850,7 +855,14 @@ sysupgrade(){
     else
         firmware_url=$AMD64_BIOS_SYSUP
     fi
+
+    if [ -f /etc/catwrt_opkg_list_installed ]; then
+        rm /etc/catwrt_opkg_list_installed
+    fi
     
+    catwrt_opkg_list_installed
+    echo "已经生成备份软件包列表，方便你后续更新后恢复部分消失的插件和软件"
+
     echo ""
     echo "Warning:"
     echo "========================================================================="
@@ -1095,14 +1107,14 @@ enhancement_menu() {
     echo
     read -p "请输入数字并回车(Please enter your choice): " choice
     case $choice in
-        1) configure_luci_mihomo ;;
-        2) configure_tailscale ;;
-        3) configure_ttyd ;;
-        4) manual_deploy_uhttpd_ssl_cert ;;
-        5) openwrt_firstboot ;;
-        6) reset_root_password ;;
-        0) menu ;;
-        *) echo "无效选项，请重试" && enhancement_menu ;;
+    1) configure_luci_mihomo ;;
+    2) configure_tailscale ;;
+    3) configure_ttyd ;;
+    4) manual_deploy_uhttpd_ssl_cert ;;
+    5) openwrt_firstboot ;;
+    6) reset_root_password ;;
+    0) menu ;;
+    *) echo "无效选项，请重试" && enhancement_menu ;;
     esac
 }
 
@@ -1114,16 +1126,16 @@ configure_luci_mihomo() {
 
     arch=$(uname -m)
     case "$arch" in
-        "x86_64")
-            arch="amd64"
-            ;;
-        "aarch64")
-            arch="arm64"
-            ;;
-        *)
-            echo "[ERROR] 不支持的架构: $arch"
-            exit 1
-            ;;
+    "x86_64")
+        arch="amd64"
+        ;;
+    "aarch64")
+        arch="arm64"
+        ;;
+    *)
+        echo "[ERROR] 不支持的架构: $arch"
+        exit 1
+        ;;
     esac
 
     if ! opkg list_installed | grep -q luci-app-openclash; then
@@ -1175,7 +1187,7 @@ configure_luci_mihomo() {
     echo "========================================================================="
 
     sleep 2
-    
+
     echo "请选择下载类型:"
     echo "1. 全部下载 (默认 3 秒自动执行)"
     echo "2. 仅下载 Mihomo 内核"
@@ -1192,38 +1204,38 @@ configure_luci_mihomo() {
         "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-$arch.tar.gz"
         "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-$arch.tar.gz"
     )
-    
+
     local clash_urls=(
         "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/dev/clash-linux-$arch.tar.gz"
         "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/dev/clash-linux-$arch.tar.gz"
         "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/dev/clash-linux-$arch.tar.gz"
     )
-    
+
     case $choice in
-        1)
-            echo "正在更新 Mihomo 内核..."
-            download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
-            echo "正在更新原版内核..."
-            download_mihomo_core "clash" "${clash_urls[@]}"
-            ;;
-        2)
-            echo "正在更新 Mihomo 内核..."
-            download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
-            ;;
-        3)
-            echo "正在更新原版内核..."
-            download_mihomo_core "clash" "${clash_urls[@]}"
-            ;;
-        *)
-            echo "[ERROR] 无效选项"
-            exit 1
-            ;;
+    1)
+        echo "正在更新 Mihomo 内核..."
+        download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
+        echo "正在更新原版内核..."
+        download_mihomo_core "clash" "${clash_urls[@]}"
+        ;;
+    2)
+        echo "正在更新 Mihomo 内核..."
+        download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
+        ;;
+    3)
+        echo "正在更新原版内核..."
+        download_mihomo_core "clash" "${clash_urls[@]}"
+        ;;
+    *)
+        echo "[ERROR] 无效选项"
+        exit 1
+        ;;
     esac
 
     echo "操作完成"
 }
 
-configure_tailscale(){
+configure_tailscale() {
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置软件源"
         menu
@@ -1239,7 +1251,7 @@ configure_tailscale(){
             return
         fi
     fi
-    
+
     subnet=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | head -n 1)
     if [ -z "$subnet" ]; then
         echo "[ERROR] 无法获取当前子网。"
@@ -1251,17 +1263,17 @@ configure_tailscale(){
 
     firewall_file="/etc/firewall.user"
     rules=("iptables -I FORWARD -i tailscale0 -j ACCEPT"
-           "iptables -I FORWARD -o tailscale0 -j ACCEPT"
-           "iptables -t nat -I POSTROUTING -o tailscale0 -j MASQUERADE")
+        "iptables -I FORWARD -o tailscale0 -j ACCEPT"
+        "iptables -t nat -I POSTROUTING -o tailscale0 -j MASQUERADE")
 
     for rule in "${rules[@]}"; do
         if ! grep -q "^$rule$" $firewall_file; then
-            echo $rule >> $firewall_file
+            echo $rule >>$firewall_file
         fi
     done
 
-        lan_ip=$(uci get network.lan.ipaddr)
-        
+    lan_ip=$(uci get network.lan.ipaddr)
+
     echo ""
     echo "点击上面的 tailscale login 链接然后再进行以下配置"
     echo "========================================================================="
@@ -1288,13 +1300,13 @@ configure_tailscale(){
 }
 
 # TTYD (NOT SAFETY)
-configure_ttyd(){
+configure_ttyd() {
     if ! opkg list_installed | grep -q "luci-app-ttyd" || ! opkg list_installed | grep -q "ttyd"; then
         echo "[ERROR]未安装 luci-app-ttyd 或 ttyd 软件包，请先配置软件源并安装这些软件包"
         menu
         return
     fi
-    
+
     echo ""
     echo "Warning:"
     echo "========================================================================="
@@ -1307,7 +1319,7 @@ configure_ttyd(){
         menu
         return
     fi
-    
+
     echo ""
     echo "你真的阅读了此警告吗，这非常主要!请务必使用此功能后将其禁用，以避免遭受远程执行命令!"
     echo "禁用只需要在 Cattools 里面再选一次此功能就可以完成禁用，这是我们的承诺哦!"
@@ -1318,12 +1330,12 @@ configure_ttyd(){
         menu
         return
     fi
-    
+
     if grep -q "option command '/bin/login -f root'" /etc/config/ttyd; then
         sed -i "s/option command '\/bin\/login -f root'/option command '\/bin\/login'/" /etc/config/ttyd
         /etc/init.d/ttyd restart
-            echo ""
-            echo "TTYD 配置已还原为默认配置"
+        echo ""
+        echo "TTYD 配置已还原为默认配置"
     else
         sed -i "s/option command '\/bin\/login'/option command '\/bin\/login -f root'/" /etc/config/ttyd
         /etc/init.d/ttyd restart
@@ -1332,7 +1344,7 @@ configure_ttyd(){
         lan_ip=$(uci get network.lan.ipaddr)
         echo "TTYD 访问链接  http://$lan_ip:7681"
     fi
-    
+
     menu
 }
 
@@ -1351,10 +1363,10 @@ manual_deploy_uhttpd_ssl_cert() {
         return
     fi
 
-    if ! grep -q "list listen_http '0.0.0.0:80'" /etc/config/uhttpd || \
-       ! grep -q "list listen_http '\[::\]:80'" /etc/config/uhttpd || \
-       ! grep -q "list listen_https '0.0.0.0:443'" /etc/config/uhttpd || \
-       ! grep -q "list listen_https '\[::\]:443'" /etc/config/uhttpd; then
+    if ! grep -q "list listen_http '0.0.0.0:80'" /etc/config/uhttpd ||
+        ! grep -q "list listen_http '\[::\]:80'" /etc/config/uhttpd ||
+        ! grep -q "list listen_https '0.0.0.0:443'" /etc/config/uhttpd ||
+        ! grep -q "list listen_https '\[::\]:443'" /etc/config/uhttpd; then
         echo "[ERROR] uhttpd 配置文件中的监听端口配置已被修改，请检查!"
     fi
 
@@ -1368,9 +1380,9 @@ manual_deploy_uhttpd_ssl_cert() {
             return
         fi
     fi
-        lan_ip=$(uci get network.lan.ipaddr)
+    lan_ip=$(uci get network.lan.ipaddr)
 
-    echo ""   
+    echo ""
     echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/system/filetransfer 上传证书 zip 文件。"
     echo "仅支持 Aliyun / Tencent Cloud 创建的 Ngnix 和 apache SSL/TLS 证书"
     echo "本功能仅做手动证书部署，并不代表你的 DNS 已解析或者网页 (:80/:443 or:8080) 端口通畅"
@@ -1444,7 +1456,7 @@ openwrt_firstboot() {
         menu
         return
     fi
-    
+
     echo ""
     echo "你真的阅读了此警告吗，这非常主要!你的系统即将重置!"
     echo "你将放弃 OpenWrt 中的一切，从头来过!"
