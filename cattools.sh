@@ -1483,7 +1483,6 @@ while true; do
     menu
     read choice
     case $choice in
-
     esac
 done
 
