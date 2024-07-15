@@ -507,7 +507,7 @@ catwrt_update() {
     contrast_version() {
         if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
             echo "======================================================="
-            echo "              Your CatWrt is up to date! Also, you are using $channel_remote channel."
+            echo "Your CatWrt is up to date! Also, you are using $channel_remote channel."
             echo "======================================================="
         else
             echo "======================================================="
@@ -519,11 +519,11 @@ catwrt_update() {
     }
 
     print_version() {
-        echo "Remote Hash    : $hash_remote"
-        echo "Remote Version : $version_remote"
-        echo "Source Channel : $channel_remote"
-        echo "Local  Version : $version_local"
-        echo "Local  Hash    : $hash_local"
+        echo "Remote Hash               : $hash_remote"
+        echo "Remote Version            : $version_remote"
+        echo "Remote Current Channel    : $channel_remote"
+        echo "Local  Version            : $version_local"
+        echo "Local  Hash               : $hash_local"
 
         echo "======================================================="
         echo ""
