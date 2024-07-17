@@ -593,9 +593,9 @@ apply_repo() {
             elif [ "$version" == "v23.8" ]; then
                 REPO_URL="$BASE_URL/amd64"
             elif [ "$version" == "v24.3" ]; then
-                REPO_URL="$BASE_URL/repo/pr/v24.3/amd64"
+                REPO_URL="$BASE_URL/pr/v24.3/amd64"
             elif [ "$version" == "v24.8" ]; then
-                REPO_URL="$BASE_URL/repo/pr/v24.3/amd64"
+                REPO_URL="$BASE_URL/pr/v24.3/amd64"
             else
                 echo "Unknown arch $arch /// 未知的架构: $arch"
                 exit 1
@@ -609,7 +609,7 @@ apply_repo() {
             elif [ "$version" == "v23.8" ]; then
                 REPO_URL="$BASE_URL/mt798x"
             elif [ "$version" == "v24.3" ]; then
-                REPO_URL="$BASE_URL/repo/pr/v24.3/mt798x"   
+                REPO_URL="$BASE_URL/pr/v24.3/mt798x"   
             else
                 echo "Unknown arch mt798x /// 未知的 mt798x 版本"
                 exit 1
@@ -619,7 +619,7 @@ apply_repo() {
             if [ "$version" == "v22.12" ]; then
                 REPO_URL="$BASE_URL/rkarm"
             elif [ "$version" == "v24.1" ]; then
-                REPO_URL="$BASE_URL/repo/pr/v24.1/rkarm"            
+                REPO_URL="$BASE_URL/pr/v24.1/rkarm"            
             else
                 echo "Unknown arch rkarm /// 未知的 rkarm 版本"
                 exit 1
