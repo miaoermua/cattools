@@ -569,6 +569,15 @@ apply_repo() {
                     exit 1
                 fi
                 ;;
+            mt7621)
+                if grep -q "R22.12.1" /etc/openwrt_release; then
+                    version="v22.12"
+                    arch="mt7621"
+                else
+                    echo "Unknown arch mt7621 ///未知的 mt7621 版本"
+                    exit 1
+                fi
+                ;;
             *)
                 echo "Unknown arch $arch /// 未知的架构: $arch"
                 exit 1
@@ -622,6 +631,14 @@ apply_repo() {
                 REPO_URL="$BASE_URL/pr/v24.1/rkarm"            
             else
                 echo "Unknown arch rkarm /// 未知的 rkarm 版本"
+                exit 1
+            fi
+            ;;
+        mt7621)
+            if [ "$version" == "v22.12" ]; then
+                REPO_URL="$BASE_URL/mt7621"          
+            else
+                echo "Unknown arch mt7621 /// 未知的 mt7621 版本"
                 exit 1
             fi
             ;;
