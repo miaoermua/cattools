@@ -4,6 +4,7 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
 API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
+BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
@@ -61,16 +62,16 @@ menu() {
     echo "                         CatTools                         "
     echo "           https://github.com/miaoermua/cattools          "
     echo "----------------------------------------------------------"
-    echo "1. SetIP                                   -  设置 IP"
-    echo "2. network_wizard                          -  网络向导"
-    echo "3. Debug                                   -  抓取日志"
-    echo "4. catwrt_update                           -  检查更新"
-    echo "5. apply_repo                              -  软件源配置"
-    echo "6. diagnostics                             -  网络诊断"
-    echo "7. sysupgrade                              -  系统更新"
-    echo "8. restore                                 -  恢复软件包"
-    echo "9. enhancement                             -  实用增强"
-    echo "0. Exit                                    -  退出"
+    echo "1. SetIP                                  -  设置 IP"
+    echo "2. Wizard                                 -  网络向导"
+    echo "3. Debug                                  -  抓取日志"
+    echo "4. Catwrt_update                          -  检查更新"
+    echo "5. Apply_repo                             -  软件源配置"
+    echo "6. Diagnostics                            -  网络诊断"
+    echo "7. Sysupgrade                             -  系统更新"
+    echo "8. Restore                                -  恢复软件包"
+    echo "9. Enhancement                            -  实用增强"
+    echo "0. Exit                                   -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
 }
@@ -473,6 +474,7 @@ debug() {
 }
 
 # catwrt_update
+
 catwrt_update() {
     remote_error() {
         echo "Remote $1 get failed for arch: $arch_self, please check your network!"
@@ -540,115 +542,47 @@ catwrt_update() {
     main
 }
 
-# Repo
+# Apply_repo
 apply_repo() {
-    if [ -f /etc/catwrt_release ]; then
-        source /etc/catwrt_release
-    else
-        # If the `/etc/catwrt_release` file does not exist, the `/etc/openwrt_release` file is read.
-        if [ -f /etc/openwrt_release ]; then
-            openwrt_version=$(grep DISTRIB_RELEASE /etc/openwrt_release | cut -d"'" -f2)
-            arch=$(grep DISTRIB_TARGET /etc/openwrt_release | cut -d"/" -f1)
-            case "$arch" in
-            x86_64)
-                if grep -q "R22.11.11" /etc/openwrt_release; then
-                    version="v22.12"
-                elif grep -q "R23.2" /etc/openwrt_release; then
-                    version="v23.2"
-                else
-                    echo "Unknown arch x86_64 /// 未知的 x86_64 版本"
-                    exit 1
-                fi
-                ;;
-            aarch64_generic)
-                if grep -q "R22.12.1" /etc/openwrt_release; then
-                    version="v22.12"
-                    arch="rkarm"
-                else
-                    echo "Unknown arch aarch64_generic ///未知的 aarch64_generic 版本"
-                    exit 1
-                fi
-                ;;
-            mt7621)
-                if grep -q "R22.12.1" /etc/openwrt_release; then
-                    version="v22.12"
-                    arch="mt7621"
-                else
-                    echo "Unknown arch mt7621 ///未知的 mt7621 版本"
-                    exit 1
-                fi
-                ;;
-            *)
-                echo "Unknown arch $arch /// 未知的架构: $arch"
-                exit 1
-                ;;
-            esac
-        else
-            echo "$(/etc/catwrt_release) or $(/etc/openwrt_release) Files do not exist /// 文件不存在或者系统损坏!"
-            exit 1
-        fi
-    fi
+    arch=$(grep -o 'arch=[^ ]*' $RELEASE | cut -d= -f2)
+    version=$(grep -o 'version=[^ ]*' $RELEASE | cut -d= -f2)
 
-    BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
-
-    select_repo() {
-        case "$arch" in
-        amd64)
-
-            if [ "$version" == "v22.12" ]; then
-                REPO_URL="$BASE_URL/history/v22.12/amd64"
-            elif [ "$version" == "v23.2" ]; then
-                REPO_URL="$BASE_URL/history/v23.2/amd64"
-            elif [ "$version" == "v23.8" ]; then
-                REPO_URL="$BASE_URL/amd64"
-            elif [ "$version" == "v24.3" ]; then
-                REPO_URL="$BASE_URL/pr/v24.3/amd64"
-            elif [ "$version" == "v24.8" ]; then
-                REPO_URL="$BASE_URL/pr/v24.3/amd64"
-            else
-                echo "Unknown arch $arch /// 未知的架构: $arch"
-                exit 1
-            fi
-            ;;
-        mt798x)
-            if [ "$version" == "v22.12" ]; then
-                REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53"
-            elif [ "$version" == "v23.2" ]; then
-                REPO_URL="$BASE_URL/history/v23.2/mt7986a"
-            elif [ "$version" == "v23.8" ]; then
-                REPO_URL="$BASE_URL/mt798x"
-            elif [ "$version" == "v24.3" ]; then
-                REPO_URL="$BASE_URL/pr/v24.3/mt798x"   
-            else
-                echo "Unknown arch mt798x /// 未知的 mt798x 版本"
-                exit 1
-            fi
-            ;;
-        rkarm)
-            if [ "$version" == "v22.12" ]; then
-                REPO_URL="$BASE_URL/rkarm"
-            elif [ "$version" == "v24.1" ]; then
-                REPO_URL="$BASE_URL/pr/v24.1/rkarm"            
-            else
-                echo "Unknown arch rkarm /// 未知的 rkarm 版本"
-                exit 1
-            fi
-            ;;
-        mt7621)
-            if [ "$version" == "v22.12" ]; then
-                REPO_URL="$BASE_URL/mt7621"          
-            else
-                echo "Unknown arch mt7621 /// 未知的 mt7621 版本"
-                exit 1
-            fi
-            ;;
-        *)
-            echo "Unknown arch $arch /// 未知的架构: $arch"
-            exit 1
-            ;;
+    case "$arch" in
+    amd64)
+        case "$version" in
+        v22.12) REPO_URL="$BASE_URL/history/v22.12/amd64" ;;
+        v23.2) REPO_URL="$BASE_URL/history/v23.2/amd64" ;;
+        v23.8) REPO_URL="$BASE_URL/amd64" ;;
+        v24.3) REPO_URL="$BASE_URL/pr/v24.3/amd64" ;;
+        v24.8) REPO_URL="$BASE_URL/pr/v24.3/amd64" ;;
+        *) echo "Unknown version" && exit 1 ;;
         esac
-    }
-
+        ;;
+    mt798x)
+        case "$version" in
+        v22.12) REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53" ;;
+        v23.2) REPO_URL="$BASE_URL/history/v23.2/mt7986a" ;;
+        v23.8) REPO_URL="$BASE_URL/mt798x" ;;
+        v24.3) REPO_URL="$BASE_URL/pr/v24.3/mt798x" ;;
+        *) echo "Unknown version" && exit 1 ;;
+        esac
+        ;;
+    rkarm)
+        case "$version" in
+        v22.12) REPO_URL="$BASE_URL/rkarm" ;;
+        v24.1) REPO_URL="$BASE_URL/pr/v24.1/rkarm" ;;
+        *) echo "Unknown version" && exit 1 ;;
+        esac
+        ;;
+    mt7621)
+        case "$version" in
+        v22.12) REPO_URL="$BASE_URL/mt7621" ;;
+        *) echo "Unknown version" && exit 1 ;;
+        esac
+        ;;
+    *) echo "Unknown arch" && exit 1 ;;
+    esac
+    
     echo ""
     echo "Warning:"
     echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
@@ -657,22 +591,19 @@ apply_repo() {
     echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
     echo "=============================================================================="
 
-    select_repo
-
-    if { [ "$version" == "v24.3" ] && { [ "$arch" == "amd64" ] || [ "$arch" == "mt798x" ]; } } || 
-       { [ "$version" == "v24.1" ] && [ "$arch" == "rkarm" ]; }; then
+    if { { [ "$arch" == "amd64" ] || [ "$arch" == "mt798x" ]; } && [ "$version" == "v24.3" ]; } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
         echo "你目前使用的 BETA 版本，只能临时镜像站的软件源，请注意关注 CatWrt 的更新情况!"
         echo "请选择要使用的软件源:"
         echo "1) netlify"
         echo "2) vercel (默认)"
-
+    
         read -t 10 -p "Please enter your choice /// 请输入选择 (1-2): " choice
         choice=${choice:-2}
-
+    
         case $choice in
-        1) conf_file="netlify.conf" ;;
-        2) conf_file="vercel.conf" ;;
-        *) conf_file="vercel.conf" ;;
+            1) conf_file="netlify.conf" ;;
+            2) conf_file="vercel.conf" ;;
+            *) conf_file="vercel.conf" ;;
         esac
     else
         echo "请选择要使用的软件源:"
@@ -681,17 +612,17 @@ apply_repo() {
         echo "3) netlify"
         echo "4) cfvercel"
         echo "5) vercel (默认)"
-
+    
         read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
         choice=${choice:-5}
-
+    
         case $choice in
-        1) conf_file="distfeeds.conf" ;;
-        2) conf_file="cfnetlify.conf" ;;
-        3) conf_file="netlify.conf" ;;
-        4) conf_file="cfvercel.conf" ;;
-        5) conf_file="vercel.conf" ;;
-        *) conf_file="vercel.conf" ;;
+            1) conf_file="distfeeds.conf" ;;
+            2) conf_file="cfnetlify.conf" ;;
+            3) conf_file="netlify.conf" ;;
+            4) conf_file="cfvercel.conf" ;;
+            5) conf_file="vercel.conf" ;;
+            *) conf_file="vercel.conf" ;;
         esac
     fi
 
@@ -714,6 +645,7 @@ apply_repo() {
 
     echo "完成"
 }
+
 # catnd
 
 catnd() {
@@ -1528,6 +1460,46 @@ reset_root_password() {
     ehco "长期使用默认密码(弱密码)极易遭受远程指令攻击，后果严重"
     exit
 }
+
+patch_catwrt_release() {
+    if [ -f $RELEASE ]; then
+      if grep -q "version=v23.7" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
+        echo "Already patched for x86_64 v23.7"
+      elif grep -q "version=v23.8" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
+        echo "Already patched for x86_64 v23.8"
+      elif grep -q "version=v23.8" $RELEASE && grep -q "arch=mt798x" $RELEASE && grep -q "source=lean" $RELEASE; then
+        echo "Already patched for aarch64 v23.8"
+      fi
+    else
+      if [ "$(uname -m)" == "mips" ] || [ "$(uname -m)" == "mipsel" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+        echo "version=v22.12" > $RELEASE
+        echo "arch=mt7621" >> $RELEASE
+        echo "source=lean" >> $RELEASE
+        echo "hash=a1682a48834efdc6c5e2c3c62921b3195d306c8c" >> $RELEASE
+        echo "The patch file has been installed!"
+      elif [ "$(uname -m)" == "aarch64" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+        echo "version=v22.12" > $RELEASE
+        echo "arch=rkarm" >> $RELEASE
+        echo "source=lean" >> $RELEASE
+        echo "hash=3fd4930e781e40e3f85e2c6c082d6fcdd544e9ce" >> $RELEASE
+        echo "The patch file has been installed!"
+      elif [ "$(uname -m)" == "x86_64" ] && grep -q "R23.2" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+        echo "version=v23.2" > $RELEASE
+        echo "arch=amd64" >> $RELEASE
+        echo "source=lean" >> $RELEASE
+        echo "hash=0239fab82eb640b55d4f4050cbc227ffd22087f3" >> $RELEASE
+        echo "The patch file has been installed!"
+      elif [ "$(uname -m)" == "x86_64" ] && grep -q "R22.11.11" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+        echo "version=v22.12" > $RELEASE
+        echo "arch=amd64" >> $RELEASE
+        echo "source=lean" >> $RELEASE
+        echo "hash=4d6877d960c5c3bdc01b8e47679d923b475bea82" >> $RELEASE
+        echo "The patch file has been installed!"
+      fi
+    fi
+}
+
+patch_catwrt_release
 
 while true; do
     menu
