@@ -585,28 +585,31 @@ apply_repo() {
     select_repo() {
         case "$arch" in
         amd64)
-            if [ "$version" == "v23.8" ]; then
-                REPO_URL="$BASE_URL/amd64"
-            elif [ "$version" == "v22.12" ]; then
+
+            if [ "$version" == "v22.12" ]; then
                 REPO_URL="$BASE_URL/history/v22.12/amd64"
             elif [ "$version" == "v23.2" ]; then
                 REPO_URL="$BASE_URL/history/v23.2/amd64"
+            elif [ "$version" == "v23.8" ]; then
+                REPO_URL="$BASE_URL/amd64"
             elif [ "$version" == "v24.3" ]; then
-                REPO_URL="$BASE_URL/amd64"
+                REPO_URL="$BASE_URL/repo/pr/v24.3/amd64"
             elif [ "$version" == "v24.8" ]; then
-                REPO_URL="$BASE_URL/amd64"
+                REPO_URL="$BASE_URL/repo/pr/v24.3/amd64"
             else
                 echo "Unknown arch $arch /// 未知的架构: $arch"
                 exit 1
             fi
             ;;
         mt798x)
-            if [ "$version" == "v23.8" ]; then
-                REPO_URL="$BASE_URL/mt798x"
-            elif [ "$version" == "v22.12" ]; then
+            if [ "$version" == "v22.12" ]; then
                 REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53"
             elif [ "$version" == "v23.2" ]; then
                 REPO_URL="$BASE_URL/history/v23.2/mt7986a"
+            elif [ "$version" == "v23.8" ]; then
+                REPO_URL="$BASE_URL/mt798x"
+            elif [ "$version" == "v24.3" ]; then
+                REPO_URL="$BASE_URL/repo/pr/v24.3/mt798x"   
             else
                 echo "Unknown arch mt798x /// 未知的 mt798x 版本"
                 exit 1
@@ -615,6 +618,8 @@ apply_repo() {
         rkarm)
             if [ "$version" == "v22.12" ]; then
                 REPO_URL="$BASE_URL/rkarm"
+            elif [ "$version" == "v24.1" ]; then
+                REPO_URL="$BASE_URL/repo/pr/v24.1/rkarm"            
             else
                 echo "Unknown arch rkarm /// 未知的 rkarm 版本"
                 exit 1
@@ -637,25 +642,41 @@ apply_repo() {
 
     select_repo
 
-    echo ""
-    echo "请选择要使用的软件源:"
-    echo "1) repo.miaoer.xyz (主站)"
-    echo "2) cfnetlify"
-    echo "3) netlify"
-    echo "4) cfvercel"
-    echo "5) vercel (默认)"
+    if { [ "$version" == "v24.3" ] && { [ "$arch" == "amd64" ] || [ "$arch" == "mt798x" ]; } } || 
+       { [ "$version" == "v24.1" ] && [ "$arch" == "rkarm" ]; }; then
+        echo "你目前使用的 BETA 版本，只能临时镜像站的软件源，请注意关注 CatWrt 的更新情况!"
+        echo "请选择要使用的软件源:"
+        echo "1) netlify"
+        echo "2) vercel (默认)"
 
-    read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
-    choice=${choice:-5}
+        read -t 10 -p "Please enter your choice /// 请输入选择 (1-2): " choice
+        choice=${choice:-2}
 
-    case $choice in
-    1) conf_file="distfeeds.conf" ;;
-    2) conf_file="cfnetlify.conf" ;;
-    3) conf_file="netlify.conf" ;;
-    4) conf_file="cfvercel.conf" ;;
-    5) conf_file="vercel.conf" ;;
-    *) conf_file="vercel.conf" ;;
-    esac
+        case $choice in
+        1) conf_file="netlify.conf" ;;
+        2) conf_file="vercel.conf" ;;
+        *) conf_file="vercel.conf" ;;
+        esac
+    else
+        echo "请选择要使用的软件源:"
+        echo "1) repo.miaoer.xyz (主站)"
+        echo "2) cfnetlify"
+        echo "3) netlify"
+        echo "4) cfvercel"
+        echo "5) vercel (默认)"
+
+        read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
+        choice=${choice:-5}
+
+        case $choice in
+        1) conf_file="distfeeds.conf" ;;
+        2) conf_file="cfnetlify.conf" ;;
+        3) conf_file="netlify.conf" ;;
+        4) conf_file="cfvercel.conf" ;;
+        5) conf_file="vercel.conf" ;;
+        *) conf_file="vercel.conf" ;;
+        esac
+    fi
 
     CONF_PATH="$REPO_URL/$conf_file"
     if curl --output /dev/null --silent --head --fail "$CONF_PATH"; then
