@@ -482,16 +482,17 @@ catwrt_update() {
     }
     
     local_error() {
-        echo "Local $1 get failed, please check your /etc/catwrt-release!"
+        echo "Local $1 get failed, please check your /etc/catwrt_release!"
         exit 1
     }
     
     get_remote_info() {
-        version_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.version")
-        hash_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.hash")
-        releases_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.releases")
-        blog_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.blogs")
-        channel_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.channel")
+        local arch_version_json=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local")
+        version_remote=$(echo "$arch_version_json" | jq -r '.version')
+        hash_remote=$(echo "$arch_version_json" | jq -r '.hash')
+        releases_remote=$(echo "$arch_version_json" | jq -r '.releases')
+        blog_remote=$(echo "$arch_version_json" | jq -r '.blogs')
+        channel_remote=$(echo "$arch_version_json" | jq -r '.channel')
     
         if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
             remote_error "version or hash"
@@ -512,20 +513,29 @@ catwrt_update() {
     contrast_version() {
         if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
             echo "======================================================="
-            echo "              Your CatWrt is up to date!"
+            echo "              Your CatWrt is $releases_remote"
             echo "======================================================="
         else
-            echo "======================================================="
-            echo "Your CatWrt is out of date, you should upgrade it!"
-            echo "Visit the blog for more information"
-            echo "$blog_remote"
-            echo "======================================================="
+            if [ "$channel_remote" == "Stable" ] || ( [ "$channel_remote" == "Beta" ] && [ "$channel_local" == "Beta" ] ); then
+                echo "======================================================="
+                echo "Your CatWrt is $releases_remote, you should upgrade it!"
+                echo "Visit the blog for more information"
+                echo "$blog_remote"
+                echo "======================================================="
+            else
+                echo "======================================================="
+                echo "              Your CatWrt is up to date!"
+                echo "======================================================="
+            fi
         fi
     }
     
     print_version() {
-        echo "Release : $releases_remote"
-        echo "Channel : $channel_remote"
+        echo "Local  Version : $version_local"
+        echo "Remote Version : $releases_remote"
+        echo "Local  Hash    : $hash_local"
+        echo "Remote Hash    : $hash_remote"
+        echo "Channel        : $channel_remote"
         echo "======================================================="
         echo ""
     }
