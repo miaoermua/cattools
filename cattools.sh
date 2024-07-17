@@ -936,7 +936,7 @@ sysupgrade() {
 }
 
 # catwrt_opkg_list_installed
-catwrt_opkg_list_installed(){
+catwrt_opkg_list_installed() {
     PACKAGES=(
         "luci-app-adbyby-plus"
         "luci-i18n-adbyby-plus-zh-cn"
