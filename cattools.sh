@@ -477,65 +477,62 @@ debug() {
 
 catwrt_update() {
     remote_error() {
-        echo "Remote $1 get failed for arch: $arch_self, please check your network!"
+        echo "Remote $1 get failed for arch: $arch_local, please check your network!"
         exit 1
     }
-
+    
     local_error() {
         echo "Local $1 get failed, please check your /etc/catwrt-release!"
         exit 1
     }
-
-    get_remote_hash() {
-        arch_self=$1
-        version_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.version")
-        hash_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.hash")
-        channel_remote=$(curl -s "$API_URL" | jq -r ".$arch_self.channel")
-        blogs_remote=$(echo "$API_URL" | jq -r ".${arch}.blogs")
-
+    
+    get_remote_info() {
+        version_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.version")
+        hash_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.hash")
+        releases_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.releases")
+        blog_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.blogs")
+        channel_remote=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local.channel")
+    
         if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
             remote_error "version or hash"
         fi
     }
-
+    
     init() {
         if [ ! -f "$RELEASE" ]; then
             local_error "version file"
         fi
-
+    
         version_local=$(grep 'version' "$RELEASE" | cut -d '=' -f 2)
         hash_local=$(grep 'hash' "$RELEASE" | cut -d '=' -f 2)
         source_local=$(grep 'source' "$RELEASE" | cut -d '=' -f 2)
         arch_local=$(grep 'arch' "$RELEASE" | cut -d '=' -f 2)
     }
-
+    
     contrast_version() {
         if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
             echo "======================================================="
-            echo "Your CatWrt is latest version! Also, you are using $channel_remote channel."
+            echo "              Your CatWrt is up to date!"
             echo "======================================================="
         else
             echo "======================================================="
-            echo "Your CatWrt is outdated; you should upgrade it to the latest version!"
-            echo "Visit '$blogs_remote' for more information."
+            echo "Your CatWrt is out of date, you should upgrade it!"
+            echo "Visit the blog for more information"
+            echo "$blog_remote"
             echo "======================================================="
         fi
     }
-
+    
     print_version() {
-        echo "Remote Hash               : $hash_remote"
-        echo "Remote Version            : $version_remote"
-        echo "Remote Current Channel    : $channel_remote"
-        echo "Local  Version            : $version_local"
-        echo "Local  Hash               : $hash_local"
-
+        echo "Release : $releases_remote"
+        echo "Channel : $channel_remote"
         echo "======================================================="
         echo ""
     }
-
+    
     main() {
         init
-        get_remote_hash "$arch_local"
+        get_remote_info
         contrast_version
         print_version
     }
