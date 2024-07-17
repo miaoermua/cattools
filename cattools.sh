@@ -643,6 +643,10 @@ apply_repo() {
 
     curl -sL "$CONF_PATH" -o /etc/opkg/distfeeds.conf
 
+    if [ -f /var/lock/opkg.lock ]; then
+        rm /var/lock/opkg.lock
+    fi
+
     # fack istore_compat
     if [ -f /var/opkg-lists/istore_compat ]; then
         rm /var/opkg-lists/istore_compat
