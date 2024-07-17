@@ -63,14 +63,14 @@ menu() {
     echo "           https://github.com/miaoermua/cattools          "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                  -  设置 IP"
-    echo "2. Wizard                                 -  网络向导"
-    echo "3. Debug                                  -  抓取日志"
-    echo "4. Catwrt_update                          -  检查更新"
-    echo "5. Apply_repo                             -  软件源配置"
-    echo "6. Diagnostics                            -  网络诊断"
+    echo "2. Network_Wizard                         -  网络向导"
+    echo "3. Apply_repo                             -  软件源配置"
+    echo "4. Diagnostics                            -  网络诊断"
+    echo "5. Debug                                  -  抓取日志"
+    echo "6. Catwrt_update                          -  检查更新"
     echo "7. Sysupgrade                             -  系统更新"
     echo "8. Restore                                -  恢复软件包"
-    echo "9. Enhancement                            -  实用增强"
+    echo "9. Utilities(more)                        -  实用工具"
     echo "0. Exit                                   -  退出"
     echo "----------------------------------------------------------"
     echo -n "请输入数字并回车(Please enter your choice): "
@@ -1067,20 +1067,20 @@ catwrt_opkg_list_installed() {
     main
     }
 
-# Enhancement MENU
-enhancement_menu() {
+# Utilities MENU
+utilities_menu() {
     echo ""
-    echo "增强配置"
-    echo "========================"
+    echo "      从这里配置更多功能!"
+    echo "============================="
     echo ""
-    echo "1. Mihomo 配置"
-    echo "2. Tailscale 配置"
-    echo "3. TTYD 配置免密(危险)"
-    echo "4. SSL/TLS 证书上传配置"
-    echo "5. 重置 root 密码"
-    echo "6. 重置系统"
+    echo "1.    Mihomo 配置"
+    echo "2.    Tailscale 配置"
+    echo "3.    TTYD 配置免密(危险)"
+    echo "4.    SSL/TLS 证书上传配置"
+    echo "5.    重置 root 密码"
+    echo "6.    重置系统"
     echo ""
-    echo "0. 返回 Cattools 主菜单"
+    echo "0.    返回 Cattools 主菜单"
     echo
     read -p "请输入数字并回车(Please enter your choice): " choice
     case $choice in
@@ -1091,7 +1091,7 @@ enhancement_menu() {
     5) openwrt_firstboot ;;
     6) reset_root_password ;;
     0) menu ;;
-    *) echo "无效选项，请重试" && enhancement_menu ;;
+    *) echo "无效选项，请重试" && utilities_menu ;;
     esac
 }
 
@@ -1519,16 +1519,16 @@ while true; do
             network_wizard
             ;;
         3)
-            debug
-            ;;
-        4)
-            catwrt_update
-            ;;
-        5)
             apply_repo
             ;;
-        6)
+        4)
             catnd
+            ;;
+        5)
+            debug
+            ;;
+        6)
+            catwrt_update
             ;;
         7)
             sysupgrade
@@ -1537,7 +1537,7 @@ while true; do
             catwrt_opkg_list_installed
             ;;
         9)
-            enhancement_menu
+            utilities_menu
             ;;
         0)
             echo "Exiting..."
