@@ -480,56 +480,68 @@ catwrt_update() {
         echo "Remote $1 get failed for arch: $arch_local, please check your network!"
         exit 1
     }
-    
+
     local_error() {
         echo "Local $1 get failed, please check your /etc/catwrt_release!"
         exit 1
     }
-    
+
     get_remote_info() {
-        local arch_version_json=$(curl -s "$API_URL" | jq -r ".[\"$version_local\"].$arch_local")
-        version_remote=$(echo "$arch_version_json" | jq -r '.version')
-        hash_remote=$(echo "$arch_version_json" | jq -r '.hash')
-        releases_remote=$(echo "$arch_version_json" | jq -r '.releases')
-        blog_remote=$(echo "$arch_version_json" | jq -r '.blogs')
-        channel_remote=$(echo "$arch_version_json" | jq -r '.channel')
-    
+        json_data=$(curl -s "$API_URL")
+        result=$(echo "$json_data" | jq --arg hash "$hash_local" '
+  . as $root |
+  paths(scalars) as $p |
+  if getpath($p) == $hash then
+    $p[0] as $version |
+    $p[1] as $device |
+    {version: $version, device: $device} + $root[$version][$device]
+  else empty end
+  | select(.version != null)
+')
+
+        version_remote=$(echo "$result" | jq -r '.version')
+        channel_remote=$(echo "$result" | jq -r '.channel')
+        blog_remote=$(echo "$result" | jq -r '.blogs')
+        hash_remote=$(echo "$result" | jq -r '.hash')
+        latest=$(echo "$result" | jq -r '.latest')
+
         if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
             remote_error "version or hash"
         fi
     }
-    
+
     init() {
         if [ ! -f "$RELEASE" ]; then
             local_error "version file"
         fi
-    
+
         version_local=$(grep 'version' "$RELEASE" | cut -d '=' -f 2)
         hash_local=$(grep 'hash' "$RELEASE" | cut -d '=' -f 2)
         source_local=$(grep 'source' "$RELEASE" | cut -d '=' -f 2)
         arch_local=$(grep 'arch' "$RELEASE" | cut -d '=' -f 2)
     }
-    
+
     contrast_version() {
-        if [ "$version_remote" == "$version_local" ] && [ "$hash_remote" == "$hash_local" ]; then
+        if [ "$latest" == "true" ]; then
             echo "======================================================="
-            echo "              Your CatWrt is $releases_remote"
+            echo "              Your CatWrt is up to date!"
+            echo "              Remote Channel: $channel_remote"
+            if [ "$channel_remote" == "Beta" ]; then
+                echo "              Please watch the latest version changes"
+            else
+                echo "              You are on the stable version."
+            fi
             echo "======================================================="
         else
-            if [ "$channel_remote" == "Stable" ] || ( [ "$channel_remote" == "Beta" ] && [ "$channel_local" == "Beta" ] ); then
-                echo "======================================================="
-                echo "Your CatWrt is $releases_remote, you should upgrade it!"
-                echo "Visit the blog for more information"
-                echo "$blog_remote"
-                echo "======================================================="
-            else
-                echo "======================================================="
-                echo "              Your CatWrt is up to date!"
-                echo "======================================================="
-            fi
+            echo "======================================================="
+            echo "Your CatWrt is $version_local, the latest version is $version_remote,you should upgrade it!"
+            echo "Visit the blog for more information"
+            echo "$blog_remote"
+            echo "======================================================="
         fi
+
     }
-    
+
     print_version() {
         echo "Local  Version : $version_local"
         echo "Remote Version : $releases_remote"
@@ -539,7 +551,7 @@ catwrt_update() {
         echo "======================================================="
         echo ""
     }
-    
+
     main() {
         init
         get_remote_info
@@ -589,7 +601,7 @@ apply_repo() {
         ;;
     *) echo "Unknown arch" && exit 1 ;;
     esac
-    
+
     echo ""
     echo "Warning:"
     echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
@@ -603,14 +615,14 @@ apply_repo() {
         echo "请选择要使用的软件源:"
         echo "1) netlify"
         echo "2) vercel (默认)"
-    
+
         read -t 10 -p "Please enter your choice /// 请输入选择 (1-2): " choice
         choice=${choice:-2}
-    
+
         case $choice in
-            1) conf_file="netlify.conf" ;;
-            2) conf_file="vercel.conf" ;;
-            *) conf_file="vercel.conf" ;;
+        1) conf_file="netlify.conf" ;;
+        2) conf_file="vercel.conf" ;;
+        *) conf_file="vercel.conf" ;;
         esac
     else
         echo "请选择要使用的软件源:"
@@ -619,17 +631,17 @@ apply_repo() {
         echo "3) netlify"
         echo "4) cfvercel"
         echo "5) vercel (默认)"
-    
+
         read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
         choice=${choice:-5}
-    
+
         case $choice in
-            1) conf_file="distfeeds.conf" ;;
-            2) conf_file="cfnetlify.conf" ;;
-            3) conf_file="netlify.conf" ;;
-            4) conf_file="cfvercel.conf" ;;
-            5) conf_file="vercel.conf" ;;
-            *) conf_file="vercel.conf" ;;
+        1) conf_file="distfeeds.conf" ;;
+        2) conf_file="cfnetlify.conf" ;;
+        3) conf_file="netlify.conf" ;;
+        4) conf_file="cfvercel.conf" ;;
+        5) conf_file="vercel.conf" ;;
+        *) conf_file="vercel.conf" ;;
         esac
     fi
 
@@ -840,7 +852,7 @@ sysupgrade() {
     if [ -f /etc/catwrt_opkg_list_installed ]; then
         rm /etc/catwrt_opkg_list_installed
     fi
-    
+
     catwrt_opkg_list_installed
     echo "已经生成备份软件包列表，方便你后续更新后恢复部分消失的插件和软件"
 
@@ -1001,25 +1013,25 @@ catwrt_opkg_list_installed() {
         "kmod-usb-net"
         "kmod-usb-net-cdc-ether"
     )
-    
+
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "请先配置软件源"
         exit 1
     fi
-    
+
     backup_installed_packages() {
         echo "名单中已安装软件包列表..."
-        > "$BACKUP_FILE"
+        >"$BACKUP_FILE"
         for package in "${PACKAGES[@]}"; do
             if opkg list_installed | grep -q "^$package "; then
-                echo "$package" >> "$BACKUP_FILE"
+                echo "$package" >>"$BACKUP_FILE"
             fi
         done
         echo "备份完成"
     }
-    
+
     restore_installed_packages() {
-        opkg list_installed | awk '{print \$1}' > /tmp/default_installed_packages
+        opkg list_installed | awk '{print \$1}' >/tmp/default_installed_packages
         if [ -f "$BACKUP_FILE" ]; then
             while IFS= read -r package; do
                 if grep -q "^$package$" "$DEFAULT_PACKAGES_FILE"; then
@@ -1030,7 +1042,7 @@ catwrt_opkg_list_installed() {
                     echo "安装固件默认缺失的软件包: $package"
                     opkg install "$package"
                 fi
-            done < "$BACKUP_FILE"
+            done <"$BACKUP_FILE"
             echo "安装完成"
         else
             echo "未检测到备份文件!寄了!"
@@ -1049,18 +1061,18 @@ catwrt_opkg_list_installed() {
             echo "https://www.miaoer.xyz/sponsor"
             echo ""
             echo "你可以复制下链接在浏览器上打开，待恢复软件包后再进行支付!"
-            
+
             sleep 3
-            
+
             echo ""
             read -p "检测到备份文件，是否需要恢复软件包？([ENTER] 确认 / [0] 取消) " choice
             case "$choice" in
-                0)
-                    echo "你选择了不恢复，打算重新开始!如果你有需要请回来找我!"
-                    ;;
-                *)
-                    restore_installed_packages
-                    ;;
+            0)
+                echo "你选择了不恢复，打算重新开始!如果你有需要请回来找我!"
+                ;;
+            *)
+                restore_installed_packages
+                ;;
             esac
         else
             backup_installed_packages
@@ -1069,7 +1081,7 @@ catwrt_opkg_list_installed() {
         rm -f /tmp/default_installed_packages
     }
     main
-    }
+}
 
 # Utilities MENU
 utilities_menu() {
@@ -1474,39 +1486,39 @@ reset_root_password() {
 
 patch_catwrt_release() {
     if [ -f $RELEASE ]; then
-      if grep -q "version=v23.7" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
-        echo "Already patched for x86_64 v23.7"
-      elif grep -q "version=v23.8" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
-        echo "Already patched for x86_64 v23.8"
-      elif grep -q "version=v23.8" $RELEASE && grep -q "arch=mt798x" $RELEASE && grep -q "source=lean" $RELEASE; then
-        echo "Already patched for aarch64 v23.8"
-      fi
+        if grep -q "version=v23.7" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
+            echo "Already patched for x86_64 v23.7"
+        elif grep -q "version=v23.8" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
+            echo "Already patched for x86_64 v23.8"
+        elif grep -q "version=v23.8" $RELEASE && grep -q "arch=mt798x" $RELEASE && grep -q "source=lean" $RELEASE; then
+            echo "Already patched for aarch64 v23.8"
+        fi
     else
-      if [ "$(uname -m)" == "mips" ] || [ "$(uname -m)" == "mipsel" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
-        echo "version=v22.12" > $RELEASE
-        echo "arch=mt7621" >> $RELEASE
-        echo "source=lean" >> $RELEASE
-        echo "hash=a1682a48834efdc6c5e2c3c62921b3195d306c8c" >> $RELEASE
-        echo "The patch file has been installed!"
-      elif [ "$(uname -m)" == "aarch64" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
-        echo "version=v22.12" > $RELEASE
-        echo "arch=rkarm" >> $RELEASE
-        echo "source=lean" >> $RELEASE
-        echo "hash=3fd4930e781e40e3f85e2c6c082d6fcdd544e9ce" >> $RELEASE
-        echo "The patch file has been installed!"
-      elif [ "$(uname -m)" == "x86_64" ] && grep -q "R23.2" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
-        echo "version=v23.2" > $RELEASE
-        echo "arch=amd64" >> $RELEASE
-        echo "source=lean" >> $RELEASE
-        echo "hash=0239fab82eb640b55d4f4050cbc227ffd22087f3" >> $RELEASE
-        echo "The patch file has been installed!"
-      elif [ "$(uname -m)" == "x86_64" ] && grep -q "R22.11.11" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
-        echo "version=v22.12" > $RELEASE
-        echo "arch=amd64" >> $RELEASE
-        echo "source=lean" >> $RELEASE
-        echo "hash=4d6877d960c5c3bdc01b8e47679d923b475bea82" >> $RELEASE
-        echo "The patch file has been installed!"
-      fi
+        if [ "$(uname -m)" == "mips" ] || [ "$(uname -m)" == "mipsel" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+            echo "version=v22.12" >$RELEASE
+            echo "arch=mt7621" >>$RELEASE
+            echo "source=lean" >>$RELEASE
+            echo "hash=a1682a48834efdc6c5e2c3c62921b3195d306c8c" >>$RELEASE
+            echo "The patch file has been installed!"
+        elif [ "$(uname -m)" == "aarch64" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+            echo "version=v22.12" >$RELEASE
+            echo "arch=rkarm" >>$RELEASE
+            echo "source=lean" >>$RELEASE
+            echo "hash=3fd4930e781e40e3f85e2c6c082d6fcdd544e9ce" >>$RELEASE
+            echo "The patch file has been installed!"
+        elif [ "$(uname -m)" == "x86_64" ] && grep -q "R23.2" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+            echo "version=v23.2" >$RELEASE
+            echo "arch=amd64" >>$RELEASE
+            echo "source=lean" >>$RELEASE
+            echo "hash=0239fab82eb640b55d4f4050cbc227ffd22087f3" >>$RELEASE
+            echo "The patch file has been installed!"
+        elif [ "$(uname -m)" == "x86_64" ] && grep -q "R22.11.11" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
+            echo "version=v22.12" >$RELEASE
+            echo "arch=amd64" >>$RELEASE
+            echo "source=lean" >>$RELEASE
+            echo "hash=4d6877d960c5c3bdc01b8e47679d923b475bea82" >>$RELEASE
+            echo "The patch file has been installed!"
+        fi
     fi
 }
 
@@ -1516,41 +1528,41 @@ while true; do
     menu
     read choice
     case $choice in
-        1)
-            setip
-            ;;
-        2)
-            network_wizard
-            ;;
-        3)
-            apply_repo
-            ;;
-        4)
-            catnd
-            ;;
-        5)
-            debug
-            ;;
-        6)
-            catwrt_update
-            ;;
-        7)
-            sysupgrade
-            ;;
-        8)
-            catwrt_opkg_list_installed
-            ;;
-        9)
-            utilities_menu
-            ;;
-        0)
-            echo "Exiting..."
-            break
-            ;;
-        *)
-            echo "Invalid choice, please try again /// 错误的数字请重试,[ENTER] 回车后重新输入"
-            read -p "Press [Enter] key to continue..."
-            ;;
+    1)
+        setip
+        ;;
+    2)
+        network_wizard
+        ;;
+    3)
+        apply_repo
+        ;;
+    4)
+        catnd
+        ;;
+    5)
+        debug
+        ;;
+    6)
+        catwrt_update
+        ;;
+    7)
+        sysupgrade
+        ;;
+    8)
+        catwrt_opkg_list_installed
+        ;;
+    9)
+        utilities_menu
+        ;;
+    0)
+        echo "Exiting..."
+        break
+        ;;
+    *)
+        echo "Invalid choice, please try again /// 错误的数字请重试,[ENTER] 回车后重新输入"
+        read -p "Press [Enter] key to continue..."
+        ;;
     esac
 done
 
