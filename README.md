@@ -1,6 +1,6 @@
 # cattools
 
-基于 BASH 编写的 CatWrt 工具箱，帮助用户轻松实现各种实用功能。
+基于 BASH 编写的 CatWrt 强大工具箱，帮助用户轻松实现各种实用功能。
 
 Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
 
