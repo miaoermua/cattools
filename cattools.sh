@@ -474,91 +474,137 @@ debug() {
 }
 
 # catwrt_update
-
 catwrt_update() {
-    remote_error() {
-        echo "Remote $1 get failed for arch: $arch_local, please check your network!"
-        exit 1
-    }
+source /etc/catwrt_release
 
-    local_error() {
-        echo "Local $1 get failed, please check your /etc/catwrt_release!"
-        exit 1
-    }
+api_data=$(curl -s $API_URL)
 
-    get_remote_info() {
-        json_data=$(curl -s "$API_URL")
-        result=$(echo "$json_data" | jq --arg hash "$hash_local" '
-  . as $root |
-  paths(scalars) as $p |
-  if getpath($p) == $hash then
-    $p[0] as $version |
-    $p[1] as $device |
-    {version: $version, device: $device} + $root[$version][$device]
-  else empty end
-  | select(.version != null)
-')
+version_compare() {
+    local v1_year=$(echo "$1" | cut -d'.' -f1 | sed 's/^v//')
+    local v1_month=$(echo "$1" | cut -d'.' -f2)
+    local v2_year=$(echo "$2" | cut -d'.' -f1 | sed 's/^v//')
+    local v2_month=$(echo "$2" | cut -d'.' -f2)
 
-        version_remote=$(echo "$result" | jq -r '.version')
-        channel_remote=$(echo "$result" | jq -r '.channel')
-        blog_remote=$(echo "$result" | jq -r '.blogs')
-        hash_remote=$(echo "$result" | jq -r '.hash')
-        latest=$(echo "$result" | jq -r '.latest')
-
-        if [ $? -ne 0 ] || [ -z "$version_remote" ] || [ -z "$hash_remote" ]; then
-            remote_error "version or hash"
-        fi
-    }
-
-    init() {
-        if [ ! -f "$RELEASE" ]; then
-            local_error "version file"
-        fi
-
-        version_local=$(grep 'version' "$RELEASE" | cut -d '=' -f 2)
-        hash_local=$(grep 'hash' "$RELEASE" | cut -d '=' -f 2)
-        source_local=$(grep 'source' "$RELEASE" | cut -d '=' -f 2)
-        arch_local=$(grep 'arch' "$RELEASE" | cut -d '=' -f 2)
-    }
-
-    contrast_version() {
-        if [ "$latest" == "true" ]; then
-            echo "======================================================="
-            echo "              Your CatWrt is up to date!"
-            echo "              Remote Channel: $channel_remote"
-            if [ "$channel_remote" == "Beta" ]; then
-                echo "              Please watch the latest version changes"
-            else
-                echo "              You are on the stable version."
-            fi
-            echo "======================================================="
+    if [ "$v1_year" -gt "$v2_year" ]; then
+        echo 1
+    elif [ "$v1_year" -lt "$v2_year" ]; then
+        echo -1
+    else
+        if [ "$v1_month" -gt "$v2_month" ]; then
+            echo 1
+        elif [ "$v1_month" -lt "$v2_month" ]; then
+            echo -1
         else
-            echo "======================================================="
-            echo "Your CatWrt is $version_local, the latest version is $version_remote,you should upgrade it!"
-            echo "Visit the blog for more information"
-            echo "$blog_remote"
+            echo 0
+        fi
+    fi
+}
+
+check_update() {
+        local current_version=$1
+        local current_hash=$2
+        local arch=$3
+        local channel=$4
+
+        echo
+        echo "LOCAL  ================================================="
+        echo "当前版本: $current_version"
+        echo "当前架构: $arch"
+        echo "当前通道: $channel"
+        echo "========================================================"
+
+        versions=$(echo "$api_data" | jq -r 'keys[]')
+
+        latest_stable_version=""
+        latest_beta_version=""
+        stable_releases=""
+        beta_releases=""
+        stable_blogs=""
+        beta_blogs=""
+
+        for version in $versions; do
+            version_data=$(echo "$api_data" | jq -r ".\"$version\".\"$arch\"")
+
+            if [ "$version_data" != "null" ]; then
+                api_channel=$(echo "$version_data" | jq -r ".channel")
+                api_hash=$(echo "$version_data" | jq -r ".hash")
+                api_latest=$(echo "$version_data" | jq -r ".latest")
+                api_releases=$(echo "$version_data" | jq -r ".releases")
+                api_blogs=$(echo "$version_data" | jq -r ".blogs")
+
+                compare_result=$(version_compare "$version" "$current_version")
+
+                if [ "$compare_result" -gt 0 ]; then
+                    if [ "$channel" == "Beta" ]; then
+                        if [ "$api_channel" == "Beta" ]; then
+                            if [ -z "$latest_beta_version" ] || [ "$(version_compare "$version" "$latest_beta_version")" -gt 0 ]; then
+                                latest_beta_version="$version"
+                                beta_releases="$api_releases"
+                                beta_blogs="$api_blogs"
+                            fi
+                        elif [ "$api_channel" == "Stable" ]; then
+                            if [ -z "$latest_stable_version" ] || [ "$(version_compare "$version" "$latest_stable_version")" -gt 0 ]; then
+                                latest_stable_version="$version"
+                                stable_releases="$api_releases"
+                                stable_blogs="$api_blogs"
+                            fi
+                        fi
+                    elif [ "$channel" == "Stable" ] && [ "$api_channel" == "Stable" ]; then
+                        if [ -z "$latest_stable_version" ] || [ "$(version_compare "$version" "$latest_stable_version")" -gt 0 ]; then
+                            latest_stable_version="$version"
+                            stable_releases="$api_releases"
+                            stable_blogs="$api_blogs"
+                        fi
+                    fi
+                fi
+            fi
+        done
+
+        if [ -n "$latest_stable_version" ] || [ -n "$latest_beta_version" ]; then
+            if [ -n "$latest_stable_version" ]; then
+                echo
+                echo "UPDATE  ================================================"
+                echo "发现新版本: $current_version > $latest_stable_version (Stable)"
+                echo "版本: $stable_releases"
+                echo "博客: $stable_blogs"
+                echo "========================================================"
+                echo
+            fi
+
+            if [ -n "$latest_beta_version" ]; then
+                echo
+                echo "UPDATE  ================================================"
+                echo "发现新版本: $current_version > $latest_beta_version (Beta)"
+                echo "版本: $beta_releases"
+                echo "博客: $beta_blogs"
+                echo "========================================================"
+
+            fi
+
+            echo
+            echo "INFO  =================================================="
+            echo "              New CatWrt updates found!"
+            echo "              Preview blog to learn more."
+            if [ -n "$stable_blogs" ]; then
+                echo "  $stable_blogs"
+            elif [ -n "$beta_blogs" ]; then
+                echo "  $beta_blogs"
+            fi
+            echo "========================================================"
+        else
+            echo
+            echo "INFO  ================================================="
+            echo "          Your CatWrt is latest version!"
             echo "======================================================="
         fi
-
     }
 
-    print_version() {
-        echo "Local  Version : $version_local"
-        echo "Remote Version : $releases_remote"
-        echo "Local  Hash    : $hash_local"
-        echo "Remote Hash    : $hash_remote"
-        echo "Channel        : $channel_remote"
-        echo "======================================================="
-        echo ""
-    }
+    current_version=$(grep 'version' /etc/catwrt_release | cut -d'=' -f2)
+    current_hash=$(grep 'hash' /etc/catwrt_release | cut -d'=' -f2)
+    arch=$(grep 'arch' /etc/catwrt_release | cut -d'=' -f2)
+    channel=$(echo "$api_data" | jq -r ".\"$current_version\".\"$arch\".channel")
 
-    main() {
-        init
-        get_remote_info
-        contrast_version
-        print_version
-    }
-    main
+    check_update $current_version $current_hash $arch $channel
 }
 
 # Apply_repo
