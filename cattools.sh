@@ -586,9 +586,9 @@ check_update() {
             echo "              New CatWrt updates found!"
             echo "              Preview blog to learn more."
             if [ -n "$stable_blogs" ]; then
-                echo "  $stable_blogs"
+                echo "      $stable_blogs"
             elif [ -n "$beta_blogs" ]; then
-                echo "  $beta_blogs"
+                echo "      $beta_blogs"
             fi
             echo "========================================================"
         else
