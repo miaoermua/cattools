@@ -591,11 +591,13 @@ check_update() {
                 echo "      $beta_blogs"
             fi
             echo "========================================================"
+            sleep 1
         else
             echo
             echo "INFO  ================================================="
             echo "          Your CatWrt is latest version!"
             echo "======================================================="
+            sleep 1
         fi
     }
 
