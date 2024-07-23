@@ -37,7 +37,7 @@ update_cattools() {
             success=true
             break
         else
-            echo "Attempt $(3 - retries + 1) failed. Retrying..."
+            echo "Attempt $((4 - retries)) failed. Retrying..."
             retries=$((retries - 1))
         fi
     done
