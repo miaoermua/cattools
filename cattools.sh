@@ -1148,10 +1148,11 @@ utilities_menu() {
     echo ""
     echo "1.    Mihomo 配置"
     echo "2.    Tailscale 配置"
-    echo "3.    TTYD 配置免密(危险)"
-    echo "4.    SSL/TLS 证书上传配置"
-    echo "5.    重置 root 密码"
-    echo "6.    重置系统"
+    echo "3.    LeigodAcc 配置"
+    echo "4.    TTYD 配置免密(危险)"
+    echo "5.    SSL/TLS 证书上传配置"
+    echo "6.    重置 root 密码"
+    echo "7.    重置系统"
     echo ""
     echo "0.    返回 Cattools 主菜单"
     echo
@@ -1159,10 +1160,11 @@ utilities_menu() {
     case $choice in
     1) configure_luci_mihomo ;;
     2) configure_tailscale ;;
-    3) configure_ttyd ;;
-    4) manual_deploy_uhttpd_ssl_cert ;;
-    5) reset_root_password ;;
-    6) openwrt_firstboot ;;
+    3) configure_leigodacc ;;
+    4) configure_ttyd ;;
+    5) manual_deploy_uhttpd_ssl_cert ;;
+    6) reset_root_password ;;
+    7) openwrt_firstboot ;;
     0) menu ;;
     *) echo "无效选项，请重试" && utilities_menu ;;
     esac
@@ -1347,6 +1349,66 @@ configure_tailscale() {
 
     echo "Tailscale 配置部分，剩下的交给你了~"
     menu
+}
+
+configure_leigodacc() {
+    if [ -d /usr/sbin/leigod ]; then
+        echo "[INFO] 检测到已经安装 LeigodAcc，直接使用 LeigodAcc 管理器"
+        sh -c "$(curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/openwrt-leigodacc-manager@main/leigod.sh)"
+        return
+    fi
+
+    if [ -f /etc/catwrt_release ]; then
+        if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+            echo "[ERROR] 请先配置 CatWrt 软件源"
+            echo "Cattools - Apply_repo"
+            cattools
+            return
+        fi
+    fi
+    
+    if [ -f /var/lock/opkg.lock ]; then
+        rm /var/lock/opkg.lock
+    fi
+    
+    opkg update
+
+    for pkg in libpcap iptables kmod-ipt-nat iptables-mod-tproxy ipset; do
+        if ! opkg list_installed | grep -q "$pkg"; then
+            echo "[INFO] 正在安装必备组件 $pkg"
+            opkg install $pkg
+        else
+            echo "[INFO] $pkg 必备组件已安装，跳过"
+        fi
+    done
+
+    for pkg in kmod-tun kmod-ipt-tproxy kmod-netem tc-full kmod-ipt-ipset conntrack; do
+        if ! opkg list_installed | grep -q "$pkg"; then
+            echo "[INFO] 尝试安装 $pkg"
+            opkg install $pkg
+        else
+            echo "[INFO] $pkg 已安装，跳过"
+        fi
+    done
+
+    echo "[INFO] 下面是雷神提供的脚本,打印内容偏长如遇到问题请提供输出内容(截图/文字)反馈到群里."
+    
+    sh -c "$(curl -fsSL http://119.3.40.126/router_plugin/plugin_install.sh)"
+
+    if [ ! -d /usr/sbin/leigod ]; then
+        echo "[ERROR] 检测到 LeigodAcc 未安装，有可能是设备存储空间已满!"
+    else
+        echo "[INFO] LeigodAcc 已成功安装"
+    fi
+
+    for pkg in kmod-tun kmod-ipt-tproxy kmod-netem tc-full kmod-ipt-ipset conntrack curl libpcap iptables kmod-ipt-nat iptables-mod-tproxy ipset; do
+        if ! opkg list_installed | grep -q "$pkg"; then
+            echo "[INFO] 缺少组件包: $pkg"
+            echo "[INFO] 你可以通过管理器中的安装依赖性组件进行补充!"
+        fi
+    done
+
+    sh -c "$(curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/openwrt-leigodacc-manager@main/leigod.sh)"
 }
 
 # TTYD (NOT SAFETY)
