@@ -1080,10 +1080,10 @@ catwrt_opkg_list_installed() {
             fi
         done
 
-        if grep -Fxq "/etc/catwrt_opkg_list_installed" "/etc/sysupgrade.conf"; then
-        else
-            echo "$config_file" >> "$sysupgrade_conf"
+        if ! grep -Fxq "/etc/catwrt_opkg_list_installed" "/etc/sysupgrade.conf"; then
+            echo "/etc/catwrt_opkg_list_installed" >> "/etc/sysupgrade.conf"
         fi
+
         echo "备份完成，现在升级也不怕啦~"
     }
 
