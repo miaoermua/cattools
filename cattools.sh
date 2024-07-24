@@ -1161,8 +1161,8 @@ utilities_menu() {
     2) configure_tailscale ;;
     3) configure_ttyd ;;
     4) manual_deploy_uhttpd_ssl_cert ;;
-    5) openwrt_firstboot ;;
-    6) reset_root_password ;;
+    5) reset_root_password ;;
+    6) openwrt_firstboot ;;
     0) menu ;;
     *) echo "无效选项，请重试" && utilities_menu ;;
     esac
