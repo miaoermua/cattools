@@ -1297,8 +1297,8 @@ configure_tailscale() {
         return
     fi
 
-    if ! opkg list_installed | grep -q "tailscale" || ! opkg list_installed | grep -q "tailscaled"; then
-        echo "正在安装 tailscale 和 tailscaled 软件包..."
+    if ! opkg info tailscale | grep "Package: tailscale"; then
+        echo "[INFO] 正在安装 tailscale 和 tailscaled 软件包..."
         opkg install tailscale
         if [ $? -ne 0 ]; then
             echo "[ERROR] 安装 tailscale 失败，请先配置软件源。"
