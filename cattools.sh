@@ -643,7 +643,7 @@ apply_repo() {
     echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
     echo "=============================================================================="
 
-    if { { [ "$arch" == "amd64" ] || [ "$arch" == "mt798x" ]; } && [ "$version" == "v24.3" ]; } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
+    if { { [ "$arch" == "amd64" ] && { [ "$version" == "v24.3" ] || [ "$version" == "v24.9" ]; } } || { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
         echo "你目前使用的 BETA 版本，只能临时镜像站的软件源，请注意关注 CatWrt 的更新情况!"
         echo "请选择要使用的软件源:"
         echo "1) netlify"
