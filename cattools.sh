@@ -1079,7 +1079,12 @@ catwrt_opkg_list_installed() {
                 echo "$package" >>"$BACKUP_FILE"
             fi
         done
-        echo "备份完成"
+
+        if grep -Fxq "/etc/catwrt_opkg_list_installed" "/etc/sysupgrade.conf"; then
+        else
+            echo "$config_file" >> "$sysupgrade_conf"
+        fi
+        echo "备份完成，现在升级也不怕啦~"
     }
 
     restore_installed_packages() {
