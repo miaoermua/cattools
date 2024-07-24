@@ -293,6 +293,7 @@ network_wizard() {
 bypass_gateway() {
     # 输入主路由的 IP 地址
     while true; do
+        echo ""
         read -p "请输入主路由的 IP 地址（例如 192.168.31.1）：" router_ip
         if [ -z "$router_ip" ]; then
             echo "主路由 IP 地址不能为空，请重新输入。"
@@ -319,9 +320,11 @@ bypass_gateway() {
         fi
     done
 
+    echo "INFO    ========================"
     echo "主路由 IP 地址：$router_ip"
-    echo "本机 IP 地址：$device_ip"
-
+    echo "本机(旁路网关) IP 地址：$device_ip"
+    
+    echo ""
     echo "Use recommended DNS servers 223.6.6.6 119.29.29.99?"
     read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
@@ -372,7 +375,7 @@ bypass_gateway() {
     uci commit dhcp
 
     lan_ip=$(uci get network.lan.ipaddr)
-    echo "旁路网关配置完成 $lan_ip "
+    echo "旁路网关配置完成 IP: $lan_ip "
 
     # 重启相关服务以应用更改
     /etc/init.d/network restart
