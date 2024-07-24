@@ -1351,7 +1351,6 @@ configure_tailscale() {
     echo "保存并应用"
 
     echo "Tailscale 配置部分，剩下的交给你了~"
-    menu
 }
 
 configure_leigodacc() {
