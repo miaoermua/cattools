@@ -337,32 +337,16 @@ bypass_gateway() {
     uci set firewall.@defaults[0].mss_clamping='1'
 
     # 启用 IP 伪装和 MTU fix
-    # 找到 LAN 和 WAN 的 zone 配置节
-    lan_zone=$(uci show firewall | grep "=zone" | grep -E 'name=.lan' | cut -d'.' -f2)
-    wan_zone=$(uci show firewall | grep "=zone" | grep -E 'name=.wan' | cut -d'.' -f2)
+    uci set firewall.@zone[0].masq='1'   # lan 区域
+    uci set firewall.@zone[0].mtu_fix='1'
 
-    # 启用 LAN 区域的 IP 伪装和 MTU fix
-    if [ -n "$lan_zone" ]; then
-        uci set firewall.$lan_zone.masq='1'
-        uci set firewall.$lan_zone.mtu_fix='1'
-    else
-        echo "未找到名称为 'lan' 的 zone 配置节"
-        exit 1
-    fi
-
-    # 启用 WAN 区域的 IP 伪装和 MTU 修复
-    if [ -n "$wan_zone" ]; then
-        uci set firewall.$wan_zone.masq='1'
-        uci set firewall.$wan_zone.mtu_fix='1'
-    else
-        echo "未找到名称为 'wan' 的 zone 配置节"
-        exit 1
-    fi
+    uci set firewall.@zone[1].masq='1'   # wan 区域
+    uci set firewall.@zone[1].mtu_fix='1'
 
     uci commit firewall
 
     # 删除 WAN 口防火墙规则
-    uci delete firewall.$wan_zone
+    
     uci commit firewall
 
     # 关闭 LAN 口的 DHCP 服务并删除相关配置
@@ -380,6 +364,7 @@ bypass_gateway() {
     /etc/init.d/firewall restart
     /etc/init.d/dnsmasq restart
 
+    echo "如出现 Warning 是因为旁路的防火墙是这样报错的，部分配置可以忽略不影响使用"
     echo ""
 }
 
