@@ -322,6 +322,21 @@ bypass_gateway() {
     echo "主路由 IP 地址：$router_ip"
     echo "本机 IP 地址：$device_ip"
 
+    echo "Use recommended DNS servers 223.6.6.6 119.29.29.99?"
+    read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
+    if [ "$use_dns" = "0" ]; then
+        exit 0
+    elif [ -z "$use_dns" ]; then
+        uci set network.lan.dns="223.6.6.6 119.29.29.99"
+    else
+        if [[ $use_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}(\s+([0-9]{1,3}\.){3}[0-9]{1,3})*$ ]]; then
+            uci set network.lan.dns="$use_dns"
+        else
+            echo "Invalid DNS format /// 无效的 DNS 格式"
+            exit 1
+        fi
+    fi
+
     # 配置网络
     uci set network.lan.ipaddr="$device_ip"
     uci set network.lan.gateway="$router_ip"
