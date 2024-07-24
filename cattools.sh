@@ -621,7 +621,7 @@ apply_repo() {
         v23.2) REPO_URL="$BASE_URL/history/v23.2/amd64" ;;
         v23.8) REPO_URL="$BASE_URL/amd64" ;;
         v24.3) REPO_URL="$BASE_URL/pr/v24.3/amd64" ;;
-        v24.8) REPO_URL="$BASE_URL/pr/v24.3/amd64" ;;
+        v24.9) REPO_URL="$BASE_URL/pr/v24.9/amd64" ;;
         *) echo "Unknown version" && exit 1 ;;
         esac
         ;;
