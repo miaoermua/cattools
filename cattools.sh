@@ -1152,7 +1152,7 @@ utilities_menu() {
     echo "1.    Mihomo 配置"
     echo "2.    Tailscale 配置"
     echo "3.    LeigodAcc 配置"
-    echo "4.    TTYD 配置免密(危险)"
+    echo "4.    TTYD 免密配置(危险)"
     echo "5.    SSL/TLS 证书上传配置"
     echo "6.    重置 root 密码"
     echo "7.    重置系统"
@@ -1244,7 +1244,7 @@ configure_luci_mihomo() {
     sleep 2
 
     echo "请选择下载类型:"
-    echo "1. 全部下载 (默认 3 秒自动执行)"
+    echo "1. 全部下载 (默认 3 秒后执行)"
     echo "2. 仅下载 Mihomo 内核"
     echo "3. 仅下载原版内核"
     echo -n "输入选项 ([1]/[2]/[3]): "
@@ -1424,7 +1424,7 @@ configure_ttyd() {
 
     echo ""
     echo "Warning    =============================================================="
-    echo "此操作将修改 TTYD 的配置以自动登录 root 用户，而且不需要密码"
+    echo "此操作将修改 TTYD 的配置以自动登录 root 用户，而且不需要密码，仅适用于调试阶段。"
     echo "这存在被远程执行的安全风险!仅适用于方便未放行端口时的调试，使用后请务必回到此处配置禁用。"
     echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
     read -r confirmation
@@ -1435,12 +1435,12 @@ configure_ttyd() {
     fi
 
     echo ""
-    echo "你真的阅读了此警告吗，这非常主要!请务必使用此功能后将其禁用，以避免遭受远程执行命令!"
-    echo "禁用只需要在 Cattools 里面再选一次此功能就可以完成禁用，这是我们的承诺哦!"
+    echo "你阅读了此警告吗这非常主要!请务必使用此功能完成后将其禁用，以避免遭受远程执行命令!"
+    echo "禁用只需要在 Cattools 里面再选一次 TTYD 配置就可以完成禁用，这是我们的承诺哦!"
     echo "你确定要继续吗？ ([1] 确认/[2] 取消)"
     read -r second_confirmation
     if [ "$second_confirmation" != "1" ]; then
-        echo "操作取消"
+        echo "[INFO] 操作取消"
         menu
         return
     fi
@@ -1449,14 +1449,14 @@ configure_ttyd() {
         sed -i "s/option command '\/bin\/login -f root'/option command '\/bin\/login'/" /etc/config/ttyd
         /etc/init.d/ttyd restart
         echo ""
-        echo "TTYD 配置已还原为默认配置"
+        echo "[INFO] TTYD 配置已还原为默认配置"
     else
         sed -i "s/option command '\/bin\/login'/option command '\/bin\/login -f root'/" /etc/config/ttyd
         /etc/init.d/ttyd restart
         echo ""
-        echo "TTYD 配置已修改为自动登录 root"
+        echo "[INFO] TTYD 配置已修改为自动登录 root"
         lan_ip=$(uci get network.lan.ipaddr)
-        echo "TTYD 访问链接  http://$lan_ip:7681"
+        echo "[INFO] TTYD 访问链接  http://$lan_ip:7681"
     fi
 
     menu
@@ -1472,7 +1472,7 @@ manual_deploy_uhttpd_ssl_cert() {
 
     if ! grep -q "option cert '/etc/uhttpd.crt'" /etc/config/uhttpd || ! grep -q "option key '/etc/uhttpd.key'" /etc/config/uhttpd; then
         echo "[ERROR] uhttpd 配置文件中的证书或密钥路径已被修改，无法继续执行!"
-        echo "请检查 /etc/config/uhttpd"
+        echo "[ERROR] 请检查 /etc/config/uhttpd"
         menu
         return
     fi
@@ -1512,7 +1512,7 @@ manual_deploy_uhttpd_ssl_cert() {
 
     zip_files=($(ls /tmp/upload/*.zip 2>/dev/null))
     if [ ${#zip_files[@]} -gt 1 ]; then
-        echo "[ERROR] 检测到多个 zip 文件，请仅上传一个 zip 文件"
+        echo "[ERROR] 检测到多个 zip 文件，请只上传一个 zip 文件"
         menu
         return
     elif [ ${#zip_files[@]} -eq 0 ]; then
