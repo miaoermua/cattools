@@ -233,7 +233,7 @@ network_wizard() {
         echo "强制 DHCP 模式已开启"
     fi
 
-    echo "[Step8] Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
+    echo "[Step9] Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
     read -p "是否开启 UPNP？([Enter] 确认，按 [1] 跳过): " enable_upnp
     if [ "$enable_upnp" != "1" ]; then
         uci set upnpd.config.enabled=1
@@ -243,7 +243,7 @@ network_wizard() {
 
     # 仅在 x86 和 aarch64_generic 架构上进行网口绑定
     if [ "$arch" = "amd64" ] || [ "$arch" = "aarch64_generic" ]; then
-        echo "[Step9] Configure network interfaces /// 配置网口"
+        echo "[Step10] Configure network interfaces /// 配置网口"
         echo ""
         echo " Wan    LAN1    LANx  ..."
         echo " eth0   eth1    ethx  ..."
