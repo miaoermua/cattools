@@ -136,7 +136,10 @@ setip() {
 
 # Network Wizard
 network_wizard() {
-    read -p "Do you want Network Wizard? /// 是否使用网络向导？([Enter] 确认 / [0] 退出): " use_wizard
+    echo ""
+    echo ""
+    echo ""
+    read -p "[Step1] Do you want Network Wizard? /// 是否使用网络向导？([Enter] 确认 / [0] 退出): " use_wizard
     if [ "$use_wizard" == "0" ]; then
         echo "网络向导已退出。"
         return
@@ -146,7 +149,7 @@ network_wizard() {
     iface_count=$(echo "$interfaces" | wc -w)
 
     if [ "$iface_count" -eq 1 ]; then
-        echo "Detected a single network interface /// 检测到单个网口"
+        echo "[Step2] Detected a single network interface /// 检测到单个网口"
         read -p "是否进行旁路网关设置？([Enter] 确认 / [0] 跳过旁路设置)：" choice
         if [ "$choice" != "0" ]; then
             bypass_gateway
@@ -154,7 +157,7 @@ network_wizard() {
         fi
     fi
 
-    echo "CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
+    echo "[Step3] CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
     read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" != "0" ]; then
         read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
@@ -169,7 +172,7 @@ network_wizard() {
         echo "IP 地址已设置为 $input_ip"
     fi
 
-    echo "IPv6 is enabled by default /// IPv6 默认是开启的"
+    echo "[Step4] IPv6 is enabled by default /// IPv6 默认是开启的"
     read -p "是否禁用 IPv6 网络？([Enter] 跳过 / [1] 禁用): " disable_ipv6
     if [ "$disable_ipv6" == "1" ]; then
         uci delete dhcp.lan.dhcpv6
@@ -179,7 +182,7 @@ network_wizard() {
         echo "IPv6 已禁用"
     fi
 
-    echo "Default connection mode is DHCP /// 默认模式为 DHCP"
+    echo "[Step5] Default connection mode is DHCP /// 默认模式为 DHCP"
     read -p "是否进行 PPPoE 拨号？([Enter] 继续 DHCP /  [1] PPPoE 拨号): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
         read -p "请输入宽带账号: " username
@@ -190,7 +193,7 @@ network_wizard() {
         echo "PPPoE 拨号配置已完成"
     fi
 
-    echo "Use recommended DNS servers 223.6.6.6 119.29.29.99?"
+    echo "[Step6] Use recommended DNS servers 223.6.6.6 119.29.29.99?"
     read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
         exit 0
@@ -205,7 +208,7 @@ network_wizard() {
         fi
     fi
 
-    echo "Do you want to change the DHCP IP pool range? (default: 30-200)"
+    echo "[Step7] Do you want to change the DHCP IP pool range? (default: 30-200)"
     read -p " /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 自定义范围 ): " dhcp_choice
     if [ "$dhcp_choice" = "1" ]; then
         read -p "Enter the DHCP IP pool range (e.g., 40-210) /// 输入 DHCP IP 地址范围 (例如: 40-210): " dhcp_range
@@ -223,14 +226,14 @@ network_wizard() {
         uci set dhcp.lan.limit=200
     fi
 
-    echo "enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
+    echo "[Step8] enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
     read -p "是否开启强制 DHCP 模式？([Enter] 确认，按 [1] 跳过): " force_dhcp
     if [ "$force_dhcp" != "1" ]; then
         uci set dhcp.lan.force=1
         echo "强制 DHCP 模式已开启"
     fi
 
-    echo "Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
+    echo "[Step8] Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
     read -p "是否开启 UPNP？([Enter] 确认，按 [1] 跳过): " enable_upnp
     if [ "$enable_upnp" != "1" ]; then
         uci set upnpd.config.enabled=1
@@ -240,7 +243,7 @@ network_wizard() {
 
     # 仅在 x86 和 aarch64_generic 架构上进行网口绑定
     if [ "$arch" = "amd64" ] || [ "$arch" = "aarch64_generic" ]; then
-        echo "Configure network interfaces /// 配置网口"
+        echo "[Step9] Configure network interfaces /// 配置网口"
         echo ""
         echo " Wan    LAN1    LANx  ..."
         echo " eth0   eth1    ethx  ..."
@@ -254,9 +257,9 @@ network_wizard() {
             iface_count=$(echo "$interfaces" | wc -w)
 
             if [ "$iface_count" -eq 1 ]; then
-                echo "Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
+                echo "[Step9] Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
             else
-                echo "Detected multiple network interfaces /// 检测到多个网口"
+                echo "[Step9] Detected multiple network interfaces /// 检测到多个网口"
                 # 默认桥接网口为 eth1，检测其他可用网口并添加到桥接列表
                 bridge_ports=""
                 for iface in $interfaces; do
@@ -294,7 +297,7 @@ bypass_gateway() {
     # 输入主路由的 IP 地址
     while true; do
         echo ""
-        read -p "请输入主路由的 IP 地址（例如 192.168.31.1）：" router_ip
+        read -p "[Step3] 请输入主路由的 IP 地址（例如 192.168.31.1）：" router_ip
         if [ -z "$router_ip" ]; then
             echo "主路由 IP 地址不能为空，请重新输入。"
         elif ! echo "$router_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
@@ -309,7 +312,7 @@ bypass_gateway() {
     default_device_ip="${subnet}.4"
 
     while true; do
-        read -p "本机 IP 地址为 $default_device_ip 按回车键确认，或输入新的 IP 地址：" device_ip
+        read -p "[Step4] 本机 IP 地址为 $default_device_ip 按回车键确认，或输入新的 IP 地址：" device_ip
         if [ -z "$device_ip" ]; then
             device_ip="$default_device_ip"
             break
@@ -325,7 +328,7 @@ bypass_gateway() {
     echo "本机(旁路网关) IP 地址：$device_ip"
     
     echo ""
-    echo "Use recommended DNS servers 223.6.6.6 119.29.29.99?"
+    echo "[Step5] Use recommended DNS servers 223.6.6.6 119.29.29.99?"
     read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
         exit 0
