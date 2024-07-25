@@ -60,7 +60,7 @@ menu() {
     echo ""
     echo "----------------------------------------------------------"
     echo "                         CatTools                         "
-    echo "           https://github.com/miaoermua/cattools          "
+    echo "        https://www.miaoer.xyz/posts/blog/cattools        "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                  -  设置 IP"
     echo "2. Network_Wizard                         -  网络向导"
