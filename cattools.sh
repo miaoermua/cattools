@@ -640,7 +640,7 @@ apply_repo() {
         *) echo "Unknown version" && exit 1 ;;
         esac
         ;;
-    rkarm)
+    rock64)
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/rkarm" ;;
         v24.1) REPO_URL="$BASE_URL/pr/v24.1/rkarm" ;;
