@@ -1300,29 +1300,46 @@ configure_tailscale() {
         return
     fi
 
-    if ! opkg info tailscale | grep "Package: tailscale"; then
+    if ! opkg list-installed | grep -q "tailscale "; then
         echo "[INFO] 正在安装 tailscale 和 tailscaled 软件包..."
+        opkg update
         opkg install tailscale
         if [ $? -ne 0 ]; then
             echo "[ERROR] 安装 tailscale 失败，请先配置软件源。"
             menu
             return
         fi
+    else
+        echo "[INFO] tailscale 已安装"
     fi
+    
+    br_lan_ip=$(ip -o -f inet addr show br-lan | awk '{print $4}')
+    if [ -z "$br_lan_ip" ]; then
+        echo "[ERROR] 无法获取 br-lan 接口的子网。"
+        menu
+        return
+    fi
+    IFS='/' read -r ip mask <<< "$br_lan_ip"
+    IFS='.' read -r i1 i2 i3 i4 <<< "$ip"
+    subnet="$i1.$i2.$i3.0/$mask"
 
-    subnet=$(ip -o -f inet addr show | awk '/scope global/ {print $4}' | head -n 1)
-    if [ -z "$subnet" ]; then
-        echo "[ERROR] 无法获取当前子网。"
+    echo "[INFO] 下载配置..."
+    curl -fsSL https://raw.githubusercontent.com/miaoermua/cattools/main/configure/tailscale.sh -o /tmp/tailscale.sh
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] 下载配置失败..."
         menu
         return
     fi
 
-    tailscale up --advertise-routes=$subnet --accept-routes --advertise-exit-node
+    sed -i "s|--advertise-routes=.*|--advertise-routes=$subnet --accept-routes --advertise-exit-node|" /tmp/tailscale.sh
+
+    echo "[INFO] 开始配置 tailscale，请登录 tailscale 绑定设备"
+    chmod +x /tmp/tailscale.sh && sh /tmp/tailscale.sh
 
     firewall_file="/etc/firewall.user"
     rules=("iptables -I FORWARD -i tailscale0 -j ACCEPT"
-        "iptables -I FORWARD -o tailscale0 -j ACCEPT"
-        "iptables -t nat -I POSTROUTING -o tailscale0 -j MASQUERADE")
+           "iptables -I FORWARD -o tailscale0 -j ACCEPT"
+           "iptables -t nat -I POSTROUTING -o tailscale0 -j MASQUERADE")
 
     for rule in "${rules[@]}"; do
         if ! grep -q "^$rule$" $firewall_file; then
@@ -1330,6 +1347,7 @@ configure_tailscale() {
         fi
     done
 
+    rm /tmp/tailscale.sh
     lan_ip=$(uci get network.lan.ipaddr)
 
     echo ""
