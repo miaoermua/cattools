@@ -716,9 +716,9 @@ apply_repo() {
 
     CONF_PATH="$REPO_URL/$conf_file"
     if curl --output /dev/null --silent --head --fail "$CONF_PATH"; then
-        echo "使用 $CONF_PATH"
+        echo "[INFO] 使用 $CONF_PATH"
     else
-        echo "源文件不存在: $CONF_PATH"
+        echo "[Error] 源文件不存在: $CONF_PATH"
         exit 1
     fi
 
@@ -895,7 +895,7 @@ catnd() {
 # Sysupgrade
 sysupgrade() {
     if [ "$(uname -m)" != "x86_64" ]; then
-        echo "仅有 x86_64 可以使用脚本进行系统升级。"
+        echo "[Error] 仅有 x86_64 可以使用脚本进行系统升级。"
         exit 1
     fi
 
@@ -903,7 +903,7 @@ sysupgrade() {
 
     disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
     if (($(echo "$disk_size != 800.28" | bc -l))); then
-        echo "磁盘空间出现过修改或不匹配，无法继续升级。"
+        echo "[Error] 磁盘空间出现过修改或不匹配，无法继续升级。"
         exit 1
     fi
 
@@ -923,7 +923,7 @@ sysupgrade() {
     fi
 
     catwrt_opkg_list_installed
-    echo "已经生成备份软件包列表，方便你后续更新后恢复部分消失的插件和软件"
+    echo "[INFO] 已经生成备份软件包列表，方便你后续更新后恢复部分消失的插件和软件"
 
     echo ""
     echo "BETA    ==================================================================="
@@ -1108,12 +1108,12 @@ catwrt_opkg_list_installed() {
     )
 
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "请先配置软件源"
-        exit 1
+        echo "[Error] 请先配置软件源"
+        apply_repo
     fi
 
     backup_installed_packages() {
-        echo "名单中已安装软件包列表..."
+        echo "[INFO] 正在备份名单中已安装软件包列表..."
         >"$BACKUP_FILE"
         for package in "${PACKAGES[@]}"; do
             if opkg list_installed | grep -q "^$package "; then
@@ -1125,7 +1125,7 @@ catwrt_opkg_list_installed() {
             echo "/etc/catwrt_opkg_list_installed" >> "/etc/sysupgrade.conf"
         fi
 
-        echo "备份完成，现在升级也不怕啦~"
+        echo "[INFO] 备份完成，现在升级也不怕啦~"
     }
 
     restore_installed_packages() {
@@ -1213,8 +1213,8 @@ utilities_menu() {
 
 configure_luci_mihomo() {
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置软件源"
-        exit 1
+        echo "[ERROR] 请先配置 CatWrt 软件源"
+        apply_repo
     fi
 
     arch=$(uname -m)
@@ -1325,14 +1325,13 @@ configure_luci_mihomo() {
         ;;
     esac
 
-    echo "操作完成"
+    echo "[INFO] 操作完成"
 }
 
 configure_tailscale() {
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置软件源"
-        menu
-        return
+        echo "[ERROR] 请先配置 CatWrt 软件源"
+        apply_repo
     fi
 
     if ! opkg list-installed | grep -q "tailscale "; then
@@ -1340,7 +1339,7 @@ configure_tailscale() {
         opkg update
         opkg install tailscale
         if [ $? -ne 0 ]; then
-            echo "[ERROR] 安装 tailscale 失败，请先配置软件源。"
+            echo "[ERROR] 安装 tailscale 失败，可能是你的设备当前版本并不支持 tailscale"
             menu
             return
         fi
@@ -1419,9 +1418,7 @@ configure_leigodacc() {
     if [ -f /etc/catwrt_release ]; then
         if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
             echo "[ERROR] 请先配置 CatWrt 软件源"
-            echo "Cattools - Apply_repo"
-            cattools
-            return
+            apply_repo
         fi
     fi
     
@@ -1472,10 +1469,11 @@ configure_leigodacc() {
 # TTYD (NOT SAFETY)
 configure_ttyd() {
     if ! opkg list_installed | grep -q "luci-app-ttyd" || ! opkg list_installed | grep -q "ttyd"; then
-        echo "[ERROR]未安装 luci-app-ttyd 或 ttyd 软件包，请先配置软件源并安装这些软件包"
-        menu
-        return
+        echo "[ERROR] 未安装 luci-app-ttyd 或 ttyd 软件包，请配置软件源并安装这些软件包"
+        apply_repo
     fi
+
+
 
     echo ""
     echo "Warning    =============================================================="
@@ -1520,9 +1518,8 @@ configure_ttyd() {
 # Manual upload SSL/TLS
 manual_deploy_uhttpd_ssl_cert() {
     if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置软件源"
-        menu
-        return
+        echo "[ERROR] 请先配置 CatWrt 软件源"
+        apply_repo
     fi
 
     if ! grep -q "option cert '/etc/uhttpd.crt'" /etc/config/uhttpd || ! grep -q "option key '/etc/uhttpd.key'" /etc/config/uhttpd; then
