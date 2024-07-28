@@ -44,8 +44,8 @@ is_efi_boot() {
     [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ "$efi_mode" -eq 1 ]
 }
 
-AMD64_EFI_SYSUP="https://mirror.ghproxy.com/https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-efi-squashfs-combined.img.gz"
-AMD64_BIOS_SYSUP="https://mirror.ghproxy.com/https://github.com/miaoermua/CatWrt/releases/download/v23.8/CatWrt.v23.8.x86_64-bios-squashfs-combined.img.gz"
+AMD64_EFI_SYSUP="https://mirror.ghproxy.com/https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined-efi.img.gz"
+AMD64_BIOS_SYSUP="https://mirror.ghproxy.com/https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined.img.gz"
 
 TIMEOUT=30
 TRIES=3
