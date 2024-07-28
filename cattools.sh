@@ -901,8 +901,12 @@ sysupgrade() {
 
     echo ""
 
-    disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
-    if (($(echo "$disk_size != 800.28" | bc -l))); then
+    tolerance=$(echo "200/1024/1024" | bc -l)
+    allowed_size=800.28
+    min_size=$(echo "$allowed_size - $tolerance" | bc -l)
+    max_size=$(echo "$allowed_size + $tolerance" | bc -l)
+
+    if (($(echo "$disk_size < $min_size" | bc -l))) || (($(echo "$disk_size > $max_size" | bc -l))); then
         echo "[Error] 磁盘空间出现过修改或不匹配，无法继续升级。"
         exit 1
     fi
