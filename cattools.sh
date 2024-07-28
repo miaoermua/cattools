@@ -695,7 +695,9 @@ apply_repo() {
 
         case $choice in
         1)
-            echo "请访问 https://www.miaoer.xyz/sponsor 以赞助我们并获取支持代码!"
+            echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.xyz/sponsor"
+            echo "我们将使用用户支持的费用用于继续维护 CatWrt 及博客"
+            sleep 1
             read -p "请输入支持代码: " sponsor_code
             if [ "$sponsor_code" != "vme50" ]; then
                 echo "支持代码无效，返回菜单选择其他软件源。"
