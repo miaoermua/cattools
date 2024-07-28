@@ -926,6 +926,8 @@ sysupgrade() {
         rm /etc/catwrt_opkg_list_installed
     fi
 
+    catwrt_update
+
     catwrt_opkg_list_installed
     echo "[INFO] 已经生成备份软件包列表，方便你后续更新后恢复部分消失的插件和软件"
 
