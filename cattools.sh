@@ -901,6 +901,7 @@ sysupgrade() {
 
     echo ""
 
+    disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
     tolerance=$(echo "200/1024/1024" | bc -l)
     allowed_size=800.28
     min_size=$(echo "$allowed_size - $tolerance" | bc -l)
