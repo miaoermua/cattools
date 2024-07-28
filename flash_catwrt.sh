@@ -5,11 +5,6 @@ if [ $(id -u) != "0" ]; then
     exit 1
 fi
 
-if ! grep -q "OpenWrt" /etc/openwrt_release 2>/dev/null; then
-    echo "Your system is not supported!"
-    exit 1
-fi
-
 total_mem=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
 if [ "$total_mem" -lt 1048576 ]; then
     echo "Error: At least 1G of total memory is required"
