@@ -631,9 +631,8 @@ apply_repo() {
         v22.12) REPO_URL="$BASE_URL/history/v22.12/amd64" ;;
         v23.2) REPO_URL="$BASE_URL/history/v23.2/amd64" ;;
         v23.8) REPO_URL="$BASE_URL/amd64" ;;
-        v24.3) REPO_URL="$BASE_URL/pr/v24.3/amd64" ;;
         v24.9) REPO_URL="$BASE_URL/pr/v24.9/amd64" ;;
-        *) echo "Unknown version" && exit 1 ;;
+        *) echo "Unknown version: $version" && exit 1 ;;
         esac
         ;;
     mt798x)
@@ -642,35 +641,34 @@ apply_repo() {
         v23.2) REPO_URL="$BASE_URL/history/v23.2/mt7986a" ;;
         v23.8) REPO_URL="$BASE_URL/mt798x" ;;
         v24.3) REPO_URL="$BASE_URL/pr/v24.3/mt798x" ;;
-        *) echo "Unknown version" && exit 1 ;;
+        *) echo "Unknown version: $version" && exit 1 ;;
         esac
         ;;
     rock64)
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/rkarm" ;;
         v24.1) REPO_URL="$BASE_URL/pr/v24.1/rkarm" ;;
-        *) echo "Unknown version" && exit 1 ;;
+        *) echo "Unknown version: $version" && exit 1 ;;
         esac
         ;;
     mt7621)
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/mt7621" ;;
-        *) echo "Unknown version" && exit 1 ;;
+        *) echo "Unknown version: $version" && exit 1 ;;
         esac
         ;;
     *) echo "Unknown arch" && exit 1 ;;
     esac
 
     echo ""
-    echo "Warning    ==================================================================="
-    echo "软件源纯属免费分享，赞助我们复制链接在浏览器打开，这对我们继续保持在线服务有很大影响。"
-    echo "本人不对所有软件进行保证，我们没有第三方商业服务，风险需要自行承担。"
-    echo "支持我们: https://www.miaoer.xyz/sponsor"
-    echo "你需要同意 CatWrt 软件源用户协议,请确认是否继续 (10 秒内按 [Ctrl]+[C] 取消操作)"
-    echo "=============================================================================="
+    echo "INFO    ================================================================="
+    echo "软件源纯属免费分享，但你可以使用免费的境外软件源托管，如果你需要更快的速度请使用主站。"
+    echo "本人不对所有软件进行保证，我们没有提供第三方商业服务，使用风险需要自行承担。"
+    echo "你需要同意 CatWrt 软件源用户协议，请确认是否继续。 (10 秒内按 [Ctrl]+[C] 取消操作)"
 
     if { { [ "$arch" == "amd64" ] && { [ "$version" == "v24.3" ] || [ "$version" == "v24.9" ]; } } || { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
-        echo "你目前使用的 BETA 版本，只能临时镜像站的软件源，请注意关注 CatWrt 的更新情况!"
+        echo "你目前使用的 BETA 版本，只能临时搭建的镜像站软件源，请注意关注 CatWrt 的更新情况，避免软件源失效!"
+        echo "============================================================================"
         echo "请选择要使用的软件源:"
         echo "1) netlify"
         echo "2) vercel (默认)"
@@ -684,6 +682,7 @@ apply_repo() {
         *) conf_file="vercel.conf" ;;
         esac
     else
+        echo "============================================================================"
         echo "请选择要使用的软件源:"
         echo "1) repo.miaoer.xyz (主站)"
         echo "2) cfnetlify"
@@ -695,7 +694,16 @@ apply_repo() {
         choice=${choice:-5}
 
         case $choice in
-        1) conf_file="distfeeds.conf" ;;
+        1)
+            echo "请访问 https://www.miaoer.xyz/sponsor 以赞助我们并获取支持代码!"
+            read -p "请输入支持代码: " sponsor_code
+            if [ "$sponsor_code" != "vme50" ]; then
+                echo "支持代码无效，返回菜单选择其他软件源。"
+                apply_repo
+                return
+            fi
+            conf_file="distfeeds.conf"
+            ;;
         2) conf_file="cfnetlify.conf" ;;
         3) conf_file="netlify.conf" ;;
         4) conf_file="cfvercel.conf" ;;
