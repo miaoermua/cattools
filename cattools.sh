@@ -945,10 +945,9 @@ sysupgrade() {
     echo "+ 会抹除 opkg 或手动方式安装的插件，可以通过后续在软件源中获取!"
     echo "+ 该更新同样会下载最新版本，应当更新前使用 Cattools 中的 catwrt_update 检查更新"
     echo "==========================================================================="
-    read -t 30 -p "确认升级系统 (1 确认/2 取消)? " confirm_upgrade
+    read -t 30 -p "确认升级系统 ([1] 确认/[2] 取消)? " confirm_upgrade
     if [ -z "$confirm_upgrade" ] || [ "$confirm_upgrade" = "1" ]; then
-        echo "是否需要加速下载？默认加速，按 2 跳过加速。"
-        read -t 5 -p "选择: " use_accel
+        read -t 5 -p "[INFO] 是否需要加速下载？按 ([1] 加速 5s 默认/[2] 跳过): " use_accel
         if [ -z "$use_accel" ] || [ "$use_accel" != "2" ]; then
             if [ $efi_mode -eq 1 ]; then
                 curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
@@ -963,7 +962,7 @@ sysupgrade() {
             fi
         fi
     else
-        echo "升级取消。"
+        echo "[INFO] 升级取消。"
     fi
 }
 
@@ -1145,9 +1144,9 @@ catwrt_opkg_list_installed() {
                     opkg install "$package"
                 fi
             done <"$BACKUP_FILE"
-            echo "安装完成"
+            echo "[INFO] 安装完成"
         else
-            echo "未检测到备份文件!寄了!"
+            echo "[Error] 未检测到备份文件!寄了!"
         fi
     }
 
@@ -1167,10 +1166,10 @@ catwrt_opkg_list_installed() {
             sleep 3
 
             echo ""
-            read -p "检测到备份文件，是否需要恢复软件包？([ENTER] 确认 / [0] 取消) " choice
+            read -p "检测到备份文件，是否需要恢复软件包？ ([ENTER] 确认/[0] 取消):" choice
             case "$choice" in
             0)
-                echo "你选择了不恢复，打算重新开始!如果你有需要请回来找我!"
+                echo "[INFO] 你选择了不恢复，打算重新开始!如果你有需要请回来找我!"
                 ;;
             *)
                 restore_installed_packages
@@ -1211,7 +1210,7 @@ utilities_menu() {
     6) reset_root_password ;;
     7) openwrt_firstboot ;;
     0) menu ;;
-    *) echo "无效选项，请重试" && utilities_menu ;;
+    *) echo "[ERROR] 无效选项，请重试" && utilities_menu ;;
     esac
 }
 
