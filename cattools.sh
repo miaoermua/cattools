@@ -620,6 +620,7 @@ check_update() {
 }
 
 # Apply_repo
+
 apply_repo() {
     arch=$(grep -o 'arch=[^ ]*' $RELEASE | cut -d= -f2)
     version=$(grep -o 'version=[^ ]*' $RELEASE | cut -d= -f2)
