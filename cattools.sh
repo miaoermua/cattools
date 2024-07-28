@@ -8,7 +8,7 @@ BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
-# Check ROOT & OpenWrt
+# Check ROOT & CatWrt/Lean's LEDE
 if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this script, please use root user"
     exit 1
@@ -16,7 +16,7 @@ fi
 
 openwrt_release=$(cat /etc/openwrt_release)
 if ! grep -q "OpenWrt" <<<"$openwrt_release"; then
-    echo "Your system is not supported!"
+    echo "Error: Your system is not supported!"
     exit 1
 fi
 
@@ -28,12 +28,16 @@ update_cattools() {
     local success=false
 
     while [ $retries -gt 0 ]; do
-        if curl --silent --connect-timeout 3 --max-time 9 -o "$temp_file" https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
+        if curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
             echo "cattools update downloaded from the first URL."
             success=true
             break
-        elif curl --silent --connect-timeout 3 --max-time 9 -o "$temp_file" https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh; then
+        elif curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
             echo "cattools update downloaded from the second URL."
+            success=true
+            break
+        elif curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh; then
+            echo "cattools update downloaded from the third URL."
             success=true
             break
         else
@@ -257,9 +261,9 @@ network_wizard() {
             iface_count=$(echo "$interfaces" | wc -w)
 
             if [ "$iface_count" -eq 1 ]; then
-                echo "[Step9] Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
+                echo "[Step10] Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
             else
-                echo "[Step9] Detected multiple network interfaces /// 检测到多个网口"
+                echo "[Step10] Detected multiple network interfaces /// 检测到多个网口"
                 # 默认桥接网口为 eth1，检测其他可用网口并添加到桥接列表
                 bridge_ports=""
                 for iface in $interfaces; do
@@ -276,13 +280,13 @@ network_wizard() {
                 uci set network.lan._orig_ifname="$bridge_ports"
                 uci set network.lan._orig_bridge='true'
 
-                echo "Network interfaces configured: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
+                echo "[Step10] Network interfaces configured: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
             fi
         else
-            echo "Skipping network interface configuration /// 跳过网口配置"
+            echo "[Step10] Skipping network interface configuration /// 跳过网口配置"
         fi
     else
-        echo "System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
+        echo "[Step10] System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
     fi
 
     uci commit
