@@ -738,6 +738,13 @@ apply_repo() {
     opkg update
 
     echo "完成"
+
+    check_apply_repo(){
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "[ERROR] 请先配置 CatWrt 软件源"
+        apply_repo
+    fi
+    }
 }
 
 # catnd
@@ -1097,10 +1104,7 @@ utilities_menu() {
 }
 
 configure_luci_mihomo() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置 CatWrt 软件源"
-        apply_repo
-    fi
+    check_apply_repo
 
     arch=$(uname -m)
     case "$arch" in
@@ -1214,10 +1218,7 @@ configure_luci_mihomo() {
 }
 
 configure_tailscale() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置 CatWrt 软件源"
-        apply_repo
-    fi
+    check_apply_repo
 
     if ! opkg list-installed | grep -q "tailscale "; then
         echo "[INFO] 正在安装 tailscale 和 tailscaled 软件包..."
@@ -1301,10 +1302,7 @@ configure_leigodacc() {
     fi
 
     if [ -f /etc/catwrt_release ]; then
-        if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-            echo "[ERROR] 请先配置 CatWrt 软件源"
-            apply_repo
-        fi
+        check_apply_repo
     fi
     
     if [ -f /var/lock/opkg.lock ]; then
@@ -1358,8 +1356,6 @@ configure_ttyd() {
         apply_repo
     fi
 
-
-
     echo ""
     echo "Warning    =============================================================="
     echo "此操作将修改 TTYD 的配置以自动登录 root 用户，而且不需要密码，仅适用于调试阶段。"
@@ -1402,10 +1398,7 @@ configure_ttyd() {
 
 # Manual upload SSL/TLS
 manual_deploy_uhttpd_ssl_cert() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置 CatWrt 软件源"
-        apply_repo
-    fi
+    check_apply_repo
 
     if ! grep -q "option cert '/etc/uhttpd.crt'" /etc/config/uhttpd || ! grep -q "option key '/etc/uhttpd.key'" /etc/config/uhttpd; then
         echo "[ERROR] uhttpd 配置文件中的证书或密钥路径已被修改，无法继续执行!"
