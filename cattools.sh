@@ -738,17 +738,9 @@ apply_repo() {
     opkg update
 
     echo "完成"
-
-    check_apply_repo(){
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置 CatWrt 软件源"
-        apply_repo
-    fi
-    }
 }
 
 # catnd
-
 catnd() {
     echo "$(date) - Starting CatWrt Network Diagnostics"
     echo " "
@@ -998,10 +990,7 @@ catwrt_opkg_list_installed() {
     BACKUP_FILE="/etc/catwrt_opkg_list_installed"
     DEFAULT_PACKAGES_FILE="/tmp/default_installed_packages"
 
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[Error] 请先配置软件源"
-        apply_repo
-    fi
+    check_apply_repo
 
     backup_installed_packages() {
         echo "[INFO] 正在备份名单中已安装软件包列表..."
@@ -1569,6 +1558,13 @@ patch_catwrt_release() {
             echo "hash=4d6877d960c5c3bdc01b8e47679d923b475bea82" >>$RELEASE
             echo "The patch file has been installed!"
         fi
+    fi
+}
+
+check_apply_repo() {
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        echo "[ERROR] 请先配置 CatWrt 软件源"
+        apply_repo
     fi
 }
 
