@@ -29,7 +29,7 @@ update_cattools() {
     local urls=(
         "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
         "https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
-        "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh"
+        "https://service.miaoer.xyz/cattools/cattools.sh"
     )
 
     while [ $retries -gt 0 ]; do
