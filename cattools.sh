@@ -23,38 +23,40 @@ fi
 # Update
 update_cattools() {
     echo "Please wait for the script to be updated."
-    local temp_file=$(mktemp)
+    local target_file="/usr/bin/cattools"
     local retries=3
     local success=false
+    local urls=(
+        "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+        "https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+        "https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh"
+    )
 
     while [ $retries -gt 0 ]; do
-        if curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
-            echo "cattools update downloaded from the first URL."
-            success=true
-            break
-        elif curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
-            echo "cattools update downloaded from the second URL."
-            success=true
-            break
-        elif curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/cattools.sh; then
-            echo "cattools update downloaded from the third URL."
-            success=true
-            break
-        else
-            echo "Attempt $((4 - retries)) failed. Retrying..."
-            retries=$((retries - 1))
-        fi
+        for url in "${urls[@]}"; do
+            curl --silent --connect-timeout 3 --max-time 5 -o "$target_file" "$url"
+            curl_exit_code=$?
+
+            if [ $curl_exit_code -eq 0 ]; then
+                if [ -s "$target_file" ]; then
+                    success=true
+                    break 2
+                fi
+            fi
+        done
+
+        echo "Attempt $((4 - retries)) failed. Retrying..."
+        retries=$((retries - 1))
     done
 
     if [ "$success" = false ]; then
         echo "Unable to download the latest version, continue to use the current offline version."
         echo ""
-        rm -f "$temp_file"
+        rm -f "$target_file"
         return
     fi
 
-    mv "$temp_file" /usr/bin/cattools
-    chmod +x /usr/bin/cattools
+    chmod +x "$target_file"
     echo "cattools updated successfully."
     echo ""
 }
