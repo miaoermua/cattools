@@ -1473,7 +1473,7 @@ configure_leigodacc() {
         fi
     done
 
-    sh -c "$(curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/openwrt-leigodacc-manager@main/leigod.sh)"
+    sh -c "$(curl -fsSL https://service.miaoer.xyz/openwrt-leigodacc-manager/leigod.sh)"
 }
 
 # TTYD (NOT SAFETY)
