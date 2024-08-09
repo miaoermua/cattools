@@ -5,7 +5,7 @@ REMOTE_JSON_URL="https://api.miaoer.xyz/api/v2/snippets/catstore/amd64_packages"
 
 # 获取包的标签
 get_tag() {
-    package=$1
+    package=\$1
     if [[ "${package}" == luci-app-* ]]; then
         echo "[luci]"
     elif [[ "${package}" == kmod-* ]]; then
@@ -19,7 +19,7 @@ get_tag() {
 
 # 显示菜单并处理用户输入
 show_menu() {
-    local page=$1
+    local page=\$1
     local start=$((page * 25))
     local end=$((start + 24))
     echo "请选择要操作的插件（第 $((page + 1)) 页）："
@@ -88,28 +88,28 @@ main() {
     page=0
     while true; do
         show_menu $page
-        read -p "输入序号选择或应用包名操作: " choice
+        read -p "输入序号选择或输入应用包名: " choice
         if [ "$choice" == "0" ]; then
-            echo "退出插件商店。"
+            echo "退出插件商店"
             break
         elif [ "$choice" == "p" ]; then
             if [ $page -gt 0 ]; then
                 page=$((page - 1))
             else
-                echo "已经是第一页。"
+                echo "已经是第一页"
             fi
         elif [ "$choice" == "n" ]; then
             if [ $((page * 25 + 25)) -lt ${#PACKAGES[@]} ]; then
                 page=$((page + 1))
             else
-                echo "已经是最后一页。"
+                echo "已经是最后一页"
             fi
         elif [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -gt 0 ] && [ "$choice" -le ${#PACKAGES[@]} ]; then
             manage_package "${PACKAGES[$((choice - 1))]}"
         elif [[ " ${PACKAGES[@]} " =~ " ${choice} " ]]; then
             manage_package "$choice"
         else
-            echo "无效的选项，请重新选择。"
+            echo "无效的选项，请重新选择"
         fi
     done
 }
