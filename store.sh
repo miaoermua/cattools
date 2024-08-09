@@ -72,14 +72,11 @@ manage_package() {
         else
             echo "卸载 ${package}..."
             opkg remove ${package}
-            # 检查是否有对应的中文包，并卸载
             lang_package="${package//luci-app-/luci-i18n-}-zh-cn"
             if opkg list_installed | grep -q "^${lang_package}"; then
                 opkg remove ${lang_package}
             fi
         fi
-    else
-        echo "没有匹配的源，不执行操作。"
     fi
 }
 
