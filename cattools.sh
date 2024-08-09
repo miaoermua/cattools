@@ -10,19 +10,19 @@ AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysu
 
 # Check ROOT & CatWrt/Lean's LEDE
 if [ $(id -u) != "0" ]; then
-    echo "Error: You must be root to run this script, please use root user"
+    echo "Error: You must be root to run this cattools, please use root user"
     exit 1
 fi
 
 openwrt_release=$(cat /etc/openwrt_release)
-if ! grep -q "OpenWrt" <<<"$openwrt_release"; then
-    echo "Error: Your system is not supported!"
+if ! grep -qi "OpenWrt|QWRT" <<<"$openwrt_release"; then
+    echo "Error: Your system is not supported cattools!"
     exit 1
 fi
 
 # Update
 update_cattools() {
-    echo "Please wait for the script to be updated."
+    echo "Please wait for the cattools to be updated."
     local target_file="/usr/bin/cattools"
     local retries=3
     local success=false
