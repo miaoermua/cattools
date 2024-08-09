@@ -19,7 +19,7 @@ get_tag() {
 
 # 显示菜单并处理用户输入
 show_menu() {
-    local page=\$1
+    local page=$1
     local start=$((page * 25))
     local end=$((start + 24))
     echo "请选择要操作的插件（第 $((page + 1)) 页）："
@@ -33,7 +33,7 @@ show_menu() {
         tag=$(get_tag "${package}")
         status=$(opkg list_installed | grep -c "^${package}")
         action=""
-        if [ $status -eq 0 ]; then
+        if [ $status -eq 0]; then
             action="安装"
         else
             action="卸载"
