@@ -15,7 +15,7 @@ if [ $(id -u) != "0" ]; then
 fi
 
 openwrt_release=$(cat /etc/openwrt_release)
-if ! grep -qi "OpenWrt|QWRT" <<<"$openwrt_release"; then
+if ! grep -qi -E "OpenWrt|QWRT" <<<"$openwrt_release"; then
     echo "Error: Your system is not supported cattools!"
     exit 1
 fi
