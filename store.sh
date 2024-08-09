@@ -4,7 +4,7 @@
 REMOTE_JSON_URL="https://api.miaoer.xyz/api/v2/snippets/catstore/amd64_packages"
 
 # 获取包的标签
-function get_tag() {
+get_tag() {
     package=$1
     if [[ "${package}" == luci-app-* ]]; then
         echo "[luci]"
@@ -18,7 +18,7 @@ function get_tag() {
 }
 
 # 显示菜单并处理用户输入
-function show_menu() {
+show_menu() {
     local page=$1
     local start=$((page * 25))
     local end=$((start + 24))
@@ -46,7 +46,7 @@ function show_menu() {
 }
 
 # 安装或卸载包
-function manage_package() {
+manage_package() {
     package=${PACKAGES[$1]}
     status=$(opkg list_installed | grep -c "^${package}")
     if [ $status -eq 0 ]; then
@@ -70,7 +70,7 @@ function manage_package() {
 }
 
 # 主程序
-function main() {
+main() {
     # 从远程 JSON 文件获取包列表
     response=$(curl -s "$REMOTE_JSON_URL")
     if [ $? -ne 0 ]; then
@@ -99,7 +99,7 @@ function main() {
                 echo "已经是第一页。"
             fi
         elif [ "$choice" == "n" ]; then
-            if [ $((page * 50 + 50)) -lt ${#PACKAGES[@]} ]; then
+            if [ $((page * 25 + 25)) -lt ${#PACKAGES[@]} ]; then
                 page=$((page + 1))
             else
                 echo "已经是最后一页。"
