@@ -88,7 +88,7 @@ main() {
     page=0
     while true; do
         show_menu $page
-        read -p "输入序号选择操作: " choice
+        read -p "输入序号选择或输入以上应用包名操作: " choice
         if [ "$choice" == "0" ]; then
             echo "退出插件商店。"
             break
@@ -105,7 +105,9 @@ main() {
                 echo "已经是最后一页。"
             fi
         elif [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -gt 0 ] && [ "$choice" -le ${#PACKAGES[@]} ]; then
-            manage_package $((choice - 1))
+            manage_package "${PACKAGES[$((choice - 1))]}"
+        elif [[ " ${PACKAGES[@]} " =~ " ${choice} " ]]; then
+            manage_package "$choice"
         else
             echo "无效的选项，请重新选择。"
         fi
