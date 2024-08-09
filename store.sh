@@ -53,24 +53,33 @@ manage_package() {
         package=$input
     fi
 
-    status=$(opkg list_installed | grep -c "^${package}")
-    if [ $status -eq 0 ]; then
-        echo "安装 ${package}..."
-        opkg update
-        opkg install ${package}
-        # 检查是否有对应的中文包，并安装
-        lang_package="${package//luci-app-/luci-i18n-}-zh-cn"
-        if opkg list | grep -q "^${lang_package}"; then
-            opkg install ${lang_package}
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        if ! [ -f /tmp/opkg-updated ]; then
+            echo "更新软件包列表..."
+            opkg update
+            touch /tmp/opkg-updated
+        fi
+
+        status=$(opkg list_installed | grep -c "^${package}")
+        if [ $status -eq 0 ]; then
+            echo "安装 ${package}..."
+            opkg install ${package}
+            # 检查是否有对应的中文包，并安装
+            lang_package="${package//luci-app-/luci-i18n-}-zh-cn"
+            if opkg list | grep -q "^${lang_package}"; then
+                opkg install ${lang_package}
+            fi
+        else
+            echo "卸载 ${package}..."
+            opkg remove ${package}
+            # 检查是否有对应的中文包，并卸载
+            lang_package="${package//luci-app-/luci-i18n-}-zh-cn"
+            if opkg list_installed | grep -q "^${lang_package}"; then
+                opkg remove ${lang_package}
+            fi
         fi
     else
-        echo "卸载 ${package}..."
-        opkg remove ${package}
-        # 检查是否有对应的中文包，并卸载
-        lang_package="${package//luci-app-/luci-i18n-}-zh-cn"
-        if opkg list_installed | grep -q "^${lang_package}"; then
-            opkg remove ${lang_package}
-        fi
+        echo "没有匹配的源，不执行操作。"
     fi
 }
 
