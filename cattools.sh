@@ -8,7 +8,7 @@ BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 
-# Check ROOT & CatWrt/Lean's LEDE
+# Check ROOT & CatWrt/Lean's LEDE(QWRT)
 if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this cattools, please use root user"
     exit 1
