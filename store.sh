@@ -40,14 +40,19 @@ show_menu() {
         fi
         printf "%-5s %-35s %-10s %s\n" "$((i+1))" "${package}" "${tag}" "${action}"
     done
-    echo "p. 上一页"
-    echo "n. 下一页"
+    echo "a. 上一页"
+    echo "d. 下一页"
     echo "0. 退出"
 }
 
-# 安装或卸载包
 manage_package() {
-    package=\$1
+    input=$1
+    if [[ "$input" =~ ^[0-9]+$ ]]; then
+        package=${PACKAGES[$((input - 1))]}
+    else
+        package=$input
+    fi
+
     status=$(opkg list_installed | grep -c "^${package}")
     if [ $status -eq 0 ]; then
         echo "安装 ${package}..."
@@ -69,47 +74,44 @@ manage_package() {
     fi
 }
 
-# 主程序
 main() {
     # 从远程 JSON 文件获取包列表
     response=$(curl -s "$REMOTE_JSON_URL")
     if [ $? -ne 0 ]; then
-        echo "无法从远程服务器获取数据。"
+        echo "无法从远程服务器获取数据"
         exit 1
     fi
 
     PACKAGES=($(echo "$response" | jq -r '.packages[]'))
 
     if [ ${#PACKAGES[@]} -eq 0 ]; then
-        echo "没有找到包列表。"
+        echo "没有找到包列表"
         exit 1
     fi
 
     page=0
     while true; do
         show_menu $page
-        read -p "输入序号选择或输入应用包名: " choice
+        read -p "输入序号或包名选择操作: " choice
         if [ "$choice" == "0" ]; then
             echo "退出插件商店"
             break
-        elif [ "$choice" == "p" ]; then
+        elif [ "$choice" == "a" ]; then
             if [ $page -gt 0 ]; then
                 page=$((page - 1))
             else
                 echo "已经是第一页"
             fi
-        elif [ "$choice" == "n" ]; then
+        elif [ "$choice" == "d" ]; then
             if [ $((page * 25 + 25)) -lt ${#PACKAGES[@]} ]; then
                 page=$((page + 1))
             else
                 echo "已经是最后一页"
             fi
-        elif [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -gt 0 ] && [ "$choice" -le ${#PACKAGES[@]} ]; then
-            manage_package "${PACKAGES[$((choice - 1))]}"
-        elif [[ " ${PACKAGES[@]} " =~ " ${choice} " ]]; then
+        elif [[ "$choice" =~ ^[0-9]+$ ]] || [[ " ${PACKAGES[*]} " == *" $choice "* ]]; then
             manage_package "$choice"
         else
-            echo "无效的选项，请重新选择"
+            echo "无效的选项，请重新选择。"
         fi
     done
 }
