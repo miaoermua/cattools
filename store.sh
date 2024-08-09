@@ -20,8 +20,8 @@ function get_tag() {
 # 显示菜单并处理用户输入
 function show_menu() {
     local page=$1
-    local start=$((page * 50))
-    local end=$((start + 49))
+    local start=$((page * 25))
+    local end=$((start + 24))
     echo "请选择要操作的插件（第 $((page + 1)) 页）："
     echo "序号  包名                                 标签       操作"
     echo "-----------------------------------------------------------"
