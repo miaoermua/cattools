@@ -33,7 +33,7 @@ show_menu() {
         tag=$(get_tag "${package}")
         status=$(opkg list_installed | grep -c "^${package}")
         action=""
-        if [ $status -eq 0]; then
+        if [ "$status" -eq 0 ]; then
             action="安装"
         else
             action="卸载"
