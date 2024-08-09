@@ -47,7 +47,7 @@ show_menu() {
 
 # 安装或卸载包
 manage_package() {
-    package=${PACKAGES[$1]}
+    package=\$1
     status=$(opkg list_installed | grep -c "^${package}")
     if [ $status -eq 0 ]; then
         echo "安装 ${package}..."
@@ -88,7 +88,7 @@ main() {
     page=0
     while true; do
         show_menu $page
-        read -p "输入序号选择或输入以上应用包名操作: " choice
+        read -p "输入序号选择或应用包名操作: " choice
         if [ "$choice" == "0" ]; then
             echo "退出插件商店。"
             break
