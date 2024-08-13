@@ -631,8 +631,8 @@ apply_repo() {
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/history/v22.12/amd64" ;;
         v23.2) REPO_URL="$BASE_URL/history/v23.2/amd64" ;;
-        v23.8) REPO_URL="$BASE_URL/amd64" ;;
-        v24.9) REPO_URL="$BASE_URL/pr/v24.9/amd64" ;;
+        v23.8) REPO_URL="$BASE_URL/history/v23.8/amd64" ;;
+        v24.9) REPO_URL="$BASE_URL/amd64" ;;
         *) echo "Unknown version: $version" && exit 1 ;;
         esac
         ;;
@@ -667,7 +667,7 @@ apply_repo() {
     echo "本人不对所有软件进行保证，我们没有提供第三方商业服务，使用风险需要自行承担。"
     echo "你需要同意 CatWrt 软件源用户协议，请确认是否继续。 (10 秒内按 [Ctrl]+[C] 取消操作)"
 
-    if { { [ "$arch" == "amd64" ] && { [ "$version" == "v24.3" ] || [ "$version" == "v24.9" ]; } } || { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
+    if { { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
         echo "你目前使用的 BETA 版本，只能临时搭建的镜像站软件源，请注意关注 CatWrt 的更新情况，避免软件源失效!"
         echo "============================================================================"
         echo "请选择要使用的软件源:"
