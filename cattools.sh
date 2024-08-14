@@ -1689,6 +1689,12 @@ patch_catwrt_release() {
             echo "source=lean" >>$RELEASE
             echo "hash=0239fab82eb640b55d4f4050cbc227ffd22087f3" >>$RELEASE
             echo "The patch file has been installed!"
+        elif [ "$(uname -m)" == "aarch64" ] && grep -q "R23.2.14" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner && [ "$arch" == "mt7986a" ]; then
+            echo "version=v23.2" >$RELEASE
+            echo "arch=mt798x" >>$RELEASE
+            echo "source=lean" >>$RELEASE
+            echo "hash=5e4da39a20e95ff548c3eca1b8c3a2b76c4256d5" >>$RELEASE
+            echo "The patch file has been installed!"
         elif [ "$(uname -m)" == "x86_64" ] && grep -q "R22.11.11" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
             echo "version=v22.12" >$RELEASE
             echo "arch=amd64" >>$RELEASE
