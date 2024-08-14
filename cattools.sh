@@ -1663,12 +1663,17 @@ reset_root_password() {
 
 patch_catwrt_release() {
     if [ -f $RELEASE ]; then
-        if grep -q "version=v23.7" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
-            echo "Already patched for x86_64 v23.7"
-        elif grep -q "version=v23.8" $RELEASE && grep -q "arch=amd64" $RELEASE && grep -q "source=lean" $RELEASE; then
-            echo "Already patched for x86_64 v23.8"
-        elif grep -q "version=v23.8" $RELEASE && grep -q "arch=mt798x" $RELEASE && grep -q "source=lean" $RELEASE; then
-            echo "Already patched for aarch64 v23.8"
+        if ! grep -q "source=lean" $RELEASE; then
+            if grep -q "version=v23.7" $RELEASE && grep -q "arch=amd64" $RELEASE; then
+                echo "source=lean" >>$RELEASE
+                echo "Update release files x86_64 v23.7"
+            elif grep -q "version=v23.8" $RELEASE && grep -q "arch=amd64" $RELEASE; then
+                echo "source=lean" >>$RELEASE
+                echo "Update release files x86_64 v23.8"
+            elif grep -q "version=v23.8" $RELEASE && grep -q "arch=mt798x" $RELEASE; then
+                echo "source=lean" >>$RELEASE
+                echo "Update release files aarch64 v23.8"
+            fi
         fi
     else
         if [ "$(uname -m)" == "mips" ] || [ "$(uname -m)" == "mipsel" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
