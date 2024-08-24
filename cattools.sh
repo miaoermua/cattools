@@ -655,6 +655,7 @@ apply_repo() {
     mt7621)
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/mt7621" ;;
+        v24.9) REPO_URL="$BASE_URL/pr/v24.9/mt7621" ;;
         *) echo "Unknown version: $version" && exit 1 ;;
         esac
         ;;
