@@ -633,7 +633,7 @@ apply_repo() {
         v23.2) REPO_URL="$BASE_URL/history/v23.2/amd64" ;;
         v23.8) REPO_URL="$BASE_URL/history/v23.8/amd64" ;;
         v24.9) REPO_URL="$BASE_URL/amd64" ;;
-        *) echo "Unknown version: $version" && exit 1 ;;
+        *) echo "Unknown amd64 version: $version" && exit 1 ;;
         esac
         ;;
     mt798x)
@@ -642,21 +642,21 @@ apply_repo() {
         v23.2) REPO_URL="$BASE_URL/history/v23.2/mt7986a" ;;
         v23.8) REPO_URL="$BASE_URL/mt798x" ;;
         v24.3) REPO_URL="$BASE_URL/pr/v24.3/mt798x" ;;
-        *) echo "Unknown version: $version" && exit 1 ;;
+        *) echo "Unknown mt798x version: $version" && exit 1 ;;
         esac
         ;;
     rock64)
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/rkarm" ;;
         v24.1) REPO_URL="$BASE_URL/pr/v24.1/rkarm" ;;
-        *) echo "Unknown version: $version" && exit 1 ;;
+        *) echo "Unknown rock64 version: $version" && exit 1 ;;
         esac
         ;;
     mt7621)
         case "$version" in
         v22.12) REPO_URL="$BASE_URL/mt7621" ;;
         v24.9) REPO_URL="$BASE_URL/pr/v24.9/mt7621" ;;
-        *) echo "Unknown version: $version" && exit 1 ;;
+        *) echo "Unknown mt7621 version: $version" && exit 1 ;;
         esac
         ;;
     *) echo "Unknown arch" && exit 1 ;;
@@ -668,7 +668,10 @@ apply_repo() {
     echo "本人不对所有软件进行保证，我们没有提供第三方商业服务，使用风险需要自行承担。"
     echo "你需要同意 CatWrt 软件源用户协议，请确认是否继续。 (10 秒内按 [Ctrl]+[C] 取消操作)"
 
-    if { { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } } || { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
+    if { [ "$arch" == "mt7621" ] && [ "$version" == "v24.9" ]; } || \
+       { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } || \
+       { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
+
         echo "你目前使用的 BETA 版本，只能临时搭建的镜像站软件源，请注意关注 CatWrt 的更新情况，避免软件源失效!"
         echo "============================================================================"
         echo "请选择要使用的软件源:"
