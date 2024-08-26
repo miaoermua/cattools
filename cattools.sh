@@ -7,6 +7,7 @@ API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
 BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
+MT7621_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/mt7621"
 
 # Check ROOT & CatWrt/Lean's LEDE(QWRT)
 if [ $(id -u) != "0" ]; then
@@ -900,36 +901,68 @@ catnd() {
 }
 
 # Sysupgrade
+
 sysupgrade() {
-    if [ "$(uname -m)" != "x86_64" ]; then
-        echo "[Error] 仅有 x86_64 可以使用脚本进行系统升级。"
+    arch=$(cat /etc/catwrt_release | grep "^arch=" | cut -d'=' -f2)
+    board_name=$(cat /tmp/sysinfo/board_name)
+    
+    if [ "$arch" != "mt7621" ] && [ "$arch" != "amd64" ]; then
+        echo "[Error] 不支持的架构: $arch"
         exit 1
     fi
 
-    echo ""
-
-    disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
-    tolerance=$(echo "200/1024/1024" | bc -l)
-    allowed_size=800.28
-    min_size=$(echo "$allowed_size - $tolerance" | bc -l)
-    max_size=$(echo "$allowed_size + $tolerance" | bc -l)
-
-    if (($(echo "$disk_size < $min_size" | bc -l))) || (($(echo "$disk_size > $max_size" | bc -l))); then
-        echo "[Error] 磁盘空间出现过修改或不匹配，无法继续升级。"
-        exit 1
+    if [ "$arch" = "mt7621" ]; then
+        case "$board_name" in
+            *"newifi-d2")
+                base_fw_url="sysup_newifi-d2"
+                ;;
+            *"redmi-router-ac2100")
+                base_fw_url="sysup_redmi-router-ac2100"
+                ;;
+            *"mi-router-ac2100")
+                base_fw_url="sysup_mi-router-ac2100"
+                ;;
+            *)
+                echo "[Error] 该设备不支持通过此 Cattools 进行系统升级，请反馈给我们以支持!"
+                exit 1
+                ;;
+        esac
     fi
 
-    efi_mode=0
-    if [ -d /sys/firmware/efi ]; then
-        efi_mode=1
+
+    if [ "$arch" = "amd64" ]; then
+        echo
+
+        disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
+        tolerance=$(echo "200/1024/1024" | bc -l)
+        allowed_size=800.28
+        min_size=$(echo "$allowed_size - $tolerance" | bc -l)
+        max_size=$(echo "$allowed_size + $tolerance" | bc -l)
+
+        if (($(echo "$disk_size < $min_size" | bc -l))) || (($(echo "$disk_size > $max_size" | bc -l))); then
+            echo "[Error] 磁盘空间出现过修改或不匹配，无法继续升级。"
+            exit 1
+        fi
+
+        efi_mode=0
+        if [ -d /sys/firmware/efi ]; then
+            efi_mode=1
+        fi
+
+        if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
+            firmware_url=$AMD64_EFI_SYSUP
+        else
+            firmware_url=$AMD64_BIOS_SYSUP
+        fi
     fi
 
-    if [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ $efi_mode -eq 1 ]; then
-        firmware_url=$AMD64_EFI_SYSUP
-    else
-        firmware_url=$AMD64_BIOS_SYSUP
+    if [ "$arch" = "mt7621" ]; then
+        firmware_url="$MT7621_SYSUP$base_fw_url"
+    elif [ "$arch" = "amd64" ]; then
+        firmware_url=$firmware_url
     fi
 
+    
     if [ -f /etc/catwrt_opkg_list_installed ]; then
         rm /etc/catwrt_opkg_list_installed
     fi
@@ -955,18 +988,10 @@ sysupgrade() {
     if [ -z "$confirm_upgrade" ] || [ "$confirm_upgrade" = "1" ]; then
         read -t 5 -p "[INFO] 是否需要加速下载？按 ([1] 加速 5s 默认/[2] 跳过): " use_accel
         if [ -z "$use_accel" ] || [ "$use_accel" != "2" ]; then
-            if [ $efi_mode -eq 1 ]; then
-                curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
-            else
-                curl https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios | bash
-            fi
-        else
-            if [ $efi_mode -eq 1 ]; then
-                curl https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi | bash
-            else
-                curl https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios | bash
-            fi
+            firmware_url="${firmware_url}_ghproxy"
         fi
+        
+        curl "$firmware_url" | bash
     else
         echo "[INFO] 升级取消。"
     fi
