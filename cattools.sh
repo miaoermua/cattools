@@ -1226,12 +1226,23 @@ configure_luci_mihomo() {
         apply_repo
     fi
 
-    arch=$(uname -m)
+    # 读取 RELEASE 文件中的架构信息
+    if [ -f "$RELEASE" ]; then
+        . "$RELEASE"
+    else
+        echo "[ERROR] 找不到 RELEASE 文件"
+        exit 1
+    fi
+
+    # 根据 arch 字段选择合适的架构
     case "$arch" in
-    "x86_64")
+    "mt7621")
+        arch="mipsle-softfloat"
+        ;;
+    "amd64")
         arch="amd64"
         ;;
-    "aarch64")
+    "mt798x"|"rock64")
         arch="arm64"
         ;;
     *)
