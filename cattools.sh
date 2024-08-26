@@ -7,7 +7,7 @@ API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
 BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
-MT7621_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/mt7621"
+MT7621_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/mt7621/"
 
 # Check ROOT & CatWrt/Lean's LEDE(QWRT)
 if [ $(id -u) != "0" ]; then
