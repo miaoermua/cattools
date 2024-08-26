@@ -1226,7 +1226,6 @@ configure_luci_mihomo() {
         apply_repo
     fi
 
-    # 读取 RELEASE 文件中的架构信息
     if [ -f "$RELEASE" ]; then
         . "$RELEASE"
     else
@@ -1234,7 +1233,6 @@ configure_luci_mihomo() {
         exit 1
     fi
 
-    # 根据 arch 字段选择合适的架构
     case "$arch" in
     "mt7621")
         arch="mipsle-softfloat"
