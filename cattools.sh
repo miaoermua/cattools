@@ -20,10 +20,11 @@ if ! grep -qi -E "OpenWrt|QWRT" /etc/openwrt_release; then
     exit 1
 fi
 
-# Update
+# Update CatTools
 update_cattools() {
     echo "Please wait for the cattools to be updated."
     local target_file="/usr/bin/cattools"
+    local temp_file="/tmp/cattools/cattools.sh"
     local retries=3
     local success=false
     local urls=(
@@ -32,16 +33,16 @@ update_cattools() {
         "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
     )
 
+    mkdir -p /tmp/cattools
+
     while [ $retries -gt 0 ]; do
         for url in "${urls[@]}"; do
-            curl --silent --connect-timeout 3 --max-time 5 -o "$target_file" "$url"
+            curl --silent --connect-timeout 3 --max-time 5 -o "$temp_file" "$url"
             curl_exit_code=$?
 
-            if [ $curl_exit_code -eq 0 ]; then
-                if [ -s "$target_file" ]; then
-                    success=true
-                    break 2
-                fi
+            if [ $curl_exit_code -eq 0 ] && [ -s "$temp_file" ]; then
+                success=true
+                break 2
             fi
         done
 
@@ -52,10 +53,11 @@ update_cattools() {
     if [ "$success" = false ]; then
         echo "Unable to download the latest version, continue to use the current offline version."
         echo ""
-        rm -f "$target_file"
+        rm -f "$temp_file"
         return
     fi
 
+    mv "$temp_file" "$target_file"
     chmod +x "$target_file"
     echo "cattools updated successfully."
     echo ""
