@@ -155,6 +155,7 @@ network_wizard() {
     iface_count=$(echo "$interfaces" | wc -w)
 
     if [ "$iface_count" -eq 1 ]; then
+        echo
         echo "[Step2] Detected a single network interface /// 检测到单个网口"
         read -p "是否进行旁路网关设置？([Enter] 确认 / [0] 跳过旁路设置)：" choice
         if [ "$choice" != "0" ]; then
@@ -163,6 +164,7 @@ network_wizard() {
         fi
     fi
 
+    echo
     echo "[Step3] CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
     read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" != "0" ]; then
@@ -178,6 +180,7 @@ network_wizard() {
         echo "IP 地址已设置为 $input_ip"
     fi
 
+    echo
     echo "[Step4] IPv6 is enabled by default /// IPv6 默认是开启的"
     read -p "是否禁用 IPv6 网络？([Enter] 跳过 / [1] 禁用): " disable_ipv6
     if [ "$disable_ipv6" == "1" ]; then
@@ -188,6 +191,7 @@ network_wizard() {
         echo "IPv6 已禁用"
     fi
 
+    echo
     echo "[Step5] Default connection mode is DHCP /// 默认模式为 DHCP"
     read -p "是否进行 PPPoE 拨号？([Enter] 继续 DHCP /  [1] PPPoE 拨号): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
@@ -198,7 +202,8 @@ network_wizard() {
         uci set network.wan.password=$password
         echo "PPPoE 拨号配置已完成"
     fi
-
+    
+    echo
     echo "[Step6] Use recommended DNS servers 223.6.6.6 119.29.29.99?"
     read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
@@ -213,7 +218,8 @@ network_wizard() {
             exit 1
         fi
     fi
-
+    
+    echo
     echo "[Step7] Do you want to change the DHCP IP pool range? (default: 30-200)"
     read -p " /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 自定义范围 ): " dhcp_choice
     if [ "$dhcp_choice" = "1" ]; then
@@ -231,14 +237,16 @@ network_wizard() {
         uci set dhcp.lan.start=30
         uci set dhcp.lan.limit=200
     fi
-
+    
+    echo
     echo "[Step8] enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
     read -p "是否开启强制 DHCP 模式？([Enter] 确认，按 [1] 跳过): " force_dhcp
     if [ "$force_dhcp" != "1" ]; then
         uci set dhcp.lan.force=1
         echo "强制 DHCP 模式已开启"
     fi
-
+    
+    echo
     echo "[Step9] Enable UPNP by default /// 默认开启 UPNP，可提升 BT/P2P 软件连接性，但客户端容易受到流氓软件滥用 P2P 网络导致上行带宽异常!"
     read -p "是否开启 UPNP？([Enter] 确认，按 [1] 跳过): " enable_upnp
     if [ "$enable_upnp" != "1" ]; then
@@ -251,9 +259,9 @@ network_wizard() {
     if [ "$arch" = "amd64" ] || [ "$arch" = "aarch64_generic" ]; then
         echo "[Step10] Configure network interfaces /// 配置网口"
         echo ""
-        echo " Wan    LAN1    LANx  ..."
-        echo " eth0   eth1    ethx  ..."
-        echo " □       □       □    ..."
+        echo " Wan    LAN1    LAN2    LANX      ..."
+        echo " eth0   eth1    eth2    ethX    ..."
+        echo "      □    □    □    □      ..."
         echo ""
         echo "Press [Enter] to configure network interfaces, press [1] to skip"
         read -p " /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
@@ -282,6 +290,12 @@ network_wizard() {
                 uci set network.lan._orig_ifname="$bridge_ports"
                 uci set network.lan._orig_bridge='true'
 
+                uci set network.wan6._orig_bridge='false'
+                uci set network.wan6._orig_ifname='eth1'
+                uci set network.wan6.ifname='eth0'
+                uci set network.wan6.reqaddress='try'
+                uci set network.wan6.reqprefix='auto'
+
                 echo "[Step10] Network interfaces configured: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
             fi
         else
@@ -290,12 +304,13 @@ network_wizard() {
     else
         echo "[Step10] System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
     fi
-
+    echo "[INFO] Ready to reboot CatWrt!"
     uci commit
     /etc/init.d/network restart
     /etc/init.d/dnsmasq restart
     /etc/init.d/firewall restart
     /etc/init.d/miniupnpd restart
+    reboot
 }
 
 # BypassGateway
