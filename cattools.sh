@@ -4,7 +4,7 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
 API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
-BASE_URL="https://fastly.jsdelivr.net/gh/miaoermua/cattools@main/repo"
+BASE_URL="https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/repo"
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 MT7621_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/mt7621/"
@@ -672,8 +672,8 @@ apply_repo() {
         ;;
     mt7621)
         case "$version" in
-        v22.12) REPO_URL="$BASE_URL/mt7621" ;;
-        v24.9) REPO_URL="$BASE_URL/pr/v24.9/mt7621" ;;
+        v22.12) REPO_URL="$BASE_URL/history/v22.12/mt7621" ;;
+        v24.9) REPO_URL="$BASE_URL/mt7621" ;;
         *) echo "Unknown mt7621 version: $version" && exit 1 ;;
         esac
         ;;
@@ -686,8 +686,7 @@ apply_repo() {
     echo "本人不对所有软件进行保证，我们没有提供第三方商业服务，使用风险需要自行承担。"
     echo "你需要同意 CatWrt 软件源用户协议，请确认是否继续。 (10 秒内按 [Ctrl]+[C] 取消操作)"
 
-    if { [ "$arch" == "mt7621" ] && [ "$version" == "v24.9" ]; } || \
-       { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } || \
+    if { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } || \
        { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
 
         echo "你目前使用的 BETA 版本，只能临时搭建的镜像站软件源，请注意关注 CatWrt 的更新情况，避免软件源失效!"
