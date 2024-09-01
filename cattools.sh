@@ -168,6 +168,7 @@ network_wizard() {
 
     echo
     echo "[Step3] CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
+    read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" == "0" ]; then
         read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
         if [[ -z $input_ip ]]; then
