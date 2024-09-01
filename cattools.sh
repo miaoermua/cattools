@@ -246,7 +246,7 @@ network_wizard() {
     fi
     
     echo
-    echo "[Step8] enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
+    echo "[Step8] Enable DHCP force /// 开启 DHCP 强制可以避免局域网收到 AP 吐地址的问题"
     read -p "是否开启强制 DHCP 模式？([Enter] 确认，按 [1] 跳过): " force_dhcp
     if [ "$force_dhcp" != "1" ]; then
         uci set dhcp.lan.force=1
