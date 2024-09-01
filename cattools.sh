@@ -274,26 +274,29 @@ network_wizard() {
         echo "Press [Enter] to configure network interfaces, press [1] to skip"
         read -p " /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
         if [ "$configure_network" != "1" ]; then
-            # Get All ETH
-            interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
-            iface_count=$(echo "$interfaces" | wc -w)
+        # Get All ETH
+        interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
+        iface_count=$(echo "$interfaces" | wc -w)
 
-            if [ "$iface_count" -eq 1 ]; then
-                echo "[Step10] Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
+        if [ "$iface_count" -eq 1 ]; then
+            echo "[Step10] Detected a single network interface, no configuration needed"
+            echo " /// 检测到单个网口，无需配置"
+        elif [ "$iface_count" -eq 2 ]; then
+            echo "[Step10] Detected two network interfaces, configuration not recommended"
+            echo " /// 检测到两个网口，不推荐配置"
+            echo "Press [Enter] to skip, press [1] to configure /// ( [Enter] 跳过 ，按 [1] 配置)"
+            read -p " " continue_network
+            if [ "$continue_network" != "1" ]; then
+                echo "[Step10] Skipping network interface configuration /// 跳过网口配置"
             else
-                echo
-                echo "[Step10] Detected multiple network interfaces /// 检测到多个网口"
-                # ETH0 set WAN，ETH123 set LAN
                 bridge_ports=""
                 for iface in $interfaces; do
                     if [ "$iface" != "eth0" ]; then
                         bridge_ports="$bridge_ports $iface"
                     fi
                 done
-
                 uci set network.wan.ifname='eth0'
                 uci set network.wan.proto='dhcp'
-
                 uci set network.lan.type='bridge'
                 uci set network.lan.ifname="$bridge_ports"
                 uci set network.lan._orig_ifname="$bridge_ports"
@@ -308,7 +311,28 @@ network_wizard() {
                 echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
             fi
         else
-            echo "[Step10] Skipping network interface configuration /// 跳过网口配置"
+            echo "[Step10] Detected multiple network interfaces /// 检测到多个网口"
+            echo "[Step10] Configuring network interfaces... /// 开始配置网口..."
+            bridge_ports=""
+            for iface in $interfaces; do
+                if [ "$iface" != "eth0" ]; then
+                    bridge_ports="$bridge_ports $iface"
+                fi
+            done
+            uci set network.wan.ifname='eth0'
+            uci set network.wan.proto='dhcp'
+            uci set network.lan.type='bridge'
+            uci set network.lan.ifname="$bridge_ports"
+            uci set network.lan._orig_ifname="$bridge_ports"
+            uci set network.lan._orig_bridge='true'
+
+            uci set network.wan6._orig_bridge='false'
+            uci set network.wan6._orig_ifname='eth1'
+            uci set network.wan6.ifname='eth0'
+            uci set network.wan6.reqaddress='try'
+            uci set network.wan6.reqprefix='auto'
+
+            echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
         fi
     else
         echo "[Step10] System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本，未进行任何更改"
@@ -328,11 +352,11 @@ bypass_gateway() {
     # 输入主路由的 IP 地址
     while true; do
         echo ""
-        read -p "[Step3] 请输入主路由的 IP 地址（例如 192.168.31.1）：" router_ip
+        read -p "[Step3] 请输入主路由的 IP 地址 (如 192.168.31.1): " router_ip
         if [ -z "$router_ip" ]; then
-            echo "主路由 IP 地址不能为空，请重新输入。"
+            echo "[ERROR] 主路由 IP 地址不能为空，请重新输入。"
         elif ! echo "$router_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
-            echo "输入的 IP 地址无效，请输入有效的 IP 地址"
+            echo "[ERROR] 输入的 IP 地址无效，请输入有效的 IP 地址"
         else
             break
         fi
@@ -348,7 +372,7 @@ bypass_gateway() {
             device_ip="$default_device_ip"
             break
         elif ! echo "$device_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
-            echo "输入的 IP 地址无效，请输入有效的 IP 地址。"
+            echo "[ERROR] 输入的 IP 地址无效，请输入有效的 IP 地址。"
         else
             break
         fi
@@ -414,7 +438,7 @@ bypass_gateway() {
     /etc/init.d/dnsmasq restart
     
     echo
-    echo "[INFO] 如出现 Warning 是因为旁路的防火墙是这样报错的，部分配置可以忽略不影响使用"
+    echo "[INFO] 如出现 Warning 是因为旁路防火墙是这样报错的，部分配置可以忽略不影响使用"
     echo
 }
 
