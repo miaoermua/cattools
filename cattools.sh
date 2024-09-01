@@ -1460,28 +1460,10 @@ configure_tailscale() {
     rm /tmp/tailscale.sh
     lan_ip=$(uci get network.lan.ipaddr)
 
-    echo ""
-    echo "点击上面的 tailscale login 链接然后再进行以下配置"
-    echo "========================================================================="
-    echo ""
-    echo "请在浏览器中访问 http://$lan_ip/cgi-bin/luci/admin/network/iface_add"
-    echo "新增以下配置:"
-    echo ""
-    echo "新接口的名称: tailscale"
-    echo "新接口的协议: 静态 (默认)"
-    echo "包括以下接口: 以太网适配器: \"tailscale0\" (tailscale)"
-    echo "提交 下一步"
-    echo ""
-    echo "## 接口 - TAILSCALE"
-    echo "IPv4 地址: 输入 tailscale 中的 CatWrt 地址"
-    echo "IPv4 子网掩码: 255.0.0.0"
-    echo "保存 下一步"
-    echo ""
-    echo "##接口 - TAILSCALE - 防火墙设置"
-    echo "创建/分配防火墙区域: LAN"
-    echo "保存并应用"
-
     echo "Tailscale 配置部分，剩下的交给你了~"
+    echo "[INFO] 需要绑定 tailscale 接口: http://$lan_ip/cgi-bin/luci/admin/network/iface_add"
+    echo "[INFO] CatTools - tailscale 配置博客: https://www.miaoer.xyz/posts/blog/cattools-step"
+    sleep 5
 }
 
 configure_leigodacc() {
