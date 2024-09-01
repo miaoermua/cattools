@@ -2,7 +2,7 @@
 
 基于 BASH 编写的 CatWrt 强大工具箱，帮助用户轻松实现各种实用功能。
 
-Blog(待完善): <https://www.miaoer.xyz/posts/network/catwrt-bash-script>
+Blog: <https://www.miaoer.xyz/posts/blog/cattools>
 
 执行下列命令 **一键安装 Cattools**，安装后输入 `cattools` 或 `/usr/bin/cattools` 并回车即可使用。
 
