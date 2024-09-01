@@ -144,9 +144,9 @@ setip() {
 
 # Network Wizard
 network_wizard() {
-    echo ""
-    echo ""
-    echo ""
+    echo
+    echo
+    echo
     read -p "[Step1] Do you want Network Wizard? /// 是否使用网络向导？([Enter] 确认 / [0] 退出): " use_wizard
     if [ "$use_wizard" == "0" ]; then
         echo "网络向导已退出。"
@@ -168,18 +168,19 @@ network_wizard() {
 
     echo
     echo "[Step3] CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
-    read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
-    if [ "$modify_ip" != "0" ]; then
+    if [ "$modify_ip" == "0" ]; then
         read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
         if [[ -z $input_ip ]]; then
             input_ip=$DEFAULT_IP
         elif ! [[ $input_ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-            echo "无效的 IP 地址。"
+            echo "[ERROR] 无效的 IP 地址。"
             return
         fi
 
         uci set network.lan.ipaddr=$input_ip
-        echo "IP 地址已设置为 $input_ip"
+        echo "[INFO] IP 地址已设置为 $input_ip"
+    else
+        echo "[INFO] 保持默认 IP 地址：$DEFAULT_IP"
     fi
 
     echo
@@ -190,19 +191,20 @@ network_wizard() {
         uci delete dhcp.lan.ra
         uci delete dhcp.lan.ra_management
         uci delete network.lan.ip6assign
-        echo "IPv6 已禁用"
+        echo "[INFO] IPv6 已禁用"
     fi
 
     echo
     echo "[Step5] Default connection mode is DHCP /// 默认模式为 DHCP"
     read -p "是否进行 PPPoE 拨号？([Enter] 继续 DHCP /  [1] PPPoE 拨号): " use_pppoe
     if [ "$use_pppoe" == "1" ]; then
-        read -p "请输入宽带账号: " username
-        read -s -p "请输入宽带密码: " password
+        echo "如不知道账号密码，可以寻求宽带师傅，必须要正确填写!"
+        read -p "[PPPoE] 请输入宽带账号: " username
+        read -s -p "[PPPoE] 请输入宽带密码: " password
         uci set network.wan.proto=pppoe
         uci set network.wan.username=$username
         uci set network.wan.password=$password
-        echo "PPPoE 拨号配置已完成"
+        echo "[INFO] PPPoE 拨号配置已完成"
     fi
     
     echo
@@ -216,7 +218,7 @@ network_wizard() {
         if [[ $use_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}(\s+([0-9]{1,3}\.){3}[0-9]{1,3})*$ ]]; then
             uci set network.lan.dns="$use_dns"
         else
-            echo "Invalid DNS format /// 无效的 DNS 格式"
+            echo "[ERROR] Invalid DNS format /// 无效的 DNS 格式"
             exit 1
         fi
     fi
@@ -225,6 +227,7 @@ network_wizard() {
     echo "[Step7] Do you want to change the DHCP IP pool range? (default: 30-200)"
     read -p " /// 是否修改 IP 可用段？(默认: 30-200 按 [Enter] 确认 / [1] 自定义范围 ): " dhcp_choice
     if [ "$dhcp_choice" = "1" ]; then
+        echo
         read -p "Enter the DHCP IP pool range (e.g., 40-210) /// 输入 DHCP IP 地址范围 (例如: 40-210): " dhcp_range
         if [[ $dhcp_range =~ ^([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\-([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]; then
             dhcp_start=$(echo $dhcp_range | cut -d '-' -f 1)
@@ -232,7 +235,8 @@ network_wizard() {
             uci set dhcp.lan.start=$dhcp_start
             uci set dhcp.lan.limit=$dhcp_limit
         else
-            echo "Invalid DHCP range format /// 无效的 DHCP 范围格式"
+            echo
+            echo "[ERROR] Invalid DHCP range format /// 无效的 DHCP 范围格式"
             exit 1
         fi
     else
@@ -245,7 +249,7 @@ network_wizard() {
     read -p "是否开启强制 DHCP 模式？([Enter] 确认，按 [1] 跳过): " force_dhcp
     if [ "$force_dhcp" != "1" ]; then
         uci set dhcp.lan.force=1
-        echo "强制 DHCP 模式已开启"
+        echo "[INFO] 强制 DHCP 模式已开启"
     fi
     
     echo
@@ -253,12 +257,13 @@ network_wizard() {
     read -p "是否开启 UPNP？([Enter] 确认，按 [1] 跳过): " enable_upnp
     if [ "$enable_upnp" != "1" ]; then
         uci set upnpd.config.enabled=1
-        echo "UPNP 已开启"
+        echo "[INFO] UPNP 已开启"
     fi
     arch=$(grep "arch" /etc/catwrt_release | cut -d'=' -f2)
 
-    # 仅在 x86 和 aarch64_generic 架构上进行网口绑定
+    # BIND Interfaces
     if [ "$arch" = "amd64" ] || [ "$arch" = "aarch64_generic" ]; then
+        echo
         echo "[Step10] Configure network interfaces /// 配置网口"
         echo ""
         echo " Wan    LAN1    LAN2    LANX      ..."
@@ -268,15 +273,16 @@ network_wizard() {
         echo "Press [Enter] to configure network interfaces, press [1] to skip"
         read -p " /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
         if [ "$configure_network" != "1" ]; then
-            # 获取所有网口列表
+            # Get All ETH
             interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
             iface_count=$(echo "$interfaces" | wc -w)
 
             if [ "$iface_count" -eq 1 ]; then
                 echo "[Step10] Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
             else
+                echo
                 echo "[Step10] Detected multiple network interfaces /// 检测到多个网口"
-                # 默认桥接网口为 eth1，检测其他可用网口并添加到桥接列表
+                # ETH0 set WAN，ETH123 set LAN
                 bridge_ports=""
                 for iface in $interfaces; do
                     if [ "$iface" != "eth0" ]; then
@@ -298,14 +304,15 @@ network_wizard() {
                 uci set network.wan6.reqaddress='try'
                 uci set network.wan6.reqprefix='auto'
 
-                echo "[Step10] Network interfaces configured: WAN (eth0), LAN ($bridge_ports) /// 网口已配置: WAN (eth0), LAN ($bridge_ports)"
+                echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
             fi
         else
             echo "[Step10] Skipping network interface configuration /// 跳过网口配置"
         fi
     else
-        echo "[Step10] System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本。未进行任何更改。"
+        echo "[Step10] System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本，未进行任何更改"
     fi
+    echo
     echo "[INFO] Ready to reboot CatWrt!"
     uci commit
     /etc/init.d/network restart
