@@ -735,7 +735,7 @@ apply_repo() {
     if curl --output /dev/null --silent --head --fail "$CONF_PATH"; then
         echo "[INFO] 使用 $CONF_PATH"
     else
-        echo "[Error] 源文件不存在: $CONF_PATH"
+        echo "[Error] 源文件: $CONF_PATH 不存在请反馈"
         exit 1
     fi
 
@@ -752,7 +752,7 @@ apply_repo() {
 
     opkg update
 
-    echo "完成"
+    echo "[INFO] 软件源配置已完成可以通过 opkg install pkg 来安装插件/组件/内核模块!"
 }
 
 # catnd
