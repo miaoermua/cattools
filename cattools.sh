@@ -357,7 +357,7 @@ bypass_gateway() {
     echo "主路由 IP 地址：$router_ip"
     echo "本机(旁路网关) IP 地址：$device_ip"
     
-    echo ""
+    echo
     echo "[Step5] Use recommended DNS servers 223.6.6.6 119.29.29.99?"
     read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
@@ -368,7 +368,7 @@ bypass_gateway() {
         if [[ $use_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}(\s+([0-9]{1,3}\.){3}[0-9]{1,3})*$ ]]; then
             uci set network.lan.dns="$use_dns"
         else
-            echo "Invalid DNS format /// 无效的 DNS 格式"
+            echo "[ERROR] Invalid DNS format /// 无效的 DNS 格式"
             exit 1
         fi
     fi
@@ -388,16 +388,13 @@ bypass_gateway() {
     uci set firewall.@defaults[0].mss_clamping='1'
 
     # 启用 IP 伪装和 MTU fix
-    uci set firewall.@zone[0].masq='1'   # lan 区域
+    # lan 区域
+    uci set firewall.@zone[0].masq='1'   
     uci set firewall.@zone[0].mtu_fix='1'
-
-    uci set firewall.@zone[1].masq='1'   # wan 区域
+    # wan 区域
+    uci set firewall.@zone[1].masq='1'   
     uci set firewall.@zone[1].mtu_fix='1'
 
-    uci commit firewall
-
-    # 删除 WAN 口防火墙规则
-    
     uci commit firewall
 
     # 关闭 LAN 口的 DHCP 服务并删除相关配置
@@ -414,9 +411,10 @@ bypass_gateway() {
     /etc/init.d/network restart
     /etc/init.d/firewall restart
     /etc/init.d/dnsmasq restart
-
-    echo "如出现 Warning 是因为旁路的防火墙是这样报错的，部分配置可以忽略不影响使用"
-    echo ""
+    
+    echo
+    echo "[INFO] 如出现 Warning 是因为旁路的防火墙是这样报错的，部分配置可以忽略不影响使用"
+    echo
 }
 
 # Debug
@@ -431,22 +429,18 @@ debug() {
     echo "## RELEASE" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     cat /etc/catwrt_release >>/www/logs.txt
-    echo ""
 
     echo "## STATUS" >>/www/logs.txt
     echo "=================" >>/www/logs.txt
     eval $UPTIME >>/www/logs.txt
-    echo ""
 
     echo "## Memory Usage" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     free -h >>/www/logs.txt
-    echo ""
 
     echo "## Disk Usage" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     df -h >>/www/logs.txt
-    echo ""
 
     echo "## Application" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
@@ -455,12 +449,10 @@ debug() {
     echo "## SYSLOG" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     logread >>/www/logs.txt
-    echo ""
 
     echo "## DMESG" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     dmesg >>/www/logs.txt
-    echo ""
 
     echo "## Plugins" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
@@ -468,44 +460,39 @@ debug() {
     cat /tmp/log/ssrplus.log >>/www/logs.txt
     cat /tmp/log/passwall.log >>/www/logs.txt
     cat /tmp/log/passwall2.log >>/www/logs.txt
-    echo ""
 
     echo "## Task" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     top -b -n 1 >>/www/logs.txt
-    echo ""
 
     echo "## Network Configuration" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     ifconfig -a >>/www/logs.txt
-    echo ""
 
     echo "## UCI Network" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     uci show network >>/www/logs.txt
-    echo ""
 
     echo "## Firewall" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     iptables -L -v -n >>/www/logs.txt
     ip6tables -L -v -n >>/www/logs.txt
-    echo ""
 
     echo "## Routing Table" >>/www/logs.txt
     echo "==========" >>/www/logs.txt
     ip route >>/www/logs.txt
     ip -6 route >>/www/logs.txt
-    echo ""
 
     lan_ip=$(uci get network.lan.ipaddr)
 
-    echo "Finish!"
+    echo "Finish!    ==========================================================================================="
     echo "请使用浏览器访问此地址下载 LOG 文件  http://$lan_ip/logs.txt"
     echo "日志已收集到 /www/logs.txt 如果你使用 PPPoE 拨号请手动将宽带账密删除，再使用以下链接上传 Github issues 附件!"
-    echo ""
-    echo "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
+    echo
+    echo "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=bug&projects=&template=report.yaml"
     echo "尽可能使用 Github 提交你的问题不会操作再使用社交软件 TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476"
-    echo ""
+    echo
+    sleep 5
     exit
 }
 
@@ -727,10 +714,9 @@ apply_repo() {
         1)
             echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.xyz/sponsor"
             echo "我们将使用用户支持的费用用于继续维护 CatWrt 及博客"
-            sleep 1
             read -p "请输入支持代码: " sponsor_code
             if [ "$sponsor_code" != "vme50" ]; then
-                echo "支持代码无效，返回菜单选择其他软件源。"
+                echo "[ERROR] 支持代码无效，返回菜单选择其他软件源。"
                 apply_repo
                 return
             fi
@@ -773,23 +759,23 @@ apply_repo() {
 
 catnd() {
     echo "$(date) - Starting CatWrt Network Diagnostics"
-    echo " "
+    echo
 
     # Ping & PPPoE
     ping -c 3 223.5.5.5 >/dev/null
     if [ $? -eq 0 ]; then
         echo "[Ping] Network connection succeeded!"
-        echo " "
+        echo
     else
         ping -c 3 119.29.29.99 >/dev/null
         if [ $? -eq 0 ]; then
             echo "[Ping] Network connection succeeded,But there may be problems!"
-            echo " "
+            echo
         else
             pppoe_config=$(grep 'pppoe' /etc/config/network)
             if [ ! -z "$pppoe_config" ]; then
                 echo "[PPPoE] Please check if your PPPoE account and password are correct."
-                echo " "
+                echo
             fi
             exit 1
         fi
@@ -804,19 +790,19 @@ catnd() {
     for ip in $dns_servers; do
         if ! [[ $valid_dns =~ (^|[ ])$ip($|[ ]) ]]; then
             echo "[DNS] Recommended to delete DNS $ip"
-            echo " "
+            echo
             exit 1
         fi
     done
 
     # Bad DNS
     echo "[DNS] DNS configuration looks good!"
-    echo " "
+    echo
 
     bad_dns="114.114.114.114 114.114.115.115 119.29.29.29"
     if [[ $dns_config =~ $bad_dns ]]; then
         echo "[DNS] DNS may be polluted or unreliable"
-        echo " "
+        echo
     fi
 
     # nslookup
@@ -825,25 +811,25 @@ catnd() {
         nslookup www.miaoer.xyz >/dev/null
         if [ $? -eq 0 ]; then
             echo "[DNS] DNS resolution succeeded"
-            echo " "
+            echo
         else
             echo "[DNS] NS resolution failed for 'www.miaoer.xyz'"
             echo "[DNS] Your DNS server may have issues"
-            echo " "
+            echo
         fi
     fi
 
     # Public IP
     echo CatWrt IPv4 Addr: $(curl --silent --connect-timeout 5 4.ipw.cn)
-    echo " "
+    echo
 
     curl 6.ipw.cn --connect-timeout 5 >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "[IPv6] IPv6 network connection timed out"
-        echo " "
+        echo
     else
         echo CatWrt IPv6 Addr: $(curl --silent 6.ipw.cn)
-        echo " "
+        echo
     fi
 
     # IPv6
@@ -851,10 +837,10 @@ catnd() {
 
     if echo "$resp" | grep -q -E '240e|2408|2409|2401'; then
         echo "[IPv6] IPv6 access is preferred"
-        echo " "
+        echo
     else
         echo "[IPv6] IPv4 access is preferred"
-        echo " "
+        echo
     fi
 
     # Default IP
@@ -863,7 +849,7 @@ catnd() {
     if [ -z "$ipaddr_config" ]; then
         echo "[Default-IP] address is not the catwrt default 192.168.1.4"
         echo "Please configure your network at 'https://www.miaoer.xyz/posts/network/quickstart-catwrt'"
-        echo " "
+        echo
     fi
 
     # Bypass Gateway
@@ -872,7 +858,7 @@ catnd() {
     if [ -z "$wan_config" ]; then
         echo "[Bypass Gateway] No config for 'wan' interface found in /etc/config/network"
         echo "Please check if your device is set as a Bypass Gateway"
-        echo " "
+        echo
     fi
 
     # Rotuer Mode(PPPoE)
@@ -882,24 +868,24 @@ catnd() {
 
     if [ -n "$pass_config" ] && [ -n "$user_config" ] && [ -n "$pppoe_config" ]; then
         echo "[PPPoE] PPPoE Rotuer Mode"
-        echo " "
+        echo
     else
         echo "[PPPoE] DHCP protocol detected in WAN interface"
         echo "The device may not be in PPPoE Rotuer Mode"
-        echo " "
+        echo
     fi
 
     # IPv6 WAN6
     grep 'config interface' /etc/config/network | grep 'wan6' >/dev/null
     if [ $? -ne 0 ]; then
         echo "[wan6] Your IPv6 network may have issues"
-        echo " "
+        echo
     fi
 
     grep 'dhcpv6' /etc/config/network >/dev/null
     if [ $? -ne 0 ]; then
         echo "[wan6] Your IPv6 network may have issues"
-        echo " "
+        echo
     fi
 
     # Tcping
@@ -917,9 +903,8 @@ catnd() {
     tcping -q -c 1 google.com.hk
     [ $? -ne 0 ] && echo "Failed: google.com.hk"
 
-    echo " "
+    echo
     echo "$(date) - Network check completed!"
-    echo " "
     echo "CatWrt Network Diagnostics by @miaoermua"
 }
 
