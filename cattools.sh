@@ -1517,7 +1517,7 @@ install_ipk() {
     echo
     echo "[INFO] 检测 /tmp/upload/ 目录中的 IPK 文件..."
     lan_ip=$(uci get network.lan.ipaddr)
-    echo "[INFO] 文件上传访问链接:  http://$lan_ip/cgi-bin/luci/admin/system/filetransfer"
+    echo "[INFO] 文件上传访问链接: http://$lan_ip/cgi-bin/luci/admin/system/filetransfer"
     ipk_files=$(ls /tmp/upload/*.ipk 2>/dev/null)
     
     if [ -n "$ipk_files" ]; then
@@ -1551,77 +1551,78 @@ install_ipk() {
                 ;;
         esac
     else
-    echo "[INFO] 你可以通过 IPK 文件/URL 导入 IPK 文件安装"
-    read -p "请输入 IPK 文件路径或多个 URL (用英文逗号 ',' 分隔不能使用中文逗号'，'分割!): " input
+        echo "[INFO] 你可以通过 IPK 文件/URL 导入 IPK 文件安装"
+        read -p "请输入 IPK 文件路径或多个 URL (用英文逗号 ',' 分隔不能使用中文逗号'，'分割!): " input
 
-    if [[ -z "$input" ]]; then
-        echo "[INFO] 没有输入 URL，等待上传 IPK 文件..."
-        sleep 5  # 等待文件上传
-        ipk_files=$(ls /tmp/upload/*.ipk 2>/dev/null)
-    
-        if [ -n "$ipk_files" ]; then
-            echo "[INFO] 检测到本地文件: $ipk_files"
-            install_ipk_files "$ipk_files"
-        else
-            echo "[ERROR] 未检测到任何 IPK 文件，请重新尝试。"
-        fi
-    else
-        if [[ -f "$input" ]]; then
-            echo "[INFO] 检测到本地文件: $input"
-            install_ipk_files "$input"
-        else
-            urls=$(echo "$input" | tr ',' ' ')
-            echo "[INFO] 检测到多个 URL: $urls"
-            echo
-
-            for url in $urls; do
-                filename=$(basename "$url")
-            
-                if [[ "$filename" == *kmod* ]]; then
-                    echo "[Warn] 文件名包含 'kmod'，可能会出现兼容性问题: $filename"
-                fi
-            
-                echo "[INFO] 正在下载: $url"
-                wget -P /tmp/upload/ "$url"
-            done
-
+        if [[ -z "$input" ]]; then
+            echo "[INFO] 没有输入 URL，等待上传 IPK 文件..."
+            sleep 5  # 等待文件上传
             ipk_files=$(ls /tmp/upload/*.ipk 2>/dev/null)
+        
             if [ -n "$ipk_files" ]; then
+                echo "[INFO] 检测到本地文件: $ipk_files"
                 install_ipk_files "$ipk_files"
             else
-                echo "[ERROR] 无法下载任何 IPK 文件，请检查 URL 是否可以访问并下载"
+                echo "[ERROR] 未检测到任何 IPK 文件，请重新尝试。"
+            fi
+        else
+            if [[ -f "$input" ]]; then
+                echo "[INFO] 检测到本地文件: $input"
+                install_ipk_files "$input"
+            else
+                urls=$(echo "$input" | tr ',' ' ')
+                echo "[INFO] 检测到多个 URL: $urls"
+                echo
+
+                for url in $urls; do
+                    filename=$(basename "$url")
+                
+                    if [[ "$filename" == *kmod* ]]; then
+                        echo "[Warn] 文件名包含 'kmod'，可能会出现兼容性问题: $filename"
+                    fi
+                
+                    echo "[INFO] 正在下载: $url"
+                    wget -P /tmp/upload/ "$url"
+                done
+
+                ipk_files=$(ls /tmp/upload/*.ipk 2>/dev/null)
+                if [ -n "$ipk_files" ]; then
+                    install_ipk_files "$ipk_files"
+                else
+                    echo "[ERROR] 无法下载任何 IPK 文件，请检查 URL 是否可以访问并下载"
+                fi
             fi
         fi
     fi
+
+    # 安装 IPK 文件的逻辑
     install_ipk_files() {
-    files="$1"
-    
-    echo "[INFO] 安装前需要更新索引文件，获取在线软件源避免安装错误解决依赖问题"
-    echo "1. 确认（执行 apply_repo 配置软件源并 opkg update）"
-    echo "0. 尝试（仅 opkg update）"
-    read -p "请输入选项 (1/0): " confirm_net
+        files="$1"
+        
+        echo "[INFO] 安装前需要更新索引文件，获取在线软件源避免安装错误解决依赖问题"
+        echo "1. 确认（执行 apply_repo 配置软件源并 opkg update）"
+        echo "0. 尝试（仅 opkg update）"
+        read -p "请输入选项 (1/0): " confirm_net
 
-    if [ "$confirm_net" == "1" ]; then
-        echo "[INFO] 正在配置软件源..."
-        apply_repo
-        echo "[INFO] 更新软件包索引..."
-        opkg update
-    elif [ "$confirm_net" == "0" ]; then
-        echo "[INFO] 尝试仅更新软件包索引..."
-        opkg update
-    else
-        echo "[ERROR] 无效选择"
-        return
-    fi
+        if [ "$confirm_net" == "1" ]; then
+            echo "[INFO] 正在配置软件源..."
+            apply_repo
+            echo "[INFO] 更新软件包索引..."
+            opkg update
+        elif [ "$confirm_net" == "0" ]; then
+            echo "[INFO] 尝试仅更新软件包索引..."
+            opkg update
+        else
+            echo "[ERROR] 无效选择"
+            return
+        fi
 
-    for file in $files; do
-        echo "安装 IPK 文件: $file"
-        opkg install "$file" || echo "[错误] 安装 $file 时出错，请检查!"
-    done
+        for file in $files; do
+            echo "安装 IPK 文件: $file"
+            opkg install "$file" || echo "[错误] 安装 $file 时出错，请检查!"
+        done
     }
 }
-
-
 
 # TTYD (NOT SAFETY)
 configure_ttyd() {
