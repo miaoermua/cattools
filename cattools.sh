@@ -496,6 +496,7 @@ debug() {
 
     lan_ip=$(uci get network.lan.ipaddr)
 
+    echo
     echo "Finish!    ==========================================================================================="
     echo "请使用浏览器访问此地址下载 LOG 文件  http://$lan_ip/logs.txt"
     echo "日志已收集到 /www/logs.txt 如果你使用 PPPoE 拨号请手动将宽带账密删除，再使用以下链接上传 Github issues 附件!"
