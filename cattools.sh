@@ -330,7 +330,7 @@ network_wizard() {
         uci set network.wan6.reqprefix='auto'
 
         echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
-    }
+}
 
 # BypassGateway
 bypass_gateway() {
