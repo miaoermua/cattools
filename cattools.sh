@@ -1553,18 +1553,18 @@ install_ipk() {
         esac
     else
         echo "[INFO] 你可以通过 IPK 文件/URL 导入 IPK 文件安装"
-        read -p "请输入 IPK 文件路径或多个 URL (用英文逗号 ',' 分隔不能使用中文逗号'，'分割!): " input
+        read -p "请通过文件上传导入 IPK 文件，或多个 URL 在线下载(用英文逗号 ',' 分隔不能使用中文逗号'，'分割!): " input
 
         if [[ -z "$input" ]]; then
             echo "[INFO] 没有输入 URL，等待上传 IPK 文件..."
-            sleep 5  # 等待文件上传
+            sleep 5
             ipk_files=$(ls /tmp/upload/*.ipk 2>/dev/null)
 
             if [ -n "$ipk_files" ]; then
                 echo "[INFO] 检测到本地文件: $ipk_files"
                 install_ipk_manager "$ipk_files"
             else
-                echo "[ERROR] 未检测到任何 IPK 文件，请重新尝试。"
+                echo "[ERROR] 未检测到任何 IPK 文件，请重新尝试"
             fi
         else
             if [[ -f "$input" ]]; then
@@ -1579,7 +1579,7 @@ install_ipk() {
                     filename=$(basename "$url")
 
                     if [[ "$filename" == *kmod* ]]; then
-                        echo "[Warn] 文件名包含 'kmod'，可能会出现兼容性问题: $filename"
+                        echo "[Warn] 文件名包含 kmod 内核组件，如果不是 CatWrt 源下的可能会出现兼容性问题无法安装: $filename"
                     fi
 
                     echo "[INFO] 正在下载: $url"
