@@ -1592,7 +1592,6 @@ install_ipk() {
         fi
     fi
 
-
     install_ipk_files() {
     files="$1"
     
