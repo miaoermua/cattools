@@ -1245,7 +1245,7 @@ utilities_menu() {
     echo "2.    Tailscale 配置"
     echo "3.    LeigodAcc 配置"
     echo "4.    TTYD 免密配置(危险)"
-    echo "5.    安装软件源没有的 IPK 软件包"
+    echo "5.    导入 IPK 软件包"
     echo "6.    SSL/TLS 证书上传配置"
     echo "7.    重置 root 密码"
     echo "8.    重置系统"
