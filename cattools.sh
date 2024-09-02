@@ -1606,10 +1606,8 @@ install_ipk_manager() {
     read -p "请输入选项 (1/0): " confirm_net
 
     if [ "$confirm_net" == "1" ]; then
-        echo "[INFO] 正在配置软件源..."
+        echo "[INFO] 正在配置软件源并更新软件包索引..."
         apply_repo
-        echo "[INFO] 更新软件包索引..."
-        opkg update
     elif [ "$confirm_net" == "0" ]; then
         echo "[INFO] 尝试仅更新软件包索引..."
         opkg update
@@ -1619,8 +1617,8 @@ install_ipk_manager() {
     fi
 
     for file in $files; do
-        echo "安装 IPK 文件: $file"
-        opkg install "$file" || echo "[错误] 安装 $file 时出错，请检查!"
+        echo "[INFO] 安装 IPK 文件: $file"
+        opkg install "$file" || echo "[ERROR] 安装 $file 时出错，请检查!"
     done
 }
 
