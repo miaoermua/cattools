@@ -1543,6 +1543,7 @@ install_ipk() {
                 echo "[INFO] 移除 IPK 文件..."
                 rm -f /tmp/upload/*.ipk
                 echo "[INFO] 已移除所有 IPK 文件"
+                install_ipk
                 return
                 ;;
             *)
