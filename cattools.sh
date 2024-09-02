@@ -1595,7 +1595,6 @@ install_ipk() {
         fi
     fi
 
-    # 安装 IPK 文件的逻辑
     install_ipk_files() {
         files="$1"
         
