@@ -1515,11 +1515,13 @@ configure_leigodacc() {
 
 install_ipk() {
     echo
-    echo "检测 /tmp/upload/ 目录中的 IPK 文件..."
+    echo "[INFO] 检测 /tmp/upload/ 目录中的 IPK 文件..."
+    lan_ip=$(uci get network.lan.ipaddr)
+    echo "[INFO] 文件上传访问链接:  http://$lan_ip/cgi-bin/luci/admin/system/filetransfer"
     ipk_files=$(ls /tmp/upload/*.ipk 2>/dev/null)
     
     if [ -n "$ipk_files" ]; then
-        echo "检测到以下 IPK 文件已上传到 /tmp/upload/:"
+        echo "[INFO] 检测到以下 IPK 文件已上传到 /tmp/upload/:"
         echo "$ipk_files"
         echo
         echo "请选择操作: "
@@ -1530,21 +1532,21 @@ install_ipk() {
 
         case $choice in
             1)
-                echo "正在安装 IPK 文件..."
+                echo "[INFO] 正在安装 IPK 文件..."
                 install_ipk_files "$ipk_files"
                 ;;
             2)
-                echo "已选择稍后安装，请继续上传其他 IPK 文件。"
+                echo "[INFO] 已选择稍后安装，请继续上传其他 IPK 文件"
                 return
                 ;;
             3)
-                echo "移除 IPK 文件..."
+                echo "[INFO] 移除 IPK 文件..."
                 rm -f /tmp/upload/*.ipk
-                echo "已移除所有 IPK 文件。"
+                echo "[INFO] 已移除所有 IPK 文件"
                 return
                 ;;
             *)
-                echo "无效选项。"
+                echo "[ERROR] 无效选项"
                 return
                 ;;
         esac
@@ -1591,7 +1593,6 @@ install_ipk() {
             fi
         fi
     fi
-
     install_ipk_files() {
     files="$1"
     
