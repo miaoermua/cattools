@@ -1,0 +1,7 @@
+#!/bin/bash
+
+## Dangerous! this operation does not allow normal users to bypass cattools!
+
+MT798X_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8.mt798x/CatWrt.v23.8.mt798x-filogic-xiaomi_redmi-router-ax6000-squashfs-sysupgrade.bin"
+
+sysupgrade -v $MT798X_SYSUP

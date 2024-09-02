@@ -5,9 +5,12 @@ RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
 API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
 BASE_URL="https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/repo"
+
+# sysupgrade env
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
 AMD64_BIOS_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_bios"
 MT7621_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/mt7621/"
+MT798X_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/mt798x/"
 
 # Check ROOT & CatWrt/Lean's LEDE(QWRT)
 if [ $(id -u) != "0" ]; then
@@ -926,7 +929,8 @@ sysupgrade() {
     arch=$(cat /etc/catwrt_release | grep "^arch=" | cut -d'=' -f2)
     board_name=$(cat /tmp/sysinfo/board_name)
     
-    if [ "$arch" != "mt7621" ] && [ "$arch" != "amd64" ]; then
+    # 检查架构
+    if [ "$arch" != "mt7621" ] && [ "$arch" != "amd64" ] && [ "$arch" != "mt798x" ]; then
         echo "[Error] 不支持的架构: $arch"
         exit 1
     fi
@@ -947,8 +951,8 @@ sysupgrade() {
                 exit 1
                 ;;
         esac
+        firmware_url="$mt7621_sysup$base_fw_url"
     fi
-
 
     if [ "$arch" = "amd64" ]; then
         echo
@@ -976,13 +980,28 @@ sysupgrade() {
         fi
     fi
 
-    if [ "$arch" = "mt7621" ]; then
-        firmware_url="$MT7621_SYSUP$base_fw_url"
-    elif [ "$arch" = "amd64" ]; then
-        firmware_url=$firmware_url
+    if [ "$arch" = "mt798x" ]; then
+        case "$board_name" in
+            *"redmi-router-ax6000")
+                base_fw_url="sysup_redmi-router-ax6000"
+                ;;
+            *"tl-xdr6088")
+                base_fw_url="sysup_tl-xdr6088"
+                ;;
+            *"tl-xdr4288")
+                base_fw_url="sysup_tl-xdr4288"
+                ;;
+            *"tl-xdr6086")
+                base_fw_url="sysup_tl-xdr6086"
+                ;;
+            *)
+                echo "[Error] 该设备不支持通过此 Cattools 进行系统升级，请反馈给我们以支持!"
+                exit 1
+                ;;
+        esac
+        firmware_url="$mt798x_sysup$base_fw_url"
     fi
 
-    
     if [ -f /etc/catwrt_opkg_list_installed ]; then
         rm /etc/catwrt_opkg_list_installed
     fi
@@ -994,7 +1013,6 @@ sysupgrade() {
 
     echo ""
     echo "Warning   ================================================================="
-
     echo "即将升级系统，存在不可恢复风险请输入 ([1] 确认/[2] 取消)，15s 后将默认继续升级!"
     echo "该功能通过 OpenWrt sysupgrade 升级系统，不保证 100% 升级成功，请三思!"
     echo ""
