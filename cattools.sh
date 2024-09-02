@@ -271,68 +271,29 @@ network_wizard() {
         echo " eth0   eth1    eth2    ethX    ..."
         echo "      □    □    □    □      ..."
         echo ""
-        echo "Press [Enter] to configure network interfaces, press [1] to skip"
-        read -p " /// [Enter] 确认配置网口，按 [1] 跳过: " configure_network
-        if [ "$configure_network" != "1" ]; then
-        # Get All ETH
+        echo "Press [Enter] to skip network configuration, press [1] to configure /// 按 [Enter] 跳过网口配置，按 [1] 确认配置: "
+        read -p "" configure_network
+
         interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
         iface_count=$(echo "$interfaces" | wc -w)
 
         if [ "$iface_count" -eq 1 ]; then
-            echo "[Step10] Detected a single network interface, no configuration needed"
-            echo " /// 检测到单个网口，无需配置"
+            echo "[Step10] Detected a single network interface, no configuration needed /// 检测到单个网口，无需配置"
         elif [ "$iface_count" -eq 2 ]; then
-            echo "[Step10] Detected two network interfaces, configuration not recommended"
-            echo " /// 检测到两个网口，不推荐配置"
-            echo "Press [Enter] to skip, press [1] to configure /// ( [Enter] 跳过 ，按 [1] 配置)"
-            read -p " " continue_network
+            echo "[Step10] Detected two network interfaces, configuration not recommended /// 检测到两个网口，不推荐配置"
+            echo "Press [1] to configure, press [Enter] to skip /// 按 [1] 配置，按 [Enter] 跳过"
+            read -p "" continue_network
+
             if [ "$continue_network" != "1" ]; then
                 echo "[Step10] Skipping network interface configuration /// 跳过网口配置"
             else
-                bridge_ports=""
-                for iface in $interfaces; do
-                    if [ "$iface" != "eth0" ]; then
-                        bridge_ports="$bridge_ports $iface"
-                    fi
-                done
-                uci set network.wan.ifname='eth0'
-                uci set network.wan.proto='dhcp'
-                uci set network.lan.type='bridge'
-                uci set network.lan.ifname="$bridge_ports"
-                uci set network.lan._orig_ifname="$bridge_ports"
-                uci set network.lan._orig_bridge='true'
-
-                uci set network.wan6._orig_bridge='false'
-                uci set network.wan6._orig_ifname='eth1'
-                uci set network.wan6.ifname='eth0'
-                uci set network.wan6.reqaddress='try'
-                uci set network.wan6.reqprefix='auto'
-
-                echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
+                echo "[Step10] Configuring network interfaces... /// 开始配置网口..."
+                configure_network_interfaces "$interfaces"
             fi
         else
             echo "[Step10] Detected multiple network interfaces /// 检测到多个网口"
             echo "[Step10] Configuring network interfaces... /// 开始配置网口..."
-            bridge_ports=""
-            for iface in $interfaces; do
-                if [ "$iface" != "eth0" ]; then
-                    bridge_ports="$bridge_ports $iface"
-                fi
-            done
-            uci set network.wan.ifname='eth0'
-            uci set network.wan.proto='dhcp'
-            uci set network.lan.type='bridge'
-            uci set network.lan.ifname="$bridge_ports"
-            uci set network.lan._orig_ifname="$bridge_ports"
-            uci set network.lan._orig_bridge='true'
-
-            uci set network.wan6._orig_bridge='false'
-            uci set network.wan6._orig_ifname='eth1'
-            uci set network.wan6.ifname='eth0'
-            uci set network.wan6.reqaddress='try'
-            uci set network.wan6.reqprefix='auto'
-
-            echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
+            configure_network_interfaces "$interfaces"
         fi
     else
         echo "[Step10] System architecture $arch is not supported. No changes made. /// 系统架构 $arch 不支持该脚本，未进行任何更改"
@@ -345,7 +306,31 @@ network_wizard() {
     /etc/init.d/firewall restart
     /etc/init.d/miniupnpd restart
     reboot
-}
+
+    configure_network_interfaces() {
+        local interfaces="$1"
+        bridge_ports=""
+
+        for iface in $interfaces; do
+            if [ "$iface" != "eth0" ]; then
+                bridge_ports="$bridge_ports $iface"
+            fi
+        done
+
+        uci set network.wan.ifname='eth0'
+        uci set network.wan.proto='dhcp'
+        uci set network.lan.type='bridge'
+        uci set network.lan.ifname="$bridge_ports"
+        uci set network.lan._orig_ifname="$bridge_ports"
+        uci set network.lan._orig_bridge='true'
+        uci set network.wan6._orig_bridge='false'
+        uci set network.wan6._orig_ifname='eth1'
+        uci set network.wan6.ifname='eth0'
+        uci set network.wan6.reqaddress='try'
+        uci set network.wan6.reqprefix='auto'
+
+        echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
+    }
 
 # BypassGateway
 bypass_gateway() {
