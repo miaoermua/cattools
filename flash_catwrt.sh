@@ -69,12 +69,22 @@ if [ $? -ne 0 ] || [ ! -f "$firmware_file" ]; then
     exit 1
 fi
 
-echo "[INFO] 固件已下载到 $firmware_file 即将使用 dd 命令覆写 /dev/$target_disk"
+# 解压固件
+echo "[INFO] 解压固件..."
+gunzip -f "$firmware_file"
+firmware_file="/tmp/catwrt_sysupgrade.img"
+
+if [ ! -f "$firmware_file" ]; then
+    echo "[ERROR] 固件解压失败"
+    exit 1
+fi
+
+echo "[INFO] 固件已解压到 $firmware_file 即将使用 dd 命令覆写 /dev/$target_disk"
 echo "[INFO] 此操作将永久删除所有数据，无法恢复。按 [ENTER] 回车键继续，或按 [Ctrl]+[C] 终止操作"
 read -r
 
 # 写入固件
-dd if="$firmware_file" of="/dev/$target_disk" status=progress
+dd if="$firmware_file" of="/dev/$target_disk" bs=4M status=progress
 
 
 echo "Successful!"
