@@ -74,7 +74,7 @@ echo "[INFO] 此操作将永久删除所有数据，无法恢复。按 [ENTER] �
 read -r
 
 # 写入固件
-dd if="$firmware_file" of="/dev/$target_disk" bs=4096k status=progress
+dd if="$firmware_file" of="/dev/$target_disk" status=progress
 
 
 echo "Successful!"
