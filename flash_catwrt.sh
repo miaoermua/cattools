@@ -5,91 +5,76 @@ if [ $(id -u) != "0" ]; then
     exit 1
 fi
 
-total_mem=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-if [ "$total_mem" -lt 1048576 ]; then
-    echo "Error: At least 1G of total memory is required"
-    exit 1
-fi
+disks=$(lsblk -dno NAME,SIZE | grep -E '^sd|^vd|^nvme')
 
-root_disk=$(df / | awk 'NR==2 {print $2}')
-if [ "$root_disk" -lt 1048576 ]; then
-    echo "Error: At least 1G of total disk space is required"
-    exit 1
-fi
+disk_count=$(echo "$disks" | wc -l)
 
-if ! grep -q "x86" /proc/cpuinfo; then
-    echo "Error: This script only supports x86 devices"
-    exit 1
-fi
-
-release_info=$(cat /etc/openwrt_release)
-if echo "$release_info" | grep -qE "iStoreOS|QWRT|ImmortalWrt|LEDE"; then
-    echo "Detected third-party firmware: $(echo "$release_info" | grep -E "iStoreOS|QWRT|ImmortalWrt|LEDE")"
-fi
-
-board_name=$(cat /tmp/sysinfo/board_name 2>/dev/null)
-if [ -n "$board_name" ]; then
-    echo "Board name: $board_name"
+if [ "$disk_count" -eq 1 ]; then
+    target_disk=$(echo "$disks" | awk '{print $1}')
+    echo "检测到一个磁盘：/dev/$target_disk"
 else
-    echo "Board name information not found"
-fi
+    echo "检测到多个磁盘，请选择目标磁盘："
+    
 
-efi_mode=0
+    index=1
+    echo "$disks" | while read -r disk; do
+        echo "$index) $disk"
+        index=$((index + 1))
+    done
 
-if [ -d /sys/firmware/efi ]; then
-  efi_mode=1
-fi
-
-is_efi_boot() {
-    [ -e /dev/sda128 ] || [ -e /dev/vda128 ] || [ -e /dev/nvme0n1p128 ] || [ "$efi_mode" -eq 1 ]
-}
-
-AMD64_EFI_SYSUP="https://mirror.ghproxy.com/https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined-efi.img.gz"
-AMD64_BIOS_SYSUP="https://mirror.ghproxy.com/https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined.img.gz"
-
-TIMEOUT=30
-TRIES=3
-
-download_firmware() {
-    url=$1
-    output=$2
-
-    wget --timeout=$TIMEOUT --tries=$TRIES -O "$output" "$url"
-    if [ $? -ne 0 ]; then
-       echo "固件下载失败"
-       exit 1
+    read -p "请输入目标磁盘的数字编号： " disk_choice
+    if ! echo "$disk_choice" | grep -qE '^[0-9]+$'; then
+        echo "无效输入，必须为数字"
+        exit 1
     fi
-}
 
-disk_count=$(lsblk -d | grep -c '^sd\|^vd\|^nvme')
+    target_disk=$(echo "$disks" | sed -n "${disk_choice}p" | awk '{print $1}')
+    if [ -z "$target_disk" ]; then
+        echo "无效的选择"
+        exit 1
+    fi
 
-if [ "$disk_count" -ne 1 ]; then
-    echo "检测到多个磁盘，终止操作"
-    exit 1
+    echo "你选择的目标磁盘是：/dev/$target_disk"
 fi
 
-if is_efi_boot; then
-    firmware_url=$AMD64_EFI_SYSUP
+# 是否使用 ghproxy 加速
+read -p "是否使用 ghproxy 加速下载固件? (y/n): " use_ghproxy
+if [ "$use_ghproxy" = "y" ] || [ "$use_ghproxy" = "Y" ]; then
+    echo "将使用 ghproxy 进行下载加速"
+    GH_PROXY_PREFIX="https://mirror.ghproxy.com/"
 else
-    firmware_url=$AMD64_BIOS_SYSUP
+    echo "不使用 ghproxy 加速"
+    GH_PROXY_PREFIX=""
 fi
 
-firmware_file="/tmp/catwrt_sysupgrade.img.gz"
-download_firmware "$firmware_url" "$firmware_file"
+# 选择是否 efi
+efi_mode=0
+if [ -d /sys/firmware/efi ]; then
+    efi_mode=1
+fi
 
-if [ ! -f "$firmware_file" ]; then
-    echo "固件下载失败，文件不存在"
+# 添加 ghproxy
+AMD64_EFI_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined-efi.img.gz"
+AMD64_BIOS_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined.img.gz"
+
+firmware_url=$([ "$efi_mode" -eq 1 ] && echo "$AMD64_EFI_SYSUP" || echo "$AMD64_BIOS_SYSUP")
+
+# 下载固件
+firmware_file="/tmp/catwrt_sysupgrade.img.gz"
+wget --timeout=30 --tries=3 -O "$firmware_file" "$firmware_url"
+if [ $? -ne 0 ] || [ ! -f "$firmware_file" ]; then
+    echo "固件下载失败"
     exit 1
 fi
 
-echo ""
-echo "固件已下载到 $firmware_file。即将使用 dd 命令覆写整个磁盘 /dev/$target_disk。"
-echo "此操作将永久删除所有数据，无法恢复"
-echo "按回车键继续，或按 Ctrl+C 取消操作"
+echo "固件已下载到 $firmware_file。即将使用 dd 命令覆写 /dev/$target_disk。"
+echo "此操作将永久删除所有数据，无法恢复。按回车键继续，或按 Ctrl+C 取消操作"
 read -r
 
-target_disk=$(lsblk -d | grep '^sd\|^vd\|^nvme' | awk '{print $1}')
+# 写入固件
 dd if="$firmware_file" of="/dev/$target_disk" bs=4M status=progress
+
+echo "固件更新完成。重启后使用 cattools 配置 CatWrt。"
 
 echo "固件更新完成"
 echo ""
