@@ -145,6 +145,31 @@ setip() {
     echo "默认 IP 已设置为 $input_ip"
 }
 
+configure_network_interfaces() {
+        local interfaces="$1"
+        bridge_ports=""
+
+        for iface in $interfaces; do
+            if [ "$iface" != "eth0" ]; then
+                bridge_ports="$bridge_ports $iface"
+            fi
+        done
+
+        uci set network.wan.ifname='eth0'
+        uci set network.wan.proto='dhcp'
+        uci set network.lan.type='bridge'
+        uci set network.lan.ifname="$bridge_ports"
+        uci set network.lan._orig_ifname="$bridge_ports"
+        uci set network.lan._orig_bridge='true'
+        uci set network.wan6._orig_bridge='false'
+        uci set network.wan6._orig_ifname='eth1'
+        uci set network.wan6.ifname='eth0'
+        uci set network.wan6.reqaddress='try'
+        uci set network.wan6.reqprefix='auto'
+
+        echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
+}
+
 # Network Wizard
 network_wizard() {
     echo
@@ -276,6 +301,7 @@ network_wizard() {
         echo ""
         echo "Press [Enter] to skip network configuration, press [1] to configure /// 按 [Enter] 跳过网口配置，按 [1] 确认配置: "
         read -p "" configure_network
+        echo
 
         interfaces=$(ls /sys/class/net | grep -E 'eth[0-9]+')
         iface_count=$(echo "$interfaces" | wc -w)
@@ -309,31 +335,6 @@ network_wizard() {
     /etc/init.d/firewall restart
     /etc/init.d/miniupnpd restart
     reboot
-
-    configure_network_interfaces() {
-        local interfaces="$1"
-        bridge_ports=""
-
-        for iface in $interfaces; do
-            if [ "$iface" != "eth0" ]; then
-                bridge_ports="$bridge_ports $iface"
-            fi
-        done
-
-        uci set network.wan.ifname='eth0'
-        uci set network.wan.proto='dhcp'
-        uci set network.lan.type='bridge'
-        uci set network.lan.ifname="$bridge_ports"
-        uci set network.lan._orig_ifname="$bridge_ports"
-        uci set network.lan._orig_bridge='true'
-        uci set network.wan6._orig_bridge='false'
-        uci set network.wan6._orig_ifname='eth1'
-        uci set network.wan6.ifname='eth0'
-        uci set network.wan6.reqaddress='try'
-        uci set network.wan6.reqprefix='auto'
-
-        echo "[Step10] Network interfaces configured: WAN (ETH0), LAN ($bridge_ports) /// 网口已配置: WAN (ETH0), LAN ($bridge_ports)"
-    }
 }
 
 # BypassGateway
