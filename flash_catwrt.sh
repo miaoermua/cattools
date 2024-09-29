@@ -56,8 +56,8 @@ if [ -d /sys/firmware/efi ]; then
 fi
 
 # 添加 ghproxy
-AMD64_EFI_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined-efi.img.gz"
-AMD64_BIOS_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-ext4-combined.img.gz"
+AMD64_EFI_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-squashfs-combined-efi.img.gz"
+AMD64_BIOS_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-squashfs-combined.img.gz"
 
 firmware_url=$([ "$efi_mode" -eq 1 ] && echo "$AMD64_EFI_SYSUP" || echo "$AMD64_BIOS_SYSUP")
 
