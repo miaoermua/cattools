@@ -77,11 +77,12 @@ read -r
 dd if="$firmware_file" of="/dev/$target_disk" bs=4096k status=progress
 
 
-echo "固件覆写成功，重启后使用 cattools 配置 CatWrt。"
-
-echo ""
+echo "Successful!"
+echo
+echo "固件覆写成功，重启后使用 cattools 配置 CatWrt"
+echo
 echo "重启后可使用 cattools 命令配置 CatWrt，或者自行配置"
-echo "IP: 192.168.1.4"
-echo "密码: password"
-
+echo "默认 IP: 192.168.1.4"
+echo "默认密码: password"
+echo
 reboot
