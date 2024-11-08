@@ -3,7 +3,7 @@
 DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
-API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
+API_URL="https://api.miaoer.net/api/v2/snippets/catwrt/update"
 BASE_URL="https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/repo"
 
 # sysupgrade env
@@ -71,7 +71,7 @@ menu() {
     echo ""
     echo "----------------------------------------------------------"
     echo "                         CatTools                         "
-    echo "        https://www.miaoer.xyz/posts/blog/cattools        "
+    echo "        https://www.miaoer.net/posts/blog/cattools        "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                  -  设置 IP"
     echo "2. Network_Wizard                         -  网络向导"
@@ -728,7 +728,7 @@ apply_repo() {
 
         case $choice in
         1)
-            echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.xyz/sponsor"
+            echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.net/sponsor"
             echo "我们将使用用户支持的费用用于继续维护 CatWrt 及博客"
             read -p "请输入支持代码: " sponsor_code
             if [ "$sponsor_code" != "vme50" ]; then
@@ -824,12 +824,12 @@ catnd() {
     # nslookup
     nslookup bilibili.com >/dev/null
     if [ $? -ne 0 ]; then
-        nslookup www.miaoer.xyz >/dev/null
+        nslookup www.miaoer.net >/dev/null
         if [ $? -eq 0 ]; then
             echo "[DNS] DNS resolution succeeded"
             echo
         else
-            echo "[DNS] NS resolution failed for 'www.miaoer.xyz'"
+            echo "[DNS] NS resolution failed for 'www.miaoer.net'"
             echo "[DNS] Your DNS server may have issues"
             echo
         fi
@@ -864,7 +864,7 @@ catnd() {
 
     if [ -z "$ipaddr_config" ]; then
         echo "[Default-IP] address is not the catwrt default 192.168.1.4"
-        echo "Please configure your network at 'https://www.miaoer.xyz/posts/network/quickstart-catwrt'"
+        echo "Please configure your network at 'https://www.miaoer.net/posts/network/quickstart-catwrt'"
         echo
     fi
 
@@ -1228,7 +1228,7 @@ catwrt_opkg_list_installed() {
             echo "如果不想支持我们也可以使用免费 serverless 提供的镜像服务选择非主站即可"
             echo "不会对我们服务器造成流量激增，但访问速度受限于国际互联网"
             echo ""
-            echo "https://www.miaoer.xyz/sponsor"
+            echo "https://www.miaoer.net/sponsor"
             echo ""
             echo "你可以复制下链接在浏览器上打开，待恢复软件包后再进行支付!"
             echo "========================================================================="
@@ -1470,7 +1470,7 @@ configure_tailscale() {
 
     echo "Tailscale 配置部分，剩下的交给你了~"
     echo "[INFO] 需要绑定 tailscale 接口: http://$lan_ip/cgi-bin/luci/admin/network/iface_add"
-    echo "[INFO] CatTools - tailscale 配置博客: https://www.miaoer.xyz/posts/blog/cattools-step"
+    echo "[INFO] CatTools - tailscale 配置博客: https://www.miaoer.net/posts/blog/cattools-step"
     sleep 5
 }
 
