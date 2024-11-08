@@ -98,7 +98,7 @@ help() {
     echo "HELP:"
     echo "遇到问题了? 请使用本工具菜单中的 debug 选项，尝试反馈以解决问题!"
     echo "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
-    echo "TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476  // Blog: miaoer.xyz"
+    echo "TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476  // Blog: miaoer.net"
     exit 0
 }
 
