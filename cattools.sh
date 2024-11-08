@@ -3,7 +3,7 @@
 DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
-API_URL="https://api./api/v2/snippets/catwrt/update"
+API_URL="https://api.miaoer.net/api/v2/snippets/catwrt/update"
 BASE_URL="https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/repo"
 
 # sysupgrade env
@@ -31,7 +31,7 @@ update_cattools() {
     local retries=3
     local success=false
     local urls=(
-        "https://service./cattools/cattools.sh"
+        "https://service.miaoer.xyz/cattools/cattools.sh"
         "https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
         "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
     )
