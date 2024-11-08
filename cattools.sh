@@ -75,7 +75,7 @@ menu() {
     echo "----------------------------------------------------------"
     echo "1. SetIP                                  -  设置 IP"
     echo "2. Network_Wizard                         -  网络向导"
-    echo "3. Apply_repo                             -  软件源配置"
+    echo "3. Apply_                             -  软件源配置"
     echo "4. Diagnostics                            -  网络诊断"
     echo "5. Debug                                  -  抓取日志"
     echo "6. Catwrt_update                          -  检查更新"
@@ -716,7 +716,7 @@ apply_repo() {
     else
         echo "============================================================================"
         echo "请选择要使用的软件源:"
-        echo "1) repo.    (主站)"
+        echo "1) repo.miaoer.xyz    (主站)"
         echo "2) Github-Pages"
         echo "3) Cloudflare-Netlify"
         echo "4) Netlify"
