@@ -3,7 +3,7 @@
 DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
-API_URL="https://api.miaoer.net/api/v2/snippets/catwrt/update"
+API_URL="https://api.miaoer.xyz/api/v2/snippets/catwrt/update"
 BASE_URL="https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/repo"
 
 # sysupgrade env
@@ -71,7 +71,7 @@ menu() {
     echo ""
     echo "----------------------------------------------------------"
     echo "                         CatTools                         "
-    echo "        https://www.miaoer.net/posts/blog/cattools        "
+    echo "        https://www.miaoer.xyz/posts/blog/cattools        "
     echo "----------------------------------------------------------"
     echo "1. SetIP                                  -  设置 IP"
     echo "2. Network_Wizard                         -  网络向导"
@@ -98,7 +98,7 @@ help() {
     echo "HELP:"
     echo "遇到问题了? 请使用本工具菜单中的 debug 选项，尝试反馈以解决问题!"
     echo "https://github.com/miaoermua/CatWrt/issues/new?assignees=&labels=&projects=&template=report.md&title="
-    echo "TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476  // Blog: "
+    echo "TG Guoup: t.me/miaoergroup  //  QQ Guoup: 669190476  // Blog: miaoer.xyz"
     exit 0
 }
 
@@ -728,7 +728,7 @@ apply_repo() {
 
         case $choice in
         1)
-            echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.net/sponsor"
+            echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.xyz/sponsor"
             echo "我们将使用用户支持的费用用于继续维护 CatWrt 及博客"
             read -p "请输入支持代码: " sponsor_code
             if [ "$sponsor_code" != "vme50" ]; then
@@ -824,12 +824,12 @@ catnd() {
     # nslookup
     nslookup bilibili.com >/dev/null
     if [ $? -ne 0 ]; then
-        nslookup www.miaoer.net >/dev/null
+        nslookup www.miaoer.xyz >/dev/null
         if [ $? -eq 0 ]; then
             echo "[DNS] DNS resolution succeeded"
             echo
         else
-            echo "[DNS] NS resolution failed for 'www.miaoer.net'"
+            echo "[DNS] NS resolution failed for 'www.miaoer.xyz'"
             echo "[DNS] Your DNS server may have issues"
             echo
         fi
@@ -864,7 +864,7 @@ catnd() {
 
     if [ -z "$ipaddr_config" ]; then
         echo "[Default-IP] address is not the catwrt default 192.168.1.4"
-        echo "Please configure your network at 'https://www.miaoer.net/posts/network/quickstart-catwrt'"
+        echo "Please configure your network at 'https://www.miaoer.xyz/posts/network/quickstart-catwrt'"
         echo
     fi
 
@@ -1180,7 +1180,7 @@ catwrt_opkg_list_installed() {
         "amd64-microcode"
     )
 
-    if ! grep -q -E "catwrt|repo." /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[Error] 请先配置软件源"
         apply_repo
     fi
@@ -1223,12 +1223,12 @@ catwrt_opkg_list_installed() {
     main() {
         if [ -f "$BACKUP_FILE" ]; then
             echo "Sponsor us    ==========================================================="
-            echo "你执行的下面命令如果使用的主站软件源 repo. 将对服务器带宽产生新的挑战"
+            echo "你执行的下面命令如果使用的主站软件源 repo.miaoer.xyz 将对服务器带宽产生新的挑战"
             echo "我们希望你在使用后继续支持我们，继续为您提供更好的服务"
             echo "如果不想支持我们也可以使用免费 serverless 提供的镜像服务选择非主站即可"
             echo "不会对我们服务器造成流量激增，但访问速度受限于国际互联网"
             echo ""
-            echo "https://www.miaoer.net/sponsor"
+            echo "https://www.miaoer.xyz/sponsor"
             echo ""
             echo "你可以复制下链接在浏览器上打开，待恢复软件包后再进行支付!"
             echo "========================================================================="
@@ -1287,7 +1287,7 @@ utilities_menu() {
 }
 
 configure_luci_mihomo() {
-    if ! grep -q -E "catwrt|repo." /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1413,7 +1413,7 @@ configure_luci_mihomo() {
 }
 
 configure_tailscale() {
-    if ! grep -q -E "catwrt|repo." /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1470,7 +1470,7 @@ configure_tailscale() {
 
     echo "Tailscale 配置部分，剩下的交给你了~"
     echo "[INFO] 需要绑定 tailscale 接口: http://$lan_ip/cgi-bin/luci/admin/network/iface_add"
-    echo "[INFO] CatTools - tailscale 配置博客: https://www.miaoer.net/posts/blog/cattools-step"
+    echo "[INFO] CatTools - tailscale 配置博客: https://www.miaoer.xyz/posts/blog/cattools-step"
     sleep 5
 }
 
@@ -1482,7 +1482,7 @@ configure_leigodacc() {
     fi
 
     if [ -f /etc/catwrt_release ]; then
-        if ! grep -q -E "catwrt|repo." /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
             echo "[ERROR] 请先配置 CatWrt 软件源"
             apply_repo
         fi
@@ -1529,7 +1529,7 @@ configure_leigodacc() {
         fi
     done
 
-    sh -c "$(curl -fsSL https://service./openwrt-leigodacc-manager/leigod.sh)"
+    sh -c "$(curl -fsSL https://service.miaoer.xyz/openwrt-leigodacc-manager/leigod.sh)"
 }
 
 install_ipk() {
@@ -1693,7 +1693,7 @@ configure_ttyd() {
 
 # Manual upload SSL/TLS
 manual_deploy_uhttpd_ssl_cert() {
-    if ! grep -q -E "catwrt|repo." /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1847,31 +1847,31 @@ patch_catwrt_release() {
             fi
         fi
     else
-        if [ "$(uname -m)" == "mips" ] || [ "$(uname -m)" == "mipsel" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "" /etc/banner; then
+        if [ "$(uname -m)" == "mips" ] || [ "$(uname -m)" == "mipsel" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
             echo "version=v22.12" >$RELEASE
             echo "arch=mt7621" >>$RELEASE
             echo "source=lean" >>$RELEASE
             echo "hash=a1682a48834efdc6c5e2c3c62921b3195d306c8c" >>$RELEASE
             echo "The patch file has been installed!"
-        elif [ "$(uname -m)" == "aarch64" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "" /etc/banner; then
+        elif [ "$(uname -m)" == "aarch64" ] && grep -q "R22.12.1" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
             echo "version=v22.12" >$RELEASE
             echo "arch=rkarm" >>$RELEASE
             echo "source=lean" >>$RELEASE
             echo "hash=3fd4930e781e40e3f85e2c6c082d6fcdd544e9ce" >>$RELEASE
             echo "The patch file has been installed!"
-        elif [ "$(uname -m)" == "x86_64" ] && grep -q "R23.2" /etc/openwrt_release && grep -q "" /etc/banner; then
+        elif [ "$(uname -m)" == "x86_64" ] && grep -q "R23.2" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
             echo "version=v23.2" >$RELEASE
             echo "arch=amd64" >>$RELEASE
             echo "source=lean" >>$RELEASE
             echo "hash=0239fab82eb640b55d4f4050cbc227ffd22087f3" >>$RELEASE
             echo "The patch file has been installed!"
-        elif [ "$(uname -m)" == "aarch64" ] && grep -q "R23.2.14" /etc/openwrt_release && grep -q "" /etc/banner && grep -q "mt7986a" /etc/banner; then
+        elif [ "$(uname -m)" == "aarch64" ] && grep -q "R23.2.14" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner && grep -q "mt7986a" /etc/banner; then
             echo "version=v23.2" >$RELEASE
             echo "arch=mt798x" >>$RELEASE
             echo "source=lean" >>$RELEASE
             echo "hash=5e4da39a20e95ff548c3eca1b8c3a2b76c4256d5" >>$RELEASE
             echo "The patch file has been installed!"
-        elif [ "$(uname -m)" == "x86_64" ] && grep -q "R22.11.11" /etc/openwrt_release && grep -q "" /etc/banner; then
+        elif [ "$(uname -m)" == "x86_64" ] && grep -q "R22.11.11" /etc/openwrt_release && grep -q "miaoer.xyz" /etc/banner; then
             echo "version=v22.12" >$RELEASE
             echo "arch=amd64" >>$RELEASE
             echo "source=lean" >>$RELEASE
