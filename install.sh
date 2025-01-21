@@ -15,7 +15,7 @@ fi
 install_cattools() {
     if [ ! -f /usr/bin/cattools ]; then
         echo "cattools not found, installing..."
-        if curl --silent --connect-timeout 5 -o /usr/bin/cattools https://service.miaoer.xyz/cattools/cattools.sh; then
+        if curl --silent --connect-timeout 5 -o /usr/bin/cattools https://raw.miaoer.net/cattools/cattools.sh; then
             echo "cattools installed successfully from the first URL."
         elif curl --silent --connect-timeout 5 -o /usr/bin/cattools https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh; then
             echo "cattools installed successfully from the second URL."
