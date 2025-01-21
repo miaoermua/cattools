@@ -31,8 +31,7 @@ update_cattools() {
     local retries=3
     local success=false
     local urls=(
-        "https://service.miaoer.xyz/cattools/cattools.sh"
-        "https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
+        "https://raw.miaoer.net/cattools/cattools.sh"
         "https://raw.githubusercontent.com/miaoermua/cattools/main/cattools.sh"
     )
 
