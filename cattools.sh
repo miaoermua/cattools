@@ -1476,7 +1476,7 @@ configure_tailscale() {
 configure_leigodacc() {
     if [ -d /usr/sbin/leigod ]; then
         echo "[INFO] 检测到已经安装 LeigodAcc，直接使用 LeigodAcc 管理器"
-        sh -c "$(curl -fsSL https://fastly.jsdelivr.net/gh/miaoermua/openwrt-leigodacc-manager@main/leigod.sh)"
+        sh -c "$(curl -fsSL https://raw.miaoer.net/openwrt-leigodacc-manager/leigod.sh)"
         return
     fi
 
@@ -1528,7 +1528,7 @@ configure_leigodacc() {
         fi
     done
 
-    sh -c "$(curl -fsSL https://service.miaoer.xyz/openwrt-leigodacc-manager/leigod.sh)"
+    sh -c "$(curl -fsSL https://raw.miaoer.net/openwrt-leigodacc-manager/leigod.sh)"
 }
 
 install_ipk() {
