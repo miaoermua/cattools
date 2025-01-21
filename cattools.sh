@@ -4,7 +4,7 @@ DEFAULT_IP="192.168.1.4"
 RELEASE="/etc/catwrt_release"
 BACKUP_FILE="/etc/catwrt_opkg_list_installed"
 API_URL="https://api.miaoer.net/api/v2/snippets/catwrt/update"
-BASE_URL="https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/repo"
+BASE_URL="https://raw.miaoer.net/cattools/repo"
 
 # sysupgrade env
 AMD64_EFI_SYSUP="https://raw.githubusercontent.com/miaoermua/cattools/main/sysupgrade/amd64/sysup_efi"
