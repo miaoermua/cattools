@@ -1441,7 +1441,7 @@ configure_tailscale() {
     subnet="$i1.$i2.$i3.0/$mask"
 
     echo "[INFO] 下载配置..."
-    curl -fsSL https://mirror.ghproxy.com/https://raw.githubusercontent.com/miaoermua/cattools/main/configure/tailscale.sh -o /tmp/tailscale.sh
+    curl -fsSL https://raw.miaoer.net/cattools/configure/tailscale.sh -o /tmp/tailscale.sh
     if [ $? -ne 0 ]; then
         echo "[ERROR] 下载配置失败..."
         menu
