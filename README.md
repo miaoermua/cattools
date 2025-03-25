@@ -2,6 +2,11 @@
 
 基于 BASH 编写的 CatWrt 强大工具箱，帮助用户轻松实现各种实用功能。
 
+[![Stars](https://m3-markdown-badges.vercel.app/stars/3/3/miaoermua/cattools)](https://github.com/miaoermua/cattools)
+[![Issues](https://m3-markdown-badges.vercel.app/issues/1/2/miaoermua/cattools)](https://github.com/miaoermua/cattools/issues)
+[![Support](https://ziadoua.github.io/m3-Markdown-Badges/badges/Sponsor/sponsor1.svg)](https://www.miaoer.net/sponsor)
+[![COPYING](https://ziadoua.github.io/m3-Markdown-Badges/badges/LicenceGPLv2/licencegplv23.svg)](https://github.com/miaoermua/cattools/blob/main/LICENSE)
+
 Blog: <https://www.miaoer.xyz/posts/blog/cattools>
 
 执行下列命令 **一键安装 Cattools**，安装后输入 `cattools` 或 `/usr/bin/cattools` 并回车即可使用。
