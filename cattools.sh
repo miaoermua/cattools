@@ -1184,7 +1184,7 @@ catwrt_opkg_list_installed() {
         "amd64-microcode"
     )
 
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[Error] 请先配置软件源"
         apply_repo
     fi
@@ -1291,7 +1291,7 @@ utilities_menu() {
 }
 
 configure_luci_mihomo() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1417,7 +1417,7 @@ configure_luci_mihomo() {
 }
 
 configure_tailscale() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1486,7 +1486,7 @@ configure_leigodacc() {
     fi
 
     if [ -f /etc/catwrt_release ]; then
-        if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
             echo "[ERROR] 请先配置 CatWrt 软件源"
             apply_repo
         fi
@@ -1697,7 +1697,7 @@ configure_ttyd() {
 
 # Manual upload SSL/TLS
 manual_deploy_uhttpd_ssl_cert() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz" /etc/opkg/distfeeds.conf && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1813,6 +1813,8 @@ openwrt_firstboot() {
         menu
         return
     fi
+
+    echo "你还需要 'yes' 一次就开始 reset system"
     firstboot && reboot
 }
 
@@ -1836,18 +1838,27 @@ reset_root_password() {
     exit
 }
 
+patch_banner_domains()
+{
+    if grep -q "Blog: miaoer\.xyz" "/etc/banner"; then
+        echo "+ patch : miaoer.xyz > miaoer.net"
+        sed -i 's/Blog: miaoer\.xyz/Blog: miaoer.net/g' "/etc/banner"
+    fi
+}
+
+
 patch_catwrt_release() {
     if [ -f $RELEASE ]; then
         if ! grep -q "source=lean" $RELEASE; then
             if grep -q "version=v23.7" $RELEASE && grep -q "arch=amd64" $RELEASE; then
                 echo "source=lean" >>$RELEASE
-                echo "Update release files x86_64 v23.7"
+                echo "+ patch : release files x86_64 v23.7"
             elif grep -q "version=v23.8" $RELEASE && grep -q "arch=amd64" $RELEASE; then
                 echo "source=lean" >>$RELEASE
-                echo "Update release files x86_64 v23.8"
+                echo "+ patch : release files x86_64 v23.8"
             elif grep -q "version=v23.8" $RELEASE && grep -q "arch=mt798x" $RELEASE; then
                 echo "source=lean" >>$RELEASE
-                echo "Update release files aarch64 v23.8"
+                echo "+ patch : release files aarch64 v23.8"
             fi
         fi
     else
