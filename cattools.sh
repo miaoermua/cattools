@@ -715,15 +715,20 @@ apply_repo() {
     else
         echo "============================================================================"
         echo "请选择要使用的软件源:"
-        echo "1) repo.miaoer.xyz    (主站)"
+        echo "1) miaoer.net   (主站)"
         echo "2) Github-Pages"
         echo "3) Cloudflare-Netlify"
-        echo "4) Netlify"
-        echo "5) Cloudflare-Vercel"
-        echo "6) Vercel             (默认)"
+        echo "4) Netlify              (默认)"
 
-        read -t 10 -p "Please enter your choice /// 请输入选择 (1-5): " choice
-        choice=${choice:-6}
+        if [[ "$REPO_URL" == *"/history/"* ]]; then
+            read -t 10 -p "Please enter your choice /// 请输入选择 (1-4): " choice
+            choice=${choice:-4}
+        else
+            echo "5) Cloudflare-Vercel"
+            echo "6) Vercel             (默认)"
+            read -t 10 -p "Please enter your choice /// 请输入选择 (1-6): " choice
+            choice=${choice:-6}
+        fi
 
         case $choice in
         1)
@@ -742,7 +747,7 @@ apply_repo() {
         4) conf_file="netlify.conf" ;;
         5) conf_file="cfvercel.conf" ;;
         6) conf_file="vercel.conf" ;;
-        *) conf_file="vercel.conf" ;;
+        *) conf_file="netlify.conf" ;;
         esac
     fi
 
