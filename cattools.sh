@@ -1896,6 +1896,7 @@ patch_catwrt_release() {
     fi
 }
 
+patch_banner_domains
 patch_catwrt_release
 
 while true; do
