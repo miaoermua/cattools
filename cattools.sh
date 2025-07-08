@@ -1226,16 +1226,16 @@ catwrt_opkg_list_installed() {
 
     main() {
         if [ -f "$BACKUP_FILE" ]; then
-            echo "Sponsor us    ==========================================================="
-            echo "你执行的下面命令如果使用的主站软件源 repo.miaoer.xyz 将对服务器带宽产生新的挑战"
+            echo "Sponsor us    ======================================================"
+            echo "你执行的下面命令如果使用的主站软件源将对服务器带宽带来挑战"
             echo "我们希望你在使用后继续支持我们，继续为您提供更好的服务"
-            echo "如果不想支持我们也可以使用免费 serverless 提供的镜像服务选择非主站即可"
+            echo "如果不想支持我们也可以使用免费无服务器提供的镜像，请选择非主站"
             echo "不会对我们服务器造成流量激增，但访问速度受限于国际互联网"
             echo ""
             echo "https://www.miaoer.net/sponsor"
             echo ""
-            echo "你可以复制下链接在浏览器上打开，待恢复软件包后再进行支付!"
-            echo "========================================================================="
+            echo "当然，你可以复制下链接在浏览器上挂起，待恢复软件包后再进行支付!"
+            echo "===================================================================="
 
             sleep 3
 
@@ -1896,8 +1896,8 @@ patch_catwrt_release() {
     fi
 }
 
-patch_banner_domains
 patch_catwrt_release
+patch_banner_domains
 
 while true; do
     menu
