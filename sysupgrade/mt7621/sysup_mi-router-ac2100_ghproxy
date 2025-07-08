@@ -3,6 +3,6 @@
 ## Dangerous! this operation does not allow normal users to bypass cattools!
 
 MT7621_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v24.9.mt7621/CatWrt.v24.9.mt7621-xiaomi_mi-router-ac2100-squashfs-sysupgrade.bin"
-GHPROXY="https://mirror.ghproxy.com/"
+GHPROXY="https://gh-proxy.com/"
 
 sysupgrade -v $GHPROXY$MT7621_SYSUP

@@ -3,6 +3,6 @@
 ## Dangerous! this operation does not allow normal users to bypass cattools!
 
 MT798X_SYSUP="https://github.com/miaoermua/CatWrt/releases/download/v23.8.mt798x/CatWrt.v23.8.mt798x-filogic-tplink_tl-xdr4288-squashfs-sysupgrade.bin"
-GHPROXY="https://mirror.ghproxy.com/"
+GHPROXY="https://gh-proxy.com/"
 
 sysupgrade -v $GHPROXY$MT798X_SYSUP

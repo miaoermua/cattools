@@ -38,31 +38,38 @@ else
     echo "[INFO] 你选择的目标磁盘是：/dev/$target_disk"
 fi
 
-# 是否使用 ghproxy 加速
-read -p "[INFO] 是否使用 ghproxy 加速下载固件? (y/n): " use_ghproxy
-if [ "$use_ghproxy" = "y" ] || [ "$use_ghproxy" = "Y" ]; then
-    echo "[INFO] 将使用 ghproxy 进行下载加速"
-    GH_PROXY_PREFIX="https://mirror.ghproxy.com/"
+# 下载源选择
+echo "[INFO] 请选择固件下载源："
+echo "1) GitHub（可选 ghproxy 加速）"
+echo "2) 服务器直连（release.miaoer.net）"
+read -p "[INFO] 输入选项 [1/2]: " source_choice
+
+if [ "$source_choice" = "1" ]; then
+    read -p "[INFO] 是否使用 ghproxy 加速下载固件? (y/n): " use_ghproxy
+    if [ "$use_ghproxy" = "y" ] || [ "$use_ghproxy" = "Y" ]; then
+        GH_PROXY_PREFIX="https://gh-proxy.com/"
+        echo "[INFO] 将使用 gh-proxy.com 加速"
+    else
+        GH_PROXY_PREFIX=""
+        echo "[INFO] 不使用加速"
+    fi
+    BASE_URL="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/"
 else
-    echo "[INFO] 不使用 ghproxy 加速"
-    GH_PROXY_PREFIX=""
+    BASE_URL="https://release.miaoer.net/CatWrt/v24.9/amd64/"
+    echo "[INFO] 使用服务器直连"
 fi
 
-# 选择是否 efi
-efi_mode=0
-if [ -d /sys/firmware/efi ]; then
-    efi_mode=1
-    echo "[INFO] 你的固件支持 efi"
+# 拼接文件名与完整 URL
+if [ "$efi_mode" -eq 1 ]; then
+    FILENAME="CatWrt.v24.9.amd64-squashfs-combined-efi.img.gz"
+else
+    FILENAME="CatWrt.v24.9.amd64-squashfs-combined.img.gz"
 fi
-
-# 添加 ghproxy
-AMD64_EFI_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-squashfs-combined-efi.img.gz"
-AMD64_BIOS_SYSUP="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/CatWrt.v24.9.amd64-squashfs-combined.img.gz"
-
-firmware_url=$([ "$efi_mode" -eq 1 ] && echo "$AMD64_EFI_SYSUP" || echo "$AMD64_BIOS_SYSUP")
+firmware_url="${BASE_URL}${FILENAME}"
 
 # 下载固件
 firmware_file="/tmp/catwrt_sysupgrade.img.gz"
+echo "[INFO] 开始下载固件：$firmware_url"
 wget --timeout=30 --tries=3 -O "$firmware_file" "$firmware_url"
 if [ $? -ne 0 ] || [ ! -f "$firmware_file" ]; then
     echo "[ERROR] 固件下载失败"
