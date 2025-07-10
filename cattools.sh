@@ -186,6 +186,9 @@ network_wizard() {
     if [ "$iface_count" -eq 1 ]; then
         echo
         echo "[Step2] Detected a single network interface /// 检测到单个网口"
+        echo
+        echo "Setup a Bypass Gateway            [Enter] "
+        echo "Skip setup Bypass Gateway        [0]"
         read -p "是否进行旁路网关设置？([Enter] 确认 / [0] 跳过旁路设置)：" choice
         if [ "$choice" != "0" ]; then
             bypass_gateway
@@ -197,16 +200,18 @@ network_wizard() {
     echo "[Step3] CatWrt default IP is 192.168.1.4 /// 默认 CatWrt IP 为 192.168.1.4"
     read -p "是否修改 IP 地址？([Enter] 保持默认 / [0] 自定义): " modify_ip
     if [ "$modify_ip" == "0" ]; then
+        echo
         read -p "请输入 IP (默认为 $DEFAULT_IP): " input_ip
         if [[ -z $input_ip ]]; then
             input_ip=$DEFAULT_IP
         elif ! [[ $input_ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            echo "[ERROR] Invalid IP address"
             echo "[ERROR] 无效的 IP 地址。"
             return
         fi
 
         uci set network.lan.ipaddr=$input_ip
-        echo "[INFO] IP 地址已设置为 $input_ip"
+        echo "[INFO] IP 地址已设置为: $input_ip"
     else
         echo "[INFO] 保持默认 IP 地址：$DEFAULT_IP"
     fi
@@ -328,20 +333,23 @@ network_wizard() {
     fi
     echo
     echo "[INFO] Ready to reboot CatWrt!"
+    set -x
     uci commit
     /etc/init.d/network restart
     /etc/init.d/dnsmasq restart
     /etc/init.d/firewall restart
     /etc/init.d/miniupnpd restart
     reboot
+    set +x
 }
 
 # BypassGateway
 bypass_gateway() {
     # 输入主路由的 IP 地址
     while true; do
-        echo ""
-        read -p "[Step3] 请输入主路由的 IP 地址 (如 192.168.31.1): " router_ip
+        echo
+        echo "Please enter the IP address of the primary router (eg: 192.168.31.1):"
+        read -p "[Step3] 请输入主路由的 IP 地址 (如: 192.168.31.1): " router_ip
         if [ -z "$router_ip" ]; then
             echo "[ERROR] 主路由 IP 地址不能为空，请重新输入。"
         elif ! echo "$router_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
@@ -351,33 +359,58 @@ bypass_gateway() {
         fi
     done
 
-    # 提取子网地址和设置本机 IP 地址
     subnet=$(echo "$router_ip" | cut -d. -f1-3)
-    default_device_ip="${subnet}.4"
-
-    while true; do
-        read -p "[Step4] 本机 IP 地址为 $default_device_ip 按回车键确认，或输入新的 IP 地址：" device_ip
-        if [ -z "$device_ip" ]; then
-            device_ip="$default_device_ip"
-            break
-        elif ! echo "$device_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
-            echo "[ERROR] 输入的 IP 地址无效，请输入有效的 IP 地址。"
+    echo
+    echo "[INFO] Scanning ${subnet}.4 to ${subnet}.10, looking for unoccupied local IPs..." 
+    echo "[INFO] 正在扫描 ${subnet}.4 到 ${subnet}.10，查找未被占用的本机 IP..."
+    
+    for i in $(seq 4 10); do
+        candidate_ip="${subnet}.${i}"
+        if ping -c 1 -W 1 "$candidate_ip" >/dev/null 2>&1; then
+            echo "[INFO] $candidate_ip is already in use, try the next one...""
+            echo "[INFO] $candidate_ip 已被占用，继续尝试下一个..."
         else
+            default_device_ip="$candidate_ip"
+            echo "[INFO] Found available IP addr:"
+            echo "[INFO] 找到可用的 IP 地址：$default_device_ip"
             break
         fi
     done
 
+    if [ -z "$default_device_ip" ]; then
+        echo
+        echo "No available IP address found, please specify manually."
+        echo "[ERROR] 没有找到可用的 IP 地址，请手动指定。"
+        read -p "[Step4] 请输入本机 IP 地址：" device_ip
+    else
+        while true; do
+            echo
+            read -p "[Step4] 建议使用本机 IP 地址为 $default_device_ip，按回车确认或输入新的 IP 地址：" device_ip
+            if [ -z "$device_ip" ]; then
+                device_ip="$default_device_ip"
+                break
+            elif ! echo "$device_ip" | grep -Eq '^(10|172\.(1[6-9]|2[0-9]|3[01])|192\.168)\.'; then
+                echo
+                echo "[ERROR] 输入的 IP 地址无效，请输入有效的 IP 地址。"
+            else
+                break
+            fi
+        done
+    fi
     echo "INFO    ========================"
+    echo "Primary router IP addr：$router_ip"
+    echo "Local IP(Bypass Gateway)：$device_ip"
+    ehco
     echo "主路由 IP 地址：$router_ip"
     echo "本机(旁路网关) IP 地址：$device_ip"
     
     echo
-    echo "[Step5] Use recommended DNS servers 223.6.6.6 119.29.29.99?"
-    read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 119.29.29.99 吗？([Enter] 确认 / [0] 跳过): " use_dns
+    echo "[Step5] Use recommended DNS servers 223.6.6.6 223.5.5.5?"
+    read -p " /// 使用推荐的 DNS 服务器 223.6.6.6 223.5.5.5 吗？([Enter] 确认 / [0] 跳过): " use_dns
     if [ "$use_dns" = "0" ]; then
         exit 0
     elif [ -z "$use_dns" ]; then
-        uci set network.lan.dns="223.6.6.6 119.29.29.99"
+        uci set network.lan.dns="223.6.6.6 223.5.5.5"
     else
         if [[ $use_dns =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}(\s+([0-9]{1,3}\.){3}[0-9]{1,3})*$ ]]; then
             uci set network.lan.dns="$use_dns"
@@ -387,31 +420,19 @@ bypass_gateway() {
         fi
     fi
 
-    # 配置网络
+    set -x
+    # Configure the network
     uci set network.lan.ipaddr="$device_ip"
     uci set network.lan.gateway="$router_ip"
     uci set network.lan.proto='static'
     uci commit network
 
-    # 禁用 LAN 口的 IPv6 服务器
+    # Disable IPv6 server for LAN port
     uci set dhcp.lan.dhcpv6='disabled'
     uci set dhcp.lan.ra='disabled'
     uci commit dhcp
 
-    # 启用 MSS 钳制
-    uci set firewall.@defaults[0].mss_clamping='1'
-
-    # 启用 IP 伪装和 MTU fix
-    # lan 区域
-    uci set firewall.@zone[0].masq='1'   
-    uci set firewall.@zone[0].mtu_fix='1'
-    # wan 区域
-    uci set firewall.@zone[1].masq='1'   
-    uci set firewall.@zone[1].mtu_fix='1'
-
-    uci commit firewall
-
-    # 关闭 LAN 口的 DHCP 服务并删除相关配置
+    # Disable the DHCP service of the LAN port and delete related configurations
     uci set dhcp.lan.ignore='1'
     uci delete dhcp.lan.leasetime
     uci delete dhcp.lan.limit
@@ -419,13 +440,17 @@ bypass_gateway() {
     uci commit dhcp
 
     lan_ip=$(uci get network.lan.ipaddr)
+    echo
+    echo "Bypass gateway configuration completed!"
+    echo "local IP: $lan_ip"
     echo "旁路网关配置完成 IP: $lan_ip "
 
-    # 重启相关服务以应用更改
+    # Restart related services to apply the changes
     /etc/init.d/network restart
     /etc/init.d/firewall restart
     /etc/init.d/dnsmasq restart
-    
+    set +x
+
     echo
     echo "[INFO] 如出现 Warning 是因为旁路防火墙是这样报错的，部分配置可以忽略不影响使用"
     echo
