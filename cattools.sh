@@ -962,17 +962,23 @@ sysupgrade() {
     if [ "$arch" = "amd64" ]; then
         echo
 
-        disk_size=$(fdisk -l /dev/sda | grep "Disk /dev/sda:" | awk '{print $3}')
-        tolerance=$(echo "200/1024/1024" | bc -l)
-        allowed_size=800.28
-        min_size=$(echo "$allowed_size - $tolerance" | bc -l)
-        max_size=$(echo "$allowed_size + $tolerance" | bc -l)
+    main_disk=$(lsblk -dno NAME | grep -E '^(sd|vd|nvme)' | head -n1)
+    disk_path="/dev/$main_disk"
+    disk_size=$(fdisk -l "$disk_path" 2>/dev/null | grep "Disk $disk_path:" | awk '{print $3}')
+    tolerance=16
+    allowed_size=800.28
+    min_size=$(echo "$allowed_size - $tolerance" | bc -l)
+    max_size=$(echo "$allowed_size + $tolerance" | bc -l)
+    
+    if [ -z "$disk_size" ]; then
+        echo "[Error] 无法获取磁盘大小（$disk_path）。"
+        exit 1
+    fi
 
-        if (($(echo "$disk_size < $min_size" | bc -l))) || (($(echo "$disk_size > $max_size" | bc -l))); then
-            echo "[Error] 磁盘空间出现过修改或不匹配，无法继续升级。"
-            exit 1
-        fi
-
+    if (( $(echo "$disk_size < $min_size" | bc -l) )) || (( $(echo "$disk_size > $max_size" | bc -l) )); then
+        echo "[Error] 磁盘空间已被修改分区，无法继续升级。"
+        exit 1
+    fi
         efi_mode=0
         if [ -d /sys/firmware/efi ]; then
             efi_mode=1
