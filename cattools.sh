@@ -367,7 +367,7 @@ bypass_gateway() {
     for i in $(seq 4 10); do
         candidate_ip="${subnet}.${i}"
         if ping -c 1 -W 1 "$candidate_ip" >/dev/null 2>&1; then
-            echo "[INFO] $candidate_ip is already in use, try the next one...""
+            echo "[INFO] $candidate_ip is already in use, try the next one..."
             echo "[INFO] $candidate_ip 已被占用，继续尝试下一个..."
         else
             default_device_ip="$candidate_ip"
@@ -398,6 +398,8 @@ bypass_gateway() {
         done
     fi
     echo "INFO    ========================"
+    echo "Primary router IP addr：$router_ip"
+    echo "Local IP(Bypass Gateway)：$device_ip"
     echo "主路由 IP 地址：$router_ip"
     echo "本机(旁路网关) IP 地址：$device_ip"
     
