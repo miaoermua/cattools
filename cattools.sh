@@ -398,9 +398,6 @@ bypass_gateway() {
         done
     fi
     echo "INFO    ========================"
-    echo "Primary router IP addr：$router_ip"
-    echo "Local IP(Bypass Gateway)：$device_ip"
-    echo
     echo "主路由 IP 地址：$router_ip"
     echo "本机(旁路网关) IP 地址：$device_ip"
     
