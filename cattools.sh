@@ -986,7 +986,7 @@ sysupgrade() {
     if [ "$arch" = "amd64" ]; then
         echo
 
-    main_disk=$(grep -E '^[0-9]+' /proc/partitions | awk '{print $4}' | grep -E '^(sd|vd)[a-z]+$|^nvme[0-9]+n[0-9]+$' | head -n1)
+    main_disk=$(lsblk -dno NAME | grep -E '^(sd|vd|nvme)' | head -n1)
     disk_path="/dev/$main_disk"
     disk_size=$(fdisk -l "$disk_path" 2>/dev/null | grep "Disk $disk_path:" | awk '{print $3}')
     tolerance=16
