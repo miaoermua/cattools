@@ -1,18 +1,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cattools
-PKG_VERSION:=0.0
+PKG_VERSION:=1.0
 PKG_RELEASE:=1
-
-PKG_SOURCE:=cattools-ipkg.sh
-PKG_SOURCE_URL:=https://raw.githubusercontent.com/miaoermua/cattools/refs/heads/main
-PKG_HASH:=skip
 
 PKG_MAINTAINER:=miaoermua
 PKG_LICENSE:=GPL-2.0
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-dummy
-PKG_SOURCE_PROTO:=none
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -24,7 +17,7 @@ define Package/$(PKG_NAME)
 endef
 
 define Package/$(PKG_NAME)/description
-A powerful CatWrt toolbox written in BASH.
+A powerful CatWrt toolbox written in BASH. Blog: https://www.miaoer.net/posts/blog/cattools
 endef
 
 define Build/Configure
@@ -35,7 +28,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(DL_DIR)/$(PKG_SOURCE) $(1)/usr/bin/cattools
+	$(INSTALL_BIN) ./cattools-ipkg.sh $(1)/usr/bin/cattools
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
