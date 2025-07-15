@@ -12,6 +12,7 @@ PKG_MAINTAINER:=miaoermua
 PKG_LICENSE:=GPL-2.0
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-dummy
+PKG_SOURCE_PROTO:=none
 
 include $(INCLUDE_DIR)/package.mk
 
