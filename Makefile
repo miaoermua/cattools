@@ -4,8 +4,8 @@ PKG_NAME:=cattools
 PKG_VERSION:=0.0
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=https://raw.githubusercontent.com/miaoermua/cattools/refs/heads/main
 PKG_SOURCE:=cattools-ipkg.sh
+PKG_SOURCE_URL:=https://raw.githubusercontent.com/miaoermua/cattools/refs/heads/main
 PKG_HASH:=skip
 
 PKG_MAINTAINER:=miaoermua
@@ -16,7 +16,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/$(PKG_NAME)
   SECTION:=utils
   CATEGORY:=Utilities
-  TITLE:=CatTools
+  TITLE:=CatWrt tools
   DEPENDS:=+bash +curl +unzip +jq
 endef
 
