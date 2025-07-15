@@ -7,7 +7,7 @@
 [![Support](https://ziadoua.github.io/m3-Markdown-Badges/badges/Sponsor/sponsor1.svg)](https://www.miaoer.net/sponsor)
 [![COPYING](https://ziadoua.github.io/m3-Markdown-Badges/badges/LicenceGPLv2/licencegplv23.svg)](https://github.com/miaoermua/cattools/blob/main/LICENSE)
 
-Blog: <https://www.miaoer.xyz/posts/blog/cattools>
+Blog: <https://www.miaoer.net/posts/blog/cattools>
 
 执行下列命令 **一键安装 Cattools**，安装后输入 `cattools` 或 `/usr/bin/cattools` 并回车即可使用。
 
@@ -39,7 +39,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 喵二的*大饼* 新建文件夹中...
 
 - [ ] 预设 Wi-FI 配置(wireless) - 位于 网络向导
-- [ ] mt798x 系列升级系统 - 位于 系统更新
+- [x] mt798x 系列升级系统 - 位于 系统更新
 - [ ] 插件商店  - 可能位于 Apply-repo?
 - [ ] 自动挂载扩容  - 位于存储
 - [ ] NAS 快速配置(SMB)  - 位于存储
