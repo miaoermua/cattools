@@ -1214,7 +1214,7 @@ catwrt_opkg_list_installed() {
         "amd64-microcode"
     )
 
-    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[Error] 请先配置软件源"
         apply_repo
     fi
@@ -1321,7 +1321,7 @@ utilities_menu() {
 }
 
 configure_luci_mihomo() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1447,7 +1447,7 @@ configure_luci_mihomo() {
 }
 
 configure_tailscale() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
@@ -1516,7 +1516,7 @@ configure_leigodacc() {
     fi
 
     if [ -f /etc/catwrt_release ]; then
-        if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+        if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
             echo "[ERROR] 请先配置 CatWrt 软件源"
             apply_repo
         fi
@@ -1727,7 +1727,7 @@ configure_ttyd() {
 
 # Manual upload SSL/TLS
 manual_deploy_uhttpd_ssl_cert() {
-    if ! grep -q -E "catwrt|repo.miaoer.xyz|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
+    if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
         echo "[ERROR] 请先配置 CatWrt 软件源"
         apply_repo
     fi
