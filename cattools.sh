@@ -674,44 +674,27 @@ check_update() {
 # Apply_repo
 
 apply_repo() {
-    arch=$(grep -o 'arch=[^ ]*' $RELEASE | cut -d= -f2)
-    version=$(grep -o 'version=[^ ]*' $RELEASE | cut -d= -f2)
+    command -v jq >/dev/null 2>&1 || {
+        echo "[ERROR] 需要安装 jq，你的版本太老了!"
+        exit 1
+    }
 
-    case "$arch" in
-    amd64)
-        case "$version" in
-        v22.12) REPO_URL="$BASE_URL/history/v22.12/amd64" ;;
-        v23.2) REPO_URL="$BASE_URL/history/v23.2/amd64" ;;
-        v23.8) REPO_URL="$BASE_URL/history/v23.8/amd64" ;;
-        v24.9) REPO_URL="$BASE_URL/amd64" ;;
-        *) echo "Unknown amd64 version: $version" && exit 1 ;;
-        esac
-        ;;
-    mt798x)
-        case "$version" in
-        v22.12) REPO_URL="$BASE_URL/history/v22.12/aarch64_cortex-a53" ;;
-        v23.2) REPO_URL="$BASE_URL/history/v23.2/mt7986a" ;;
-        v23.8) REPO_URL="$BASE_URL/mt798x" ;;
-        v24.3) REPO_URL="$BASE_URL/pr/v24.3/mt798x" ;;
-        *) echo "Unknown mt798x version: $version" && exit 1 ;;
-        esac
-        ;;
-    rock64)
-        case "$version" in
-        v22.12) REPO_URL="$BASE_URL/rkarm" ;;
-        v24.1) REPO_URL="$BASE_URL/pr/v24.1/rkarm" ;;
-        *) echo "Unknown rock64 version: $version" && exit 1 ;;
-        esac
-        ;;
-    mt7621)
-        case "$version" in
-        v22.12) REPO_URL="$BASE_URL/history/v22.12/mt7621" ;;
-        v24.9) REPO_URL="$BASE_URL/mt7621" ;;
-        *) echo "Unknown mt7621 version: $version" && exit 1 ;;
-        esac
-        ;;
-    *) echo "Unknown arch" && exit 1 ;;
-    esac
+    arch=$(grep -o 'arch=[^ ]*' "$RELEASE" | cut -d= -f2)
+    version=$(grep -o 'version=[^ ]*' "$RELEASE" | cut -d= -f2)
+
+    json=$(curl -fsSL "https://api.miaoer.net/api/v2/snippets/catwrt/repo-config")
+    if [ -z "$json" ]; then
+        echo "[ERROR] 无法获取软件源配置，请检查网络或稍后重试。"
+        exit 1
+    fi
+
+    REPO_URL=$(echo "$json" | jq -r --arg a "$arch" --arg v "$version" '.[$a][$v].url')
+    IS_BETA=$(echo "$json" | jq -r --arg a "$arch" --arg v "$version" '.[$a][$v].beta')
+
+    if [ -z "$REPO_URL" ] || [ "$REPO_URL" == "null" ]; then
+        echo "[ERROR] 未找到 $arch $version 的软件源配置，请反馈给维护者。"
+        exit 1
+    fi
 
     echo ""
     echo "INFO    ================================================================="
@@ -719,22 +702,19 @@ apply_repo() {
     echo "本人不对所有软件进行保证，我们没有提供第三方商业服务，使用风险需要自行承担。"
     echo "你需要同意 CatWrt 软件源用户协议，请确认是否继续。 (10 秒内按 [Ctrl]+[C] 取消操作)"
 
-    if { [ "$arch" == "mt798x" ] && [ "$version" == "v24.3" ]; } || \
-       { [ "$arch" == "rkarm" ] && [ "$version" == "v24.1" ]; }; then
-
-        echo "你目前使用的 BETA 版本，只能临时搭建的镜像站软件源，请注意关注 CatWrt 的更新情况，避免软件源失效!"
+    if [ "$IS_BETA" = "true" ]; then
+        echo "你目前使用的 BETA 版本，只能拉取临时镜像站软件源，请注意关注 CatWrt 的更新情况，避免软件源失效!"
         echo "============================================================================"
         echo "请选择要使用的软件源:"
         echo "1) netlify"
         echo "2) vercel (默认)"
-
         read -t 10 -p "Please enter your choice /// 请输入选择 (1-2): " choice
         choice=${choice:-2}
 
         case $choice in
-        1) conf_file="netlify.conf" ;;
-        2) conf_file="vercel.conf" ;;
-        *) conf_file="vercel.conf" ;;
+            1) conf_file="netlify.conf" ;;
+            2) conf_file="vercel.conf" ;;
+            *) conf_file="vercel.conf" ;;
         esac
     else
         echo "============================================================================"
@@ -755,48 +735,42 @@ apply_repo() {
         fi
 
         case $choice in
-        1)
-            echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.net/sponsor"
-            echo "我们将使用用户支持的费用用于继续维护 CatWrt 及博客"
-            read -p "请输入支持代码: " sponsor_code
-            if [ "$sponsor_code" != "vme50" ]; then
-                echo "[ERROR] 支持代码无效，返回菜单选择其他软件源。"
-                apply_repo
-                return
-            fi
-            conf_file="distfeeds.conf"
-            ;;
-        2) conf_file="github.conf" ;;
-        3) conf_file="cfnetlify.conf" ;;
-        4) conf_file="netlify.conf" ;;
-        5) conf_file="cfvercel.conf" ;;
-        6) conf_file="vercel.conf" ;;
-        *) conf_file="netlify.conf" ;;
+            1)
+                echo "以赞助我们并获取支持代码，请访问链接: https://www.miaoer.net/sponsor"
+                echo "我们将使用用户支持的费用用于继续维护 CatWrt 及博客"
+                read -p "请输入支持代码: " sponsor_code
+                if [ "$sponsor_code" != "cat666" ]; then
+                    echo "[ERROR] 支持代码无效，返回菜单选择其他软件源。"
+                    apply_repo
+                    return
+                fi
+                conf_file="distfeeds.conf"
+                ;;
+            2) conf_file="github.conf" ;;
+            3) conf_file="cfnetlify.conf" ;;
+            4) conf_file="netlify.conf" ;;
+            5) conf_file="cfvercel.conf" ;;
+            6) conf_file="vercel.conf" ;;
+            *) conf_file="netlify.conf" ;;
         esac
     fi
 
     CONF_PATH="$REPO_URL/$conf_file"
     if curl --output /dev/null --silent --head --fail "$CONF_PATH"; then
-        echo "[INFO] 使用 $CONF_PATH"
+        echo "[INFO] 获取 $CONF_PATH"
     else
-        echo "[Error] 源文件: $CONF_PATH 不存在请反馈"
+        echo "[ERROR] repo conf: $CONF_PATH 不存在，请反馈。"
         exit 1
     fi
 
     curl -sL "$CONF_PATH" -o /etc/opkg/distfeeds.conf
 
-    if [ -f /var/lock/opkg.lock ]; then
-        rm /var/lock/opkg.lock
-    fi
-
-    # fack istore_compat
-    if [ -f /var/opkg-lists/istore_compat ]; then
-        rm /var/opkg-lists/istore_compat
-    fi
+    [ -f /var/lock/opkg.lock ] && rm /var/lock/opkg.lock
+    [ -f /var/opkg-lists/istore_compat ] && rm /var/opkg-lists/istore_compat
 
     opkg update
 
-    echo "[INFO] 软件源配置已完成可以通过 opkg install pkg 来安装插件/组件/内核模块!"
+    echo "[INFO] 软件源配置已完成，可以使用 opkg install <pkg> 来安装插件/组件/内核模块！"
 }
 
 # catnd
