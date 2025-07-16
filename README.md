@@ -21,7 +21,7 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [x] 命令行参数
 - [x] 1. SetIP                                  -  设置 IP
 - [x] 2. Network_Wizard                         -  网络向导(支持旁路)
-- [x] 3. Apply_repo                             -  软件源配置
+- [x] 3. Apply_repo                             -  软件源配置（云配置）
 - [x] 4. Diagnostics                            -  网络诊断
 - [x] 5. Debug                                  -  抓取日志
 - [x] 6. Catwrt_update                          -  检查更新
