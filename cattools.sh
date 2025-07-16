@@ -1321,130 +1321,92 @@ utilities_menu() {
 }
 
 configure_luci_mihomo() {
-    if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]+\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
-        echo "[ERROR] 请先配置 CatWrt 软件源"
-        apply_repo
-    fi
+    echo ""
+    echo "Warning    =============================================================="
+    echo ""
+    echo "我站不提供服务器，该功能只是补全 Mihomo 的内核，仅此而已所有结果由用户自行承担!"
+    echo "你需要阅读并同意以上协议并自行承担配置后的一切后果，如不同意请 [CTRL]+[C] 中断该功能"
+    echo "========================================================================="
+    sleep 2
 
-    if [ -f "$RELEASE" ]; then
-        . "$RELEASE"
-    else
-        echo "[ERROR] 找不到 RELEASE 文件"
+    if [ ! -f "$RELEASE" ]; then
+        echo "[ERROR] 找不到 RELEASE 文件: $RELEASE"
         exit 1
     fi
+
+    . "$RELEASE"
 
     case "$arch" in
-    "mt7621")
-        arch="mipsle-softfloat"
-        ;;
-    "amd64")
-        arch="amd64"
-        ;;
-    "mt798x"|"rock64")
-        arch="arm64"
-        ;;
-    *)
-        echo "[ERROR] 不支持的架构: $arch"
-        exit 1
-        ;;
+        "mt7621")
+            arch="mipsle-hardfloat"
+            ;;
+        "amd64")
+            arch="amd64"
+            ;;
+        "mt798x"|"rock64"|"rkarm64"|"mt7986")
+            arch="arm64"
+            ;;
+        *)
+            echo "[ERROR] 不支持的架构: $arch"
+            exit 1
+            ;;
     esac
 
     if ! opkg list_installed | grep -q luci-app-openclash; then
+        echo "[INFO] luci-app-openclash 未安装，正在安装..."
         opkg update
         opkg install luci-app-openclash
     fi
 
-    download_mihomo_core() {
-        local core_name="$1"
-        shift
-        local urls=("$@")
-        local dest_dir="/etc/openclash/core"
-        local temp_file=$(mktemp)
-        local success=0
-        local failed_urls=()
+    local core_name="clash_meta"
+    local dest_dir="/etc/openclash/core"
+    local temp_file
+    temp_file=$(mktemp)
+    local success=0
+    local failed_urls=()
 
-        for url in "${urls[@]}"; do
-            echo "尝试下载: $url"
-            if curl --silent --connect-timeout 5 --max-time 10 -o "$temp_file" "$url"; then
-                if tar -tzf "$temp_file" &>/dev/null; then
-                    tar -xz -C "$dest_dir" -f "$temp_file"
-                    mv "$dest_dir/clash" "$dest_dir/$core_name"
-                    rm -f "$temp_file"
-                    echo "已成功下载: $url"
-                    success=1
-                    break
-                else
-                    echo "[ERROR] 无效的压缩文件: $url"
-                    failed_urls+=("$url")
-                fi
-            else
-                echo "[ERROR] 下载失败: $url"
-                failed_urls+=("$url")
-            fi
-        done
-
-        if [ $success -ne 1 ]; then
-            rm -f "$temp_file"
-            echo "[ERROR] 所有下载链接均失败"
-            exit 1
-        fi
-    }
+    local urls=(
+        "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-${arch}.tar.gz"
+        "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-${arch}.tar.gz"
+        "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-${arch}.tar.gz"
+        "https://gh-proxy.com/github.com/vernesong/OpenClash/raw/core/master/meta/clash-linux-${arch}.tar.gz"
+        "https://ghfast.top/github.com/vernesong/OpenClash/raw/core/master/meta/clash-linux-${arch}.tar.gz"
+    )
 
     echo ""
-    echo "Warning    =============================================================="
+    echo "即将开始下载 Mihomo 内核（架构: $arch）..."
+    echo "正在尝试下载 Mihomo 内核: $core_name ($arch)"
 
-    echo "我站不提供服务器，该功能只是补全 Mihomo 的内核，仅此而已所有结果由用户自行承担!"
-    echo "你需要阅读并同意以上协议并自行承担配置后的一切后果，如不同意请 [CTRL]+[C] 中断该功能"
-    echo "========================================================================="
+    for url in "${urls[@]}"; do
+        echo "尝试下载: $url"
+        if curl --silent --connect-timeout 5 --max-time 10 -L -o "$temp_file" "$url"; then
+            if tar -tzf "$temp_file" &>/dev/null; then
+                mkdir -p "$dest_dir"
+                tar -xz -C "$dest_dir" -f "$temp_file"
+                mv "$dest_dir/clash" "$dest_dir/$core_name"
+                rm -f "$temp_file"
+                echo "[SUCCESS] 下载成功: $url"
+                success=1
+                break
+            else
+                echo "[ERROR] 无效的压缩文件: $url"
+                failed_urls+=("$url")
+            fi
+        else
+            echo "[ERROR] 下载失败: $url"
+            failed_urls+=("$url")
+        fi
+    done
 
-    sleep 2
-
-    echo "请选择下载类型:"
-    echo "1. 全部下载 (默认 3 秒后执行)"
-    echo "2. 仅下载 Mihomo 内核"
-    echo "3. 仅下载原版内核"
-    echo -n "输入选项 ([1]/[2]/[3]): "
-    read -t 3 -p "" choice
-
-    if [ -z "$choice" ]; then
-        choice=1
+    if [ $success -ne 1 ]; then
+        rm -f "$temp_file"
+        echo "[ERROR] 所有下载链接均失效，请检查网络或稍后再试。"
+        exit 1
     fi
 
-    local clash_meta_urls=(
-        "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-$arch.tar.gz"
-        "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-$arch.tar.gz"
-        "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/meta/clash-linux-$arch.tar.gz"
-    )
-
-    local clash_urls=(
-        "https://raw.githubusercontent.com/vernesong/OpenClash/core/master/dev/clash-linux-$arch.tar.gz"
-        "https://cdn.jsdelivr.net/gh/vernesong/OpenClash@core/master/dev/clash-linux-$arch.tar.gz"
-        "https://fastly.jsdelivr.net/gh/vernesong/OpenClash@core/master/dev/clash-linux-$arch.tar.gz"
-    )
-
-    case $choice in
-    1)
-        echo "正在更新 Mihomo 内核..."
-        download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
-        echo "正在更新原版内核..."
-        download_mihomo_core "clash" "${clash_urls[@]}"
-        ;;
-    2)
-        echo "正在更新 Mihomo 内核..."
-        download_mihomo_core "clash_meta" "${clash_meta_urls[@]}"
-        ;;
-    3)
-        echo "正在更新原版内核..."
-        download_mihomo_core "clash" "${clash_urls[@]}"
-        ;;
-    *)
-        echo "[ERROR] 无效选项"
-        exit 1
-        ;;
-    esac
-
-    echo "[INFO] 操作完成"
+    echo "[INFO] Mihomo 内核下载完成"
 }
+
 
 configure_tailscale() {
     if ! grep -q -E "catwrt|raw.miaoer.net|raw-us.miaoer.net" /etc/opkg/distfeeds.conf  && ! ip a | grep -q -E "192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+|172\.1[6-9]\.[0-9]+\.[0-9]+|172\.2[0-9]\.[0-9]+\.[0-9]+|172\.3[0-1]\.[0-9]+\.[0-9]+"; then
