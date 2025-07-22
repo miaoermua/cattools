@@ -17,6 +17,8 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 
 ## Todo
 
+支持 OpenWrt 预装 Cattools
+
 - [x] 热更新和安装脚本
 - [x] 命令行参数
 - [x] 1. SetIP                                  -  设置 IP
@@ -41,5 +43,3 @@ curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 - [ ] 预设 Wi-FI 配置(wireless) - 位于 网络向导
 - [x] mt798x 系列升级系统 - 位于 系统更新
 - [ ] 插件商店  - 可能位于 Apply-repo?
-- [ ] 自动挂载扩容  - 位于存储
-- [ ] NAS 快速配置(SMB)  - 位于存储
