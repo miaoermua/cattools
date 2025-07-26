@@ -13,7 +13,7 @@ fi
 
 # installed
 install_cattools() {
-set -
+set -x
     if [ ! -f /usr/bin/cattools ]; then
         echo "cattools not found, installing..."
         if curl --silent --connect-timeout 5 -o /usr/bin/cattools https://raw.miaoer.net/cattools/cattools.sh; then
@@ -28,7 +28,7 @@ set -
     fi
     echo "cattools is installed successfully!"
     echo "please type ‘cattools’ or ‘/usr/bin/cattools’ to run it."
-set +
+set +x
 }
 
 install_cattools
