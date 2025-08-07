@@ -898,7 +898,21 @@ sysupgrade() {
     if [ "$arch" = "amd64" ]; then
         echo
 
-    main_disk=$(lsblk -dno NAME | grep -E '^(sd|vd|nvme)' | head -n1)
+    main_disk=""
+    for dev in /sys/block/*; do
+        dev_name=$(basename "$dev")
+        case "$dev_name" in
+            sd*|vd*|nvme*)
+                main_disk="$dev_name"
+                break
+                ;;
+        esac
+    done
+
+    if [ -z "$main_disk" ]; then
+        echo "[Error] 未找到有效磁盘设备 (sd*, vd*, nvme*)"
+        exit 1
+    fi
     disk_path="/dev/$main_disk"
     disk_size=$(fdisk -l "$disk_path" 2>/dev/null | grep "Disk $disk_path:" | awk '{print $3}')
     tolerance=16

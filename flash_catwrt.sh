@@ -53,17 +53,17 @@ if [ "$source_choice" = "1" ]; then
         GH_PROXY_PREFIX=""
         echo "[INFO] 不使用加速"
     fi
-    BASE_URL="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v24.9/"
+    BASE_URL="${GH_PROXY_PREFIX}https://github.com/miaoermua/CatWrt/releases/download/v25.8/"
 else
-    BASE_URL="https://release.miaoer.net/CatWrt/v24.9/amd64/"
+    BASE_URL="https://release.miaoer.net/CatWrt/v25.8/amd64/"
     echo "[INFO] 使用服务器直连"
 fi
 
 # 拼接文件名与完整 URL
 if [ "$efi_mode" -eq 1 ]; then
-    FILENAME="CatWrt.v24.9.amd64-squashfs-combined-efi.img.gz"
+    FILENAME="CatWrt.v25.8.amd64-squashfs-combined-efi.img.gz"
 else
-    FILENAME="CatWrt.v24.9.amd64-squashfs-combined.img.gz"
+    FILENAME="CatWrt.v25.8.amd64-squashfs-combined.img.gz"
 fi
 firmware_url="${BASE_URL}${FILENAME}"
 
