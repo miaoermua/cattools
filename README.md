@@ -15,6 +15,12 @@ Blog: <https://www.miaoer.net/posts/blog/cattools>
 curl https://raw.githubusercontent.com/miaoermua/cattools/main/install.sh | bash
 ```
 
+如无法安装使用
+
+```bash
+wget -O /usr/bin/cattools https://raw.miaoer.net/cattools/cattools.sh && chmod +x /usr/bin/cattools
+```
+
 ## Todo
 
 支持 OpenWrt 预装 Cattools
