@@ -702,8 +702,10 @@ apply_repo() {
     fi
 
     curl -sL "$CONF_PATH" -o /etc/opkg/distfeeds.conf
-
     [ -f /var/lock/opkg.lock ] && rm /var/lock/opkg.lock
+
+    # fuck,iStore!
+    # iStore conflict-avoidance packages are outdated and unmaintained
     [ -f /var/opkg-lists/istore_compat ] && rm /var/opkg-lists/istore_compat
 
     opkg update
